@@ -1,0 +1,163 @@
+# -*- coding: utf-8 -*-
+
+import torch
+import torch.nn.functional as F
+import torch.optim as optim
+from Distributed_Transfer_PPO.actor_critic import ActorCritic
+from Distributed_Transfer_PPO.utils import state_preprocess_cartpole
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+lmbda = 0.95
+eps_clip = 0.1
+K_epoch = 10
+c1 = 0.5
+c2 = 0.01
+
+
+class PPOAgent:
+    def __init__(self, env, worker_id, logger, n_inputs, hidden_size, n_outputs, gamma, verbose):
+        self.env = env
+
+        self.worker_id = worker_id
+
+        # discount rate
+        self.gamma = gamma
+
+        self.n_inputs = n_inputs
+        self.hidden_size = hidden_size
+        self.n_outputs = n_outputs
+
+        self.trajectory = []
+
+        # learning rate
+        self.learning_rate = 0.001
+
+        self.logger = logger
+        self.verbose = verbose
+
+        self.model = self.build_model(self.n_inputs, self.hidden_size, self.n_outputs)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+
+        print("----------Worker {0}: {1}:--------".format(
+            self.worker_id, "PPO",
+        ))
+
+    # Policy Network is 256-256-256-2 MLP
+    def build_model(self, n_inputs, hidden_size, n_outputs):
+        model = ActorCritic(n_inputs, hidden_size, n_outputs, device).to(device)
+        return model
+
+    def put_data(self, transition):
+        self.trajectory.append(transition)
+
+    def get_trajectory_data(self):
+        state_lst, action_lst, reward_lst, next_state_lst, prob_action_lst, done_mask_lst = [], [], [], [], [], []
+
+        for transition in self.trajectory:
+            s, a, r, s_prime, prob_a, done = transition
+
+            state_lst.append(s)
+            action_lst.append([a])
+            reward_lst.append([r])
+            next_state_lst.append(s_prime)
+            prob_action_lst.append([prob_a])
+
+            done_mask = 0 if done else 1
+            done_mask_lst.append([done_mask])
+
+        state_lst = torch.tensor(state_lst, dtype=torch.float)
+        action_lst = torch.tensor(action_lst)
+        reward_lst = torch.tensor(reward_lst)
+        next_state_lst = torch.tensor(next_state_lst, dtype=torch.float)
+        done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float)
+        prob_action_lst = torch.tensor(prob_action_lst)
+
+        self.trajectory.clear()
+        return state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst
+
+    def train_net(self):
+        state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst = self.get_trajectory_data()
+
+        loss_sum = 0.0
+        for i in range(K_epoch):
+            v_target = reward_lst + self.gamma * self.model.v(next_state_lst) * done_mask_lst
+
+            delta = v_target - self.model.v(state_lst)
+            delta = delta.detach().numpy()
+
+            advantage_lst = []
+            advantage = 0.0
+            for delta_t in delta[::-1]:
+                advantage = self.gamma * lmbda * advantage + delta_t[0]
+                advantage_lst.append([advantage])
+            advantage_lst.reverse()
+            advantage = torch.tensor(advantage_lst, dtype=torch.float)
+
+            pi = self.model.pi(state_lst, softmax_dim=1)
+            new_prob_action_lst = pi.gather(dim=1, index=action_lst)
+            ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
+
+            surr1 = ratio * advantage
+            surr2 = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip) * advantage
+            entropy = new_prob_action_lst * torch.log(prob_action_lst + 1.e-10) + \
+                      (1.0 - new_prob_action_lst) * torch.log(-prob_action_lst + 1.0 + 1.e-10)
+
+            loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
+
+            self.optimizer.zero_grad()
+            loss.mean().backward()
+            self.optimize_step()
+
+            loss_sum += loss.mean().item()
+
+        gradients = self.model.get_gradients_for_current_parameters()
+        return gradients, loss_sum / K_epoch
+
+    def optimize_step(self):
+        self.optimizer.step()
+
+    def on_episode(self, episode):
+        # in CartPole-v0:
+        # state = [pos, vel, theta, angular speed]
+        state = state_preprocess_cartpole(self.env.reset())
+        done = False
+        score = 0.0
+
+        while not done:
+            action, prob = self.model.act(state)
+            next_state, reward, done, info = self.env.step(action)
+
+            next_state = state_preprocess_cartpole(next_state)
+
+            self.put_data((state, action, reward / 100, next_state, prob, done))
+
+            state = next_state
+
+            score += reward
+            if done:
+                break
+
+        avg_gradients, loss = self.train_net()
+
+        return avg_gradients, loss, score
+
+    def get_parameters(self, num_weight_transfer_hidden_layers):
+        weights = {}
+        for layer_id in range(num_weight_transfer_hidden_layers):
+            weights["weight_{0}".format(layer_id)] = self.model.fc[layer_id].weight.data
+            weights["bias_{0}".format(layer_id)] = self.model.fc[layer_id].bias.data
+        return weights
+
+    def transfer_process(self, parameters, num_weight_transfer_hidden_layers, soft_transfer, soft_transfer_tau):
+        for layer_id in range(num_weight_transfer_hidden_layers):
+            if soft_transfer:
+                weight_original = self.model.fc[layer_id].weight.data
+                bias_original = self.model.fc[layer_id].bias.data
+                weight_updated = weight_original * soft_transfer_tau + parameters["weight_{0}".format(layer_id)] * (1 - soft_transfer_tau)
+                bias_updated = bias_original * soft_transfer_tau + parameters["bias_{0}".format(layer_id)] * (1 - soft_transfer_tau)
+                self.model.fc[layer_id].weight.data = weight_updated
+                self.model.fc[layer_id].bias.data = bias_updated
+            else:
+                self.model.fc[layer_id].weight.data = parameters["weight_{0}".format(layer_id)]
+                self.model.fc[layer_id].bias.data = parameters["bias_{0}".format(layer_id)]
