@@ -3,7 +3,7 @@ import glob
 import runpy
 import time
 from multiprocessing import Process
-from Distributed_Transfer_PPO.constants import PYTHON_PATH, NUM_WORKERS
+from constants import PYTHON_PATH, NUM_WORKERS
 import multiprocessing, logging
 
 if not os.path.exists("./graphs/"):
@@ -12,8 +12,6 @@ if not os.path.exists("./graphs/"):
 if not os.path.exists("./logs/"):
     os.makedirs("./logs/")
 
-if not os.path.exists("./out_err/"):
-    os.makedirs("./out_err/")
 
 def run_broker():
     try:

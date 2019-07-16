@@ -3,8 +3,8 @@
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from Distributed_Transfer_PPO.actor_critic import ActorCritic
-from Distributed_Transfer_PPO.utils import state_preprocess_cartpole
+from actor_critic import ActorCritic
+from utils import state_preprocess_cartpole
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

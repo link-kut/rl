@@ -9,11 +9,9 @@ MQTT_TOPIC_UPDATE_ACK = "Update_Ack"
 MQTT_TOPIC_ACK = "Ack"
 
 NUM_WORKERS = 8
-PYTHON_PATH="~/anaconda/envs/tf20/bin/python3"
+PYTHON_PATH="~/anaconda/envs/rl/bin/python3"
 
 NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS = 4
-SCORE_BASED_TRANSFER = False
-LOSS_BASED_TRANSFER = False
 
 SOFT_TRANSFER = False
 SOFT_TRANSFER_TAU = 0.3

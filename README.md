@@ -1,4 +1,17 @@
-### 1. mosquitto
+### 0. 환경 만들기 및 모듈 설치
+
+- conda create -n rl python=3.7
+- conda activate rl
+- pip install --ignore-installed pip
+
+### 1. OpenAI Gym 설치
+
+- git clone https://github.com/openai/gym.git
+- cd gym
+- pip install -e '.[all]'
+  - mujoco 에러 무시 
+
+### 2. mosquitto
 - 모스키토 설치
   - brew install mosquitto
 
@@ -13,15 +26,15 @@
   - mosquitto_pub -h [주소] -p [포트] -t [주제] -m [메세지]
   - mosquitto_pub -h 127.0.0.1 -p 1883 -t "topic" -m "test messgae"
   
-### 2. PYTHON_PATH 조정
+### 3. constants.py 내 설정 내용 조정
 - constants.py 파일 열기
   - 적절한 anaconda environment 확인
-  - PYTHON_PATH="~/anaconda3/envs/tf20/bin/python3"의 Python 인터프리터 패스 수정
+  - PYTHON_PATH="~/anaconda3/envs/rl/bin/python3"의 Python 인터프리터 패스 수정
   
-### 3. 실행
+### 4. 실행
 - main.py 실행
 
-### 4. Cartpole-0
+### 5. Cartpole-0
 - https://github.com/openai/gym/wiki/CartPole-v0
 
 - Action
@@ -41,3 +54,9 @@
 
 - Solved Requirements
   - Considered solved when the average reward is greater than or equal to 195.0 over 100 consecutive trials.
+  
+### gitignore 적용
+
+- git rm -r --cached .
+- git add .
+- git commit -m "Apply .gitignore"  

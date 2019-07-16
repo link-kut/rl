@@ -6,21 +6,21 @@ import numpy as np
 from collections import deque
 
 import paho.mqtt.client as mqtt
-from Distributed_Transfer_PPO.constants import MQTT_SERVER, MQTT_PORT, ENVIRONMENT_ID
-from Distributed_Transfer_PPO.constants import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
-from Distributed_Transfer_PPO.constants import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
-from Distributed_Transfer_PPO.constants import NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS, WIN_REWARD, VERBOSE
-from Distributed_Transfer_PPO.constants import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
-from Distributed_Transfer_PPO.constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
-from Distributed_Transfer_PPO.constants import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+from constants import MQTT_SERVER, MQTT_PORT, ENVIRONMENT_ID
+from constants import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
+from constants import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
+from constants import NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS, WIN_REWARD, VERBOSE
+from constants import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
+from constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
+from constants import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
 
 import sys
-from Distributed_Transfer_PPO.logger import get_logger
+from logger import get_logger
 import gym
 
-from Distributed_Transfer_PPO.worker_rl_PPO import PPOAgent
+from worker_rl_PPO import PPOAgent
 
-from Distributed_Transfer_PPO.utils import exp_moving_average
+from utils import exp_moving_average
 
 if len(sys.argv) < 2:
   print("[ERROR]: no worker id")

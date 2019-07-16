@@ -5,19 +5,19 @@ import zlib
 
 import torch
 
-from Distributed_Transfer_PPO.utils import exp_moving_average
+from utils import exp_moving_average
 
-from Distributed_Transfer_PPO.constants import MQTT_SERVER, MQTT_PORT, ENVIRONMENT_ID
-from Distributed_Transfer_PPO.constants import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
-from Distributed_Transfer_PPO.constants import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
-from Distributed_Transfer_PPO.constants import NUM_WORKERS, EMA_WINDOW
-from Distributed_Transfer_PPO.constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
-from Distributed_Transfer_PPO.constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+from constants import MQTT_SERVER, MQTT_PORT, ENVIRONMENT_ID
+from constants import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
+from constants import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
+from constants import NUM_WORKERS, EMA_WINDOW
+from constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
+from constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
 
-from Distributed_Transfer_PPO.actor_critic import ActorCritic
+from actor_critic import ActorCritic
 
 import paho.mqtt.client as mqtt
-from Distributed_Transfer_PPO.logger import get_logger
+from logger import get_logger
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec

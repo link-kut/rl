@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from Distributed_Transfer_PPO.constants import ENVIRONMENT_ID
+from constants import ENVIRONMENT_ID
 import torch
 torch.manual_seed(0) # set random seed
 import torch.nn as nn
