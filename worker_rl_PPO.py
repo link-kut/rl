@@ -4,7 +4,6 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from actor_critic import ActorCritic
-from utils import state_preprocess_cartpole
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -16,7 +15,7 @@ c2 = 0.01
 
 
 class PPOAgent:
-    def __init__(self, env, worker_id, logger, n_inputs, hidden_size, n_outputs, gamma, verbose):
+    def __init__(self, env, worker_id, n_states, hidden_size, n_actions, gamma, env_render, logger, verbose):
         self.env = env
 
         self.worker_id = worker_id
@@ -24,19 +23,20 @@ class PPOAgent:
         # discount rate
         self.gamma = gamma
 
-        self.n_inputs = n_inputs
+        self.n_states = n_states
         self.hidden_size = hidden_size
-        self.n_outputs = n_outputs
+        self.n_actions = n_actions
 
         self.trajectory = []
 
         # learning rate
         self.learning_rate = 0.001
 
+        self.env_render = env_render
         self.logger = logger
         self.verbose = verbose
 
-        self.model = self.build_model(self.n_inputs, self.hidden_size, self.n_outputs)
+        self.model = self.build_model(self.n_states, self.hidden_size, self.n_actions)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
         print("----------Worker {0}: {1}:--------".format(
@@ -44,8 +44,8 @@ class PPOAgent:
         ))
 
     # Policy Network is 256-256-256-2 MLP
-    def build_model(self, n_inputs, hidden_size, n_outputs):
-        model = ActorCritic(n_inputs, hidden_size, n_outputs, device).to(device)
+    def build_model(self, n_states, hidden_size, n_actions):
+        model = ActorCritic(n_states, hidden_size, n_actions, device).to(device)
         return model
 
     def put_data(self, transition):
@@ -119,18 +119,19 @@ class PPOAgent:
 
     def on_episode(self, episode):
         # in CartPole-v0:
-        # state = [pos, vel, theta, angular speed]
-        state = state_preprocess_cartpole(self.env.reset())
+        # state = [theta, angular speed]
+        state = self.env.reset()
         done = False
         score = 0.0
 
         while not done:
+            if self.env_render:
+                self.env.render()
+
             action, prob = self.model.act(state)
-            next_state, reward, done, info = self.env.step(action)
+            next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
-            next_state = state_preprocess_cartpole(next_state)
-
-            self.put_data((state, action, reward / 100, next_state, prob, done))
+            self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
 

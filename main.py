@@ -1,10 +1,8 @@
 import os, sys
 import glob
-import runpy
 import time
 from multiprocessing import Process
-from constants import PYTHON_PATH, NUM_WORKERS
-import multiprocessing, logging
+from conf.constants_general import PYTHON_PATH, NUM_WORKERS
 
 if not os.path.exists("./graphs/"):
     os.makedirs("./graphs/")
@@ -12,6 +10,8 @@ if not os.path.exists("./graphs/"):
 if not os.path.exists("./logs/"):
     os.makedirs("./logs/")
 
+if not os.path.exists("./out_err/"):
+    os.makedirs("./out_err/")
 
 def run_broker():
     try:

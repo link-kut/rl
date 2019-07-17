@@ -10,6 +10,11 @@
 - cd gym
 - pip install -e '.[all]'
   - mujoco 에러 무시 
+  
+  
+### 2. PyBullet 설치
+
+- pip install PyBullet
 
 ### 2. mosquitto
 - 모스키토 설치
@@ -60,3 +65,8 @@
 - git rm -r --cached .
 - git add .
 - git commit -m "Apply .gitignore"  
+
+
+### 모듈 설치 후 requirements.txt 새로 만들기
+
+- pip freeze > requirements.txt

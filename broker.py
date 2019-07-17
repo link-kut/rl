@@ -5,14 +5,17 @@ import zlib
 
 import torch
 
+from environments.environment import Environment
 from utils import exp_moving_average
 
-from constants import MQTT_SERVER, MQTT_PORT, ENVIRONMENT_ID
-from constants import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
-from constants import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
-from constants import NUM_WORKERS, EMA_WINDOW
-from constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
-from constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+from conf.constants_general import MQTT_SERVER, MQTT_PORT
+from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
+from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
+from conf.constants_general import NUM_WORKERS, EMA_WINDOW
+from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
+from conf.constants_general import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+
+from conf.constants_environments import WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES
 
 from actor_critic import ActorCritic
 
@@ -22,7 +25,6 @@ from logger import get_logger
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-import gym
 from collections import deque
 import numpy as np
 
@@ -63,17 +65,20 @@ global_min_ema_loss = 1000000000
 episode_broker = 0
 num_messages = 0
 
-env = gym.make(ENVIRONMENT_ID)
+env = Environment()
 
 num_actions = 0
 score = 0
 
-n_inputs = int(env.observation_space.shape[0] / 2)
-n_outputs = env.action_space.n
 hidden_size = [HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE]
 device = torch.device("cpu")
 
-model = ActorCritic(n_inputs, hidden_size, n_outputs, device).to(device)
+model = ActorCritic(
+    s_size=env.n_states,
+    hidden_size=hidden_size,
+    a_size=env.n_actions,
+    device=device
+).to(device)
 
 for worker_id in range(NUM_WORKERS):
     scores[worker_id] = []
@@ -82,7 +87,7 @@ for worker_id in range(NUM_WORKERS):
     success_done_episode[worker_id] = []
     success_done_score[worker_id] = []
 
-    score_over_recent_100_episodes[worker_id] = deque(maxlen=100)
+    score_over_recent_100_episodes[worker_id] = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
 
 def update_loss_score(msg_payload):

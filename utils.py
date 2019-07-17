@@ -1,13 +1,7 @@
-import math
-
 import numpy as np
 
-from constants import ENVIRONMENT_ID
 import torch
 torch.manual_seed(0) # set random seed
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.distributions import Categorical
 
 
 def exp_moving_average(values, window):
@@ -22,7 +16,3 @@ def exp_moving_average(values, window):
         a = np.convolve(values, weights, mode='full')[:len(values)]
         a[:window] = a[window]
     return a
-
-
-def state_preprocess_cartpole(state):
-    return state[2:]

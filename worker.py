@@ -6,17 +6,20 @@ import numpy as np
 from collections import deque
 
 import paho.mqtt.client as mqtt
-from constants import MQTT_SERVER, MQTT_PORT, ENVIRONMENT_ID
-from constants import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
-from constants import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
-from constants import NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS, WIN_REWARD, VERBOSE
-from constants import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
-from constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
-from constants import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+from conf.constants_general import MQTT_SERVER, MQTT_PORT
+from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
+from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
+from conf.constants_general import NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS, VERBOSE
+from conf.constants_general import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
+from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
+from conf.constants_general import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+
+from conf.constants_environments import ENV_RENDER, WIN_AND_LEARN_FINISH_SCORE, WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES
 
 import sys
+
+from environments.environment import Environment
 from logger import get_logger
-import gym
 
 from worker_rl_PPO import PPOAgent
 
@@ -29,13 +32,10 @@ if len(sys.argv) < 2:
 worker_id = int(sys.argv[1])
 logger = get_logger("worker_{0}".format(worker_id))
 
-env = gym.make(ENVIRONMENT_ID)
+env = Environment()
 
 num_actions = 0
 score = 0
-
-n_inputs = int(env.observation_space.shape[0] / 2)
-n_outputs = env.action_space.n
 
 global_max_ema_score = 0
 global_min_ema_loss = 1000000000
@@ -43,19 +43,20 @@ global_min_ema_loss = 1000000000
 local_scores = []
 local_losses = []
 
-score_dequeue = deque(maxlen=100)
-loss_dequeue = deque(maxlen=100)
+score_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
 episode_broker = -1
 
 agent = PPOAgent(
-    env,
-    worker_id,
-    logger,
-    n_inputs=n_inputs,
+    env=env,
+    worker_id=worker_id,
+    n_states=env.n_states,
     hidden_size=[HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE],
-    n_outputs=n_outputs,
+    n_actions=env.n_actions,
     gamma=GAMMA,
+    env_render=ENV_RENDER,
+    logger=logger,
     verbose=VERBOSE
 )
 
@@ -163,7 +164,7 @@ for episode in range(MAX_EPISODES):
         "score": score
     }
 
-    if mean_score_over_recent_100_episodes >= WIN_REWARD:
+    if mean_score_over_recent_100_episodes >= WIN_AND_LEARN_FINISH_SCORE:
         log_msg = "******* Worker {0} - Solved in episode {1}: Mean score = {2}".format(
             worker_id,
             episode,
