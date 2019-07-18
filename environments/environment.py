@@ -2,10 +2,19 @@ import roboschool, gym
 from conf.constants_environments import ENVIRONMENT_ID
 from environments.environment_names import Environment_Name
 
+GYM_ENV_ID_LIST = [
+    Environment_Name.CARTPOLE_V0.value,
+    Environment_Name.ROBOSCHOOLANT_V1.value
+]
+
 
 class Environment:
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID)
+        if ENVIRONMENT_ID in GYM_ENV_ID_LIST:
+            self.env = gym.make(ENVIRONMENT_ID)
+        else:
+            self.env = None
+
         self.n_states = self.get_n_states()
         self.n_actions = self.get_n_actions()
 

@@ -30,18 +30,18 @@ class ActorCritic(nn.Module):
 
         self.device = device
 
-    def pi(self, x, softmax_dim=0):
-        x = F.leaky_relu(self.fc0(x))
-        x = F.leaky_relu(self.fc1(x))
-        x = F.leaky_relu(self.fc2(x))
-        x = self.fc3(x)
-        return F.softmax(x, dim=softmax_dim)
+    def pi(self, state, softmax_dim=0):
+        state = F.leaky_relu(self.fc0(state))
+        state = F.leaky_relu(self.fc1(state))
+        state = F.leaky_relu(self.fc2(state))
+        state = self.fc3(state)
+        return F.softmax(state, dim=softmax_dim)
 
-    def v(self, x):
-        x = F.leaky_relu(self.fc0(x))
-        x = F.leaky_relu(self.fc1(x))
-        x = F.leaky_relu(self.fc2(x))
-        v = self.fc3_v(x)
+    def v(self, state):
+        state = F.leaky_relu(self.fc0(state))
+        state = F.leaky_relu(self.fc1(state))
+        state = F.leaky_relu(self.fc2(state))
+        v = self.fc3_v(state)
         return v
 
     def act(self, state):
