@@ -12,6 +12,9 @@ class Environment:
     def __init__(self):
         if ENVIRONMENT_ID in GYM_ENV_ID_LIST:
             self.env = gym.make(ENVIRONMENT_ID)
+        elif ENVIRONMENT_ID == Environment_Name.QUANSER_SERVO_2.value:
+            pass
+            #self.env =
         else:
             self.env = None
 

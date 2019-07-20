@@ -1,10 +1,11 @@
 # [GENERAL]
-PYTHON_PATH="~/anaconda3/envs/rl/bin/python3"
+PYTHON_PATH="~/anaconda/envs/rl/bin/python3"
 EMA_WINDOW = 10
 VERBOSE = False
 
 # [MQTT]
 MQTT_SERVER = "localhost"
+MQTT_SERVER_FOR_RIP = "192.168.10.2"
 MQTT_PORT = 1883
 MQTT_TOPIC_EPISODE_DETAIL = "Episode_Detail"
 MQTT_TOPIC_SUCCESS_DONE = "Success_Done"
@@ -36,5 +37,5 @@ GAMMA = 0.98 # discount factor
 
 # [MODE]
 MODE_SYNCHRONIZATION = True
-MODE_GRADIENTS_UPDATE = True
-MODE_PARAMETERS_TRANSFER = True
+MODE_GRADIENTS_UPDATE = True        # Distributed
+MODE_PARAMETERS_TRANSFER = True     # Transfer
