@@ -3,6 +3,7 @@
 - conda create -n rl python=3.7
 - conda activate rl
 - pip install --ignore-installed pip
+- pip install -r requirements.txt
 
 ### 2. OpenAI Gym 설치
 
