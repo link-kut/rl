@@ -21,6 +21,9 @@ class Environment:
         self.n_states = self.get_n_states()
         self.n_actions = self.get_n_actions()
 
+        self.state_shape = self.get_state_shape()
+        self.action_shape = self.get_action_shape()
+
     def get_n_states(self):
         if ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
             n_states = int(self.env.observation_space.shape[0] / 2)
@@ -34,6 +37,21 @@ class Environment:
         else:
             n_actions = self.env.action_space.n
         return n_actions
+
+    def get_state_shape(self):
+        if ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
+            state_shape = list(self.env.observation_space.shape)
+            state_shape[0] = int(state_shape[0] / 2)
+        else:
+            state_shape = self.env.observation_space.shape
+        return tuple(state_shape)
+
+    def get_action_shape(self):
+        if ENVIRONMENT_ID == Environment_Name.ROBOSCHOOLANT_V1.value:
+            action_shape = self.env.action_space.shape
+        else:
+            action_shape = (self.env.action_space.n,)
+        return action_shape
 
     def reset(self):
         state = self.env.reset()
