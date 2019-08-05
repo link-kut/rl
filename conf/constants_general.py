@@ -1,5 +1,5 @@
 # [GENERAL]
-PYTHON_PATH="~/anaconda3/envs/rl/bin/python3"
+PYTHON_PATH="~/anaconda/envs/rl/bin/python3"
 EMA_WINDOW = 10
 VERBOSE = False
 

@@ -27,10 +27,10 @@ class ActorCriticMLP(nn.Module):
         self.reset_average_gradients()
         self.device = device
 
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                init.kaiming_normal_(m.weight.data)
-                m.bias.data.fill_(0)
+        # for m in self.modules():
+        #     if isinstance(m, nn.Linear):
+        #         init.kaiming_normal_(m.weight.data)
+        #         init.zeros_(m.bias.data)
 
     def reset_average_gradients(self):
         named_parameters = self.fc0.named_parameters()
