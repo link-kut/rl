@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-import time
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
