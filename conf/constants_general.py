@@ -1,11 +1,12 @@
+from .constants_mine import *
 # [GENERAL]
-PYTHON_PATH = "C:\\Users\\link\\Anaconda3\\envs\\rl\\python.exe"
+PYTHON_PATH = PYTHON_PATH_MINE
 EMA_WINDOW = 10
 VERBOSE = False
 
 # [MQTT]
-MQTT_SERVER = "localhost"
-MQTT_SERVER_FOR_RIP = "192.168.10.2"
+MQTT_SERVER = "192.168.0.10"
+MQTT_SERVER_FOR_RIP = "192.168.0.12"
 MQTT_PORT = 1883
 MQTT_TOPIC_EPISODE_DETAIL = "Episode_Detail"
 MQTT_TOPIC_SUCCESS_DONE = "Success_Done"
@@ -14,8 +15,15 @@ MQTT_TOPIC_TRANSFER_ACK = "Transfer_Ack"
 MQTT_TOPIC_UPDATE_ACK = "Update_Ack"
 MQTT_TOPIC_ACK = "Ack"
 
+# MQTT Topic for RIP
+MQTT_PUB_TO_SERVO_POWER = 'motor_power'
+MQTT_PUB_RESET = 'reset'
+MQTT_SUB_FROM_SERVO = 'servo_info'
+MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
+MQTT_SUB_RESET_COMPLETE = 'reset_complete'
+
 # [WORKER]
-NUM_WORKERS = 8
+NUM_WORKERS = 2
 
 # [TRANSFER]
 SOFT_TRANSFER = False

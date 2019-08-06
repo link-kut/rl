@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+import time
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -78,7 +80,6 @@ class PPOAgent:
 
     def train_net(self):
         state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst = self.get_trajectory_data()
-
         loss_sum = 0.0
         for i in range(K_epoch):
             v_target = reward_lst + self.gamma * self.model.v(next_state_lst) * done_mask_lst
@@ -134,8 +135,8 @@ class PPOAgent:
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
-
             score += reward
+
             if done:
                 break
 

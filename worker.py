@@ -18,7 +18,7 @@ from conf.constants_environments import ENV_RENDER, WIN_AND_LEARN_FINISH_SCORE, 
 
 import sys
 
-from environments.environment import Environment
+from environments.environment_rip import Environment
 from logger import get_logger
 
 from worker_rl_PPO import PPOAgent
@@ -88,6 +88,7 @@ def on_message(client, userdata, msg):
             update_process(msg_payload['avg_gradients'])
 
         episode_broker = msg_payload["episode_broker"]
+        print("Topic_Update: " + episode_broker)
         
     elif msg.topic == MQTT_TOPIC_TRANSFER_ACK:
         log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_broker': {1}, parameters_length: {2} \n".format(
@@ -102,7 +103,10 @@ def on_message(client, userdata, msg):
             transfer_process(msg_payload['parameters'])
 
         episode_broker = msg_payload["episode_broker"]
+        print("Transfer ack: " + episode_broker)
+
     else:
+        print("pass")
         pass
 
 
@@ -147,7 +151,9 @@ worker.connect(MQTT_SERVER, MQTT_PORT)
 
 worker.loop_start()
 
+cnt = 0
 for episode in range(MAX_EPISODES):
+    cnt+=1
     avg_gradients, loss, score = agent.on_episode(episode)
 
     local_losses.append(loss)
