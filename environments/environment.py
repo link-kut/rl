@@ -1,8 +1,10 @@
 import gym
-from environments.environment_names import Environment_Name
+import json
+
+from gym_unity.envs import UnityEnv
+
 from environments.environment_rip import *
 import paho.mqtt.client as mqtt
-from gym_unity.envs import UnityEnv
 
 GYM_ENV_ID_LIST = [
     Environment_Name.CARTPOLE_V0.value,
@@ -182,9 +184,45 @@ class Quanser_Servo_2(Environment):
         client.loop_start()
         print("3")
 
+
 class Chaser_v0(Environment):
     def __init__(self):
-        self.env = UnityEnv
+        ENV_NAME = "./3DBall"
+        self.env = UnityEnv(
+            environment_filename=ENV_NAME,
+            worker_id=self.worker_id,
+            use_visual=False,
+            multiagent=True
+        ).unwrapped
+
+    def get_n_states(self):
+        n_state = self.env.observation_space.shape[0]
+        return n_state
+
+    def get_n_actions(self):
+        n_action = self.env.action_space.shape[0]
+        return n_action
+
+    def get_state_shape(self):
+        return self.env.observation_space.shape
+
+    def get_action_shape(self):
+        return self.env.action_space.shape
+
+    def reset(self):
+        state = self.env.reset()
+        return state
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = reward
+
+        return next_state, reward, adjusted_reward, done, info
+
+    def close(self):
+        self.env.close()
+
 
 if __name__ == "__main__":
     env = Quanser_Servo_2(owner="broker")

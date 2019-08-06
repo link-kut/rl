@@ -1,6 +1,4 @@
-import threading
 import time
-import json
 import numpy as np
 from conf.constants_mine import *
 
