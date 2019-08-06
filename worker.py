@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 from conf.constants_general import MQTT_SERVER, MQTT_PORT
 from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
 from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
-from conf.constants_general import NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS, VERBOSE
+from conf.constants_general import VERBOSE
 from conf.constants_general import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
 from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
 from conf.constants_general import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
@@ -84,9 +84,11 @@ def on_message(client, userdata, msg):
 
         logger.info(log_msg)
 
-        if not is_success_or_fail_done:
+        if not is_success_or_fail_done and MODE_GRADIENTS_UPDATE:
             update_process(msg_payload['avg_gradients'])
+
         episode_broker = msg_payload["episode_broker"]
+        print("Topic_Update: " + episode_broker)
         
     elif msg.topic == MQTT_TOPIC_TRANSFER_ACK:
         log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_broker': {1}, parameters_length: {2} \n".format(
@@ -97,10 +99,14 @@ def on_message(client, userdata, msg):
 
         logger.info(log_msg)
 
-        if not is_success_or_fail_done:
+        if not is_success_or_fail_done and MODE_PARAMETERS_TRANSFER:
             transfer_process(msg_payload['parameters'])
+
         episode_broker = msg_payload["episode_broker"]
+        print("Transfer ack: " + episode_broker)
+
     else:
+        print("pass")
         pass
 
 
@@ -110,7 +116,7 @@ def update_process(avg_gradients):
 
 
 def transfer_process(parameters):
-    agent.transfer_process(parameters, NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS, SOFT_TRANSFER, SOFT_TRANSFER_TAU)
+    agent.transfer_process(parameters, SOFT_TRANSFER, SOFT_TRANSFER_TAU)
 
 
 def send_msg(topic, msg):
@@ -145,7 +151,9 @@ worker.connect(MQTT_SERVER, MQTT_PORT)
 
 worker.loop_start()
 
+cnt = 0
 for episode in range(MAX_EPISODES):
+    cnt+=1
     avg_gradients, loss, score = agent.on_episode(episode)
 
     local_losses.append(loss)
@@ -174,7 +182,7 @@ for episode in range(MAX_EPISODES):
         print(log_msg)
 
         if MODE_PARAMETERS_TRANSFER:
-            parameters = agent.get_parameters(NUM_WEIGHT_TRANSFER_HIDDEN_LAYERS)
+            parameters = agent.get_parameters()
             episode_msg["parameters"] = parameters
 
         send_msg(MQTT_TOPIC_SUCCESS_DONE, episode_msg)

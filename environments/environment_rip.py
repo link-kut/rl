@@ -4,6 +4,7 @@ import gym
 import threading
 import time
 import json
+import numpy as np
 import os, sys
 from environments.environment_names import Environment_Name
 from conf.constants_environments import ENVIRONMENT_ID
@@ -52,6 +53,7 @@ class Environment:
             self.current_pendulum_radian = 0
             self.current_pendulum_velocity = 0
             self.current_motor_velocity = 0
+            self.previous_time = 0.0
 
             self.is_swing_up = True
             self.is_state_changed = False
@@ -74,18 +76,24 @@ class Environment:
                 self.pub.username_pw_set(username="link", password="0123")
                 self.pub.connect(MQTT_SERVER, 1883, 60)
 
+
         else:
             self.env = None
 
         self.n_states = self.get_n_states()
         self.n_actions = self.get_n_actions()
 
-    # @staticmethod
-    # def __on_connect(client, userdata, flags, rc):
-    #     print("mqtt broker connected with result code " + str(rc), flush=False)
-    #     client.subscribe(topic=MQTT_SUB_FROM_SERVO)
-    #     client.subscribe(topic=MQTT_SUB_MOTOR_LIMIT)
-    #     client.subscribe(topic=MQTT_SUB_RESET_COMPLETE)
+
+    @staticmethod
+    def __on_connect(client, userdata, flags, rc):
+        print("mqtt broker connected with result code " + str(rc), flush=False)
+        client.subscribe(topic=MQTT_SUB_FROM_SERVO)
+        client.subscribe(topic=MQTT_SUB_MOTOR_LIMIT)
+        client.subscribe(topic=MQTT_SUB_RESET_COMPLETE)
+
+    @staticmethod
+    def __on_log(client, userdata, level, buf):
+        print(buf)
 
     ### RIP Define??
     @staticmethod
@@ -213,8 +221,9 @@ class Environment:
         self.is_motor_limit = False
 
         self.episode += 1
+        self.previous_time = time.perf_counter()
 
-        return self.state
+        return np.asarray(self.state)
 
     def step(self, action):
         # next_state, reward, done, info = self.env.step(action)
@@ -229,12 +238,22 @@ class Environment:
         pendulum_radian = self.current_pendulum_radian
         pendulum_angular_velocity = self.current_pendulum_velocity
 
-        next_state = self.state
-        self.reward = 1
-        adjusted_reward = 1
+        next_state = np.asarray(self.state)
+        self.reward = 1.0
+        adjusted_reward = 1.0
         self.steps += 1
         self.pendulum_radians.append(pendulum_radian)
         done, info = self.__isDone()
+
+        if not done:
+            while True:
+                current_time = time.perf_counter()
+                if current_time - self.previous_time >= 6 / 1000:
+                    break
+        else:
+            self.wait()
+
+        self.previous_time = time.perf_counter()
 
         return next_state, self.reward, adjusted_reward, done, info
 
@@ -253,4 +272,4 @@ class Environment:
 
     def close(self):
         self.pub.publish(topic=MQTT_PUB_TO_SERVO_POWER, payload=str(0))
-        self.env.close()
+        # self.env.close()

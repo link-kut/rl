@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+import time
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from actor_critic import ActorCritic
+from models.actor_critic_mlp import ActorCriticMLP
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -45,7 +47,7 @@ class PPOAgent:
 
     # Policy Network is 256-256-256-2 MLP
     def build_model(self, n_states, hidden_size, n_actions):
-        model = ActorCritic(n_states, hidden_size, n_actions, device).to(device)
+        model = ActorCriticMLP(n_states, hidden_size, n_actions, device).to(device)
         return model
 
     def put_data(self, transition):
@@ -78,7 +80,6 @@ class PPOAgent:
 
     def train_net(self):
         state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst = self.get_trajectory_data()
-
         loss_sum = 0.0
         for i in range(K_epoch):
             v_target = reward_lst + self.gamma * self.model.v(next_state_lst) * done_mask_lst
@@ -134,8 +135,8 @@ class PPOAgent:
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
-
             score += reward
+
             if done:
                 break
 
@@ -143,22 +144,8 @@ class PPOAgent:
 
         return avg_gradients, loss, score
 
-    def get_parameters(self, num_weight_transfer_hidden_layers):
-        weights = {}
-        for layer_id in range(num_weight_transfer_hidden_layers):
-            weights["weight_{0}".format(layer_id)] = self.model.fc[layer_id].weight.data
-            weights["bias_{0}".format(layer_id)] = self.model.fc[layer_id].bias.data
-        return weights
+    def get_parameters(self):
+        return self.model.get_parameters()
 
-    def transfer_process(self, parameters, num_weight_transfer_hidden_layers, soft_transfer, soft_transfer_tau):
-        for layer_id in range(num_weight_transfer_hidden_layers):
-            if soft_transfer:
-                weight_original = self.model.fc[layer_id].weight.data
-                bias_original = self.model.fc[layer_id].bias.data
-                weight_updated = weight_original * soft_transfer_tau + parameters["weight_{0}".format(layer_id)] * (1 - soft_transfer_tau)
-                bias_updated = bias_original * soft_transfer_tau + parameters["bias_{0}".format(layer_id)] * (1 - soft_transfer_tau)
-                self.model.fc[layer_id].weight.data = weight_updated
-                self.model.fc[layer_id].bias.data = bias_updated
-            else:
-                self.model.fc[layer_id].weight.data = parameters["weight_{0}".format(layer_id)]
-                self.model.fc[layer_id].bias.data = parameters["bias_{0}".format(layer_id)]
+    def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
+        self.model.transfer_process(parameters, soft_transfer, soft_transfer_tau)
