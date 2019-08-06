@@ -1,5 +1,7 @@
+from .constants_mine import *
+
 # [GENERAL]
-PYTHON_PATH="~/anaconda3/envs/rl/bin/python3"
+PYTHON_PATH = PYTHON_PATH_MINE
 EMA_WINDOW = 10
 VERBOSE = False
 
@@ -13,8 +15,15 @@ MQTT_TOPIC_TRANSFER_ACK = "Transfer_Ack"
 MQTT_TOPIC_UPDATE_ACK = "Update_Ack"
 MQTT_TOPIC_ACK = "Ack"
 
+# MQTT Topic for RIP
+MQTT_PUB_TO_SERVO_POWER = 'motor_power'
+MQTT_PUB_RESET = 'reset'
+MQTT_SUB_FROM_SERVO = 'servo_info'
+MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
+MQTT_SUB_RESET_COMPLETE = 'reset_complete'
+
 # [WORKER]
-NUM_WORKERS = 2
+NUM_WORKERS = 1
 
 # [TRANSFER]
 SOFT_TRANSFER = False

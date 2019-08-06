@@ -37,7 +37,7 @@ if __name__ == "__main__":
         for f in files:
             os.remove(f)
 
-    worker = Process(target=run_worker, args=(1,))  # or 1
+    worker = Process(target=run_worker, args=(0,))  # or 1
     worker.start()
 
     while True:

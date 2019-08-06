@@ -1,6 +1,6 @@
 ### 1. 환경 만들기
 
-- conda create -n rl python=3.7
+- conda create -n rl python=3.6
 - conda activate rl
 - pip install --ignore-installed pip
 - pip install -r requirements.txt

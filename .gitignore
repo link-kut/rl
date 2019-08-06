@@ -109,3 +109,5 @@ venv.bak/
 .idea/*
 
 *.out
+
+constants_mine.py
