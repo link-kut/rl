@@ -13,6 +13,7 @@ if not os.path.exists("./logs/"):
 if not os.path.exists("./out_err/"):
     os.makedirs("./out_err/")
 
+
 def run_broker():
     try:
         os.system(PYTHON_PATH + " ./broker.py")

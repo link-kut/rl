@@ -53,7 +53,6 @@ if __name__ == "__main__":
         for f in files:
             os.remove(f)
 
-
         broker = Process(target=run_broker, args=())
         broker.start()
 
