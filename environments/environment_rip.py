@@ -1,22 +1,11 @@
-#import roboschool, gym
-import gym
-
 import threading
 import time
 import json
 import numpy as np
-import os, sys
-from environments.environment_names import Environment_Name
-from conf.constants_environments import ENVIRONMENT_ID
-import paho.mqtt.client as mqtt
-
-GYM_ENV_ID_LIST = [
-    Environment_Name.CARTPOLE_V0.value,
-    Environment_Name.ROBOSCHOOLANT_V1.value
-]
+from conf.constants_mine import *
 
 # MQTT Server IP config
-MQTT_SERVER = '192.168.0.10'
+MQTT_SERVER = MQTT_SERVER_MINE
 
 # MQTT Topic for RIP
 MQTT_PUB_TO_SERVO_POWER = 'motor_power'
@@ -29,88 +18,35 @@ STATE_SIZE = 4
 
 balance_motor_power_list = [-60, 0, 60]
 
-env = None
 PUB_ID = 0
 
-class Environment:
+
+class EnvironmentRIP:
     def __init__(self, owner):
-        if ENVIRONMENT_ID in GYM_ENV_ID_LIST:
-            self.env = gym.make(ENVIRONMENT_ID)
-        elif ENVIRONMENT_ID == Environment_Name.QUANSER_SERVO_2.value:
-            global env
-            env = self
+        self.episode = 0
 
-            self.episode = 0
+        self.state_space_shape = (STATE_SIZE,)
+        self.action_space_shape = (len(balance_motor_power_list),)
 
-            self.state_space_shape = (STATE_SIZE,)
-            self.action_space_shape = (len(balance_motor_power_list),)
+        self.reward = 0
 
-            self.reward = 0
+        self.steps = 0
+        self.pendulum_radians = []
+        self.state = []
+        self.current_pendulum_radian = 0
+        self.current_pendulum_velocity = 0
+        self.current_motor_velocity = 0
+        self.previous_time = 0.0
 
-            self.steps = 0
-            self.pendulum_radians = []
-            self.state = []
-            self.current_pendulum_radian = 0
-            self.current_pendulum_velocity = 0
-            self.current_motor_velocity = 0
-            self.previous_time = 0.0
-
-            self.is_swing_up = True
-            self.is_state_changed = False
-            self.is_motor_limit = False
-            self.is_limit_complete = False
-            self.is_reset_complete = False
-
-            if owner != "broker":
-                self.sub = mqtt.Client(client_id="env_sub", transport="TCP")
-                self.sub.on_connect = self.__on_connect
-                self.sub.on_message = self.__on_message
-                self.sub.username_pw_set(username="link", password="0123")
-                self.sub.connect(MQTT_SERVER, 1883, 60)
-
-                sub_thread = threading.Thread(target=self.__sub, args=(self.sub,))
-                sub_thread.daemon = True
-                sub_thread.start()
-
-                self.pub = mqtt.Client(client_id="env_pub", transport="TCP")
-                self.pub.username_pw_set(username="link", password="0123")
-                self.pub.connect(MQTT_SERVER, 1883, 60)
-
-
-        else:
-            self.env = None
-
-        self.n_states = self.get_n_states()
-        self.n_actions = self.get_n_actions()
-
-
-    @staticmethod
-    def __on_connect(client, userdata, flags, rc):
-        print("mqtt broker connected with result code " + str(rc), flush=False)
-        client.subscribe(topic=MQTT_SUB_FROM_SERVO)
-        client.subscribe(topic=MQTT_SUB_MOTOR_LIMIT)
-        client.subscribe(topic=MQTT_SUB_RESET_COMPLETE)
-
-    @staticmethod
-    def __on_log(client, userdata, level, buf):
-        print(buf)
-
-    ### RIP Define??
-    @staticmethod
-    def __sub(sub):
-        try:
-            print("***** Sub thread started!!! *****", flush=False)
-            sub.loop_forever()
-        except KeyboardInterrupt:
-            print("Sub thread KeyboardInterrupted", flush=False)
-            sub.unsubscribe(MQTT_SUB_FROM_SERVO)
-            sub.unsubscribe(MQTT_SUB_MOTOR_LIMIT)
-            sub.unsubscribe(MQTT_SUB_RESET_COMPLETE)
-            sub.disconnect()
+        self.is_swing_up = True
+        self.is_state_changed = False
+        self.is_motor_limit = False
+        self.is_limit_complete = False
+        self.is_reset_complete = False
 
     def __pub(self, topic, payload, require_response=True):
         global PUB_ID
-        self.pub.publish(topic=topic, payload=payload)
+        self.sub.publish(topic=topic, payload=payload)
         PUB_ID += 1
 
         if require_response:
@@ -123,39 +59,6 @@ class Environment:
         self.is_state_changed = False
         self.is_limit_complete = False
         self.is_reset_complete = False
-
-    @staticmethod
-    def __on_message(client, userdata, msg):
-        global PUB_ID
-
-        if msg.topic == MQTT_SUB_FROM_SERVO:
-
-            servo_info = json.loads(msg.payload.decode("utf-8"))
-            motor_radian = float(servo_info["motor_radian"])
-            motor_velocity = float(servo_info["motor_velocity"])
-            pendulum_radian = float(servo_info["pendulum_radian"])
-            pendulum_velocity = float(servo_info["pendulum_velocity"])
-            pub_id = servo_info["pub_id"]
-            env.__set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
-
-        elif msg.topic == MQTT_SUB_MOTOR_LIMIT:
-            info = str(msg.payload.decode("utf-8")).split('|')
-            pub_id = info[1]
-            if info[0] == "limit_position":
-                env.is_motor_limit = True
-            elif info[0] == "reset_complete":
-                env.is_limit_complete = True
-
-        elif msg.topic == MQTT_SUB_RESET_COMPLETE:
-            env.is_reset_complete = True
-            servo_info = str(msg.payload.decode("utf-8")).split('|')
-            motor_radian = float(servo_info[0])
-            motor_velocity = float(servo_info[1])
-            pendulum_radian = float(servo_info[2])
-            pendulum_velocity = float(servo_info[3])
-            pub_id = servo_info[4]
-
-            env.__set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
 
     def __set_state(self, motor_radian, motor_velocity, pendulum_radian, pendulum_velocity):
         self.is_state_changed = True
@@ -182,17 +85,11 @@ class Environment:
         self.__pub(MQTT_PUB_TO_SERVO_POWER, "0|wait|{0}".format(PUB_ID))
 
     def get_n_states(self):
-        if ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
-            n_states = int(self.env.observation_space.shape[0] / 2)
-        else:
-            n_states = 2
+        n_states = 2
         return n_states
 
     def get_n_actions(self):
-        if ENVIRONMENT_ID == Environment_Name.ROBOSCHOOLANT_V1.value:
-            n_actions = self.env.action_space.shape[0]
-        else:
-            n_actions = 3
+        n_actions = 3
         return n_actions
 
     def reset(self):

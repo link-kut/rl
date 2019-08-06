@@ -1,27 +1,22 @@
 # -*- coding:utf-8 -*-
 import pickle
-import time
 import zlib
-import numpy as np
 from collections import deque
 
-import paho.mqtt.client as mqtt
-from conf.constants_general import MQTT_SERVER, MQTT_PORT
+from conf.constants_general import MQTT_PORT
 from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
 from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
 from conf.constants_general import VERBOSE
 from conf.constants_general import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
 from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
 from conf.constants_general import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
-
-from conf.constants_environments import ENV_RENDER, WIN_AND_LEARN_FINISH_SCORE, WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES
+from environments.environment import *
 
 import sys
 
-from environments.environment_rip import Environment
 from logger import get_logger
 
-from worker_rl_PPO import PPOAgent
+from rl_algorithms.PPO_v0 import PPOAgent_v0
 
 from utils import exp_moving_average
 
@@ -32,7 +27,7 @@ if len(sys.argv) < 2:
 worker_id = int(sys.argv[1])
 logger = get_logger("worker_{0}".format(worker_id))
 
-env = Environment()
+env = get_environment(owner="worker")
 
 num_actions = 0
 score = 0
@@ -48,7 +43,7 @@ loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
 episode_broker = -1
 
-agent = PPOAgent(
+agent = PPOAgent_v0(
     env=env,
     worker_id=worker_id,
     n_states=env.n_states,

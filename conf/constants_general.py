@@ -1,4 +1,5 @@
 from .constants_mine import *
+
 # [GENERAL]
 PYTHON_PATH = PYTHON_PATH_MINE
 EMA_WINDOW = 10
@@ -23,7 +24,7 @@ MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
 MQTT_SUB_RESET_COMPLETE = 'reset_complete'
 
 # [WORKER]
-NUM_WORKERS = 2
+NUM_WORKERS = 8
 
 # [TRANSFER]
 SOFT_TRANSFER = False

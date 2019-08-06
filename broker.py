@@ -5,7 +5,7 @@ import zlib
 
 import torch
 
-from environments.environment_rip import Environment
+from environments.environment import Environment
 from utils import exp_moving_average
 
 from conf.constants_general import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP
@@ -14,8 +14,7 @@ from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_AC
 from conf.constants_general import NUM_WORKERS, EMA_WINDOW
 from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 from conf.constants_general import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
-
-from conf.constants_environments import WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES
+from environments.environment import *
 
 from models.actor_critic_mlp import ActorCriticMLP
 
@@ -65,7 +64,7 @@ global_min_ema_loss = 1000000000
 episode_broker = 0
 num_messages = 0
 
-env = Environment("broker")
+env = get_environment()
 
 print("env.n_states: {0}".format(env.n_states))
 print("env.state_shape: {0}".format(env.state_shape))

@@ -16,7 +16,7 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPOAgent:
+class PPOAgent_v0:
     def __init__(self, env, worker_id, n_states, hidden_size, n_actions, gamma, env_render, logger, verbose):
         self.env = env
 
