@@ -5,7 +5,7 @@ import zlib
 
 import torch
 
-from environments.environment import Environment
+from environments.environment_rip import Environment
 from utils import exp_moving_average
 
 from conf.constants_general import MQTT_SERVER, MQTT_PORT
