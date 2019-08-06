@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from actor_critic import ActorCritic
+import time
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -125,6 +126,7 @@ class PPOAgent:
         score = 0.0
 
         while not done:
+            previous_time = time.perf_counter()
             if self.env_render:
                 self.env.render()
 
@@ -136,6 +138,7 @@ class PPOAgent:
             state = next_state
 
             score += reward
+
             if done:
                 break
 

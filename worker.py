@@ -18,7 +18,7 @@ from conf.constants_environments import ENV_RENDER, WIN_AND_LEARN_FINISH_SCORE, 
 
 import sys
 
-from environments.environment import Environment
+from environments.environment_rip import Environment
 from logger import get_logger
 
 from worker_rl_PPO import PPOAgent
