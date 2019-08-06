@@ -7,7 +7,6 @@ VERBOSE = False
 
 # [MQTT]
 MQTT_SERVER = "192.168.0.10"
-MQTT_SERVER_FOR_RIP = "192.168.0.12"
 MQTT_PORT = 1883
 MQTT_TOPIC_EPISODE_DETAIL = "Episode_Detail"
 MQTT_TOPIC_SUCCESS_DONE = "Success_Done"
@@ -24,7 +23,7 @@ MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
 MQTT_SUB_RESET_COMPLETE = 'reset_complete'
 
 # [WORKER]
-NUM_WORKERS = 8
+NUM_WORKERS = 1
 
 # [TRANSFER]
 SOFT_TRANSFER = False
@@ -49,6 +48,6 @@ GAMMA = 0.98 # discount factor
 
 # [MODE]
 MODE_SYNCHRONIZATION = True
-MODE_GRADIENTS_UPDATE = True        # Distributed
+MODE_GRADIENTS_UPDATE = True         # Distributed
 MODE_PARAMETERS_TRANSFER = True     # Transfer
 MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"

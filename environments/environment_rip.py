@@ -1,4 +1,6 @@
+import threading
 import time
+import json
 import numpy as np
 from conf.constants_mine import *
 
@@ -6,11 +8,11 @@ from conf.constants_mine import *
 MQTT_SERVER = MQTT_SERVER_MINE
 
 # MQTT Topic for RIP
-MQTT_PUB_TO_SERVO_POWER = 'motor_power'
-MQTT_PUB_RESET = 'reset'
-MQTT_SUB_FROM_SERVO = 'servo_info'
-MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
-MQTT_SUB_RESET_COMPLETE = 'reset_complete'
+MQTT_PUB_TO_SERVO_POWER = 'motor_power_2'
+MQTT_PUB_RESET = 'reset_2'
+MQTT_SUB_FROM_SERVO = 'servo_info_2'
+MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info_2'
+MQTT_SUB_RESET_COMPLETE = 'reset_complete_2'
 
 STATE_SIZE = 4
 
@@ -20,7 +22,7 @@ PUB_ID = 0
 
 
 class EnvironmentRIP:
-    def __init__(self, owner):
+    def __init__(self, mqtt_client):
         self.episode = 0
 
         self.state_space_shape = (STATE_SIZE,)
@@ -42,9 +44,17 @@ class EnvironmentRIP:
         self.is_limit_complete = False
         self.is_reset_complete = False
 
+        self.mqtt_client = mqtt_client
+
+        self.n_states = self.get_n_states()
+        self.n_actions = self.get_n_actions()
+
+        self.state_shape = self.get_state_shape()
+        self.action_shape = self.get_action_shape()
+
     def __pub(self, topic, payload, require_response=True):
         global PUB_ID
-        self.sub.publish(topic=topic, payload=payload)
+        self.mqtt_client.publish(topic=topic, payload=payload)
         PUB_ID += 1
 
         if require_response:
@@ -59,6 +69,7 @@ class EnvironmentRIP:
         self.is_reset_complete = False
 
     def __set_state(self, motor_radian, motor_velocity, pendulum_radian, pendulum_velocity):
+        print("1111")
         self.is_state_changed = True
         # self.state = [pendulum_radian, pendulum_velocity, motor_radian, motor_velocity]
         self.state = [pendulum_radian, pendulum_velocity]
@@ -90,11 +101,13 @@ class EnvironmentRIP:
         n_actions = 3
         return n_actions
 
+    def get_state_shape(self):
+        return None
+
+    def get_action_shape(self):
+        return None
+
     def reset(self):
-        # state = self.env.reset()
-        # if ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
-        #     state = state[2:]
-        # else:
         self.steps = 0
         self.pendulum_radians = []
         self.reward = 0
