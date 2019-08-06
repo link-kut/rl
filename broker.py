@@ -5,10 +5,10 @@ import zlib
 
 import torch
 
-from environments.environment import Environment
+from environments.environment_rip import Environment
 from utils import exp_moving_average
 
-from conf.constants_general import MQTT_SERVER, MQTT_PORT
+from conf.constants_general import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP
 from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
 from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
 from conf.constants_general import NUM_WORKERS, EMA_WINDOW
@@ -65,7 +65,7 @@ global_min_ema_loss = 1000000000
 episode_broker = 0
 num_messages = 0
 
-env = Environment()
+env = Environment("broker")
 
 num_actions = 0
 score = 0
@@ -189,6 +189,8 @@ def process_message(topic, msg_payload):
     else:
         pass
 
+def on_log(mqttc, obj, level, string):
+    print(string)
 
 def on_message(client, userdata, msg):
     global episode_broker
@@ -317,6 +319,7 @@ def send_update_ack():
 broker = mqtt.Client("dist_trans_ppo_broker")
 broker.on_connect = on_connect
 broker.on_message = on_message
+broker.on_log = on_log
 broker.connect(MQTT_SERVER, MQTT_PORT)
 broker.loop_start()
 
