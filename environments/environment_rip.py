@@ -46,7 +46,6 @@ class Environment:
             self.action_space_shape = (len(balance_motor_power_list),)
 
             self.reward = 0
-
             self.steps = 0
             self.pendulum_radians = []
             self.state = []
@@ -73,6 +72,7 @@ class Environment:
             sub_thread.start()
 
             self.pub = mqtt.Client(client_id="env_pub_2", transport="TCP")
+
             self.pub.username_pw_set(username="link", password="0123")
             self.pub.connect(MQTT_SERVER, 1883, 60)
 
@@ -250,6 +250,8 @@ class Environment:
                     break
         else:
             self.wait()
+
+        self.previous_time = time.perf_counter()
 
         return next_state, self.reward, adjusted_reward, done, info
 

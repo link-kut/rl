@@ -99,7 +99,7 @@ if __name__ == "__main__":
     parser.add_argument("--cuda", default=False, action='store_true', help='Enable CUDA')
     parser.add_argument("-n", "--name", required=True, help="Name of the run")
     args = parser.parse_args()
-    device = torch.device("cuda" if args.cuda else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     save_path = os.path.join("./checkpoints/", "a2c-" + args.name)
     os.makedirs(save_path, exist_ok=True)

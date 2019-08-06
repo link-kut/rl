@@ -5,7 +5,7 @@ import zlib
 
 import torch
 
-from environments.environment import Environment
+from environments.environment_rip import Environment
 from utils import exp_moving_average
 
 from conf.constants_general import MQTT_SERVER, MQTT_PORT
@@ -17,7 +17,7 @@ from conf.constants_general import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, 
 
 from conf.constants_environments import WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES
 
-from actor_critic import ActorCritic
+from models.actor_critic_mlp import ActorCriticMLP
 
 import paho.mqtt.client as mqtt
 from logger import get_logger
@@ -67,13 +67,19 @@ num_messages = 0
 
 env = Environment()
 
+print("env.n_states: {0}".format(env.n_states))
+print("env.state_shape: {0}".format(env.state_shape))
+
+print("env.n_actions: {0}".format(env.n_actions))
+print("env.action_shape: {0}".format(env.action_shape))
+
 num_actions = 0
 score = 0
 
 hidden_size = [HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE]
-device = torch.device("cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model = ActorCritic(
+model = ActorCriticMLP(
     s_size=env.n_states,
     hidden_size=hidden_size,
     a_size=env.n_actions,
@@ -173,7 +179,7 @@ def process_message(topic, msg_payload):
     save_graph()
 
     if topic == MQTT_TOPIC_EPISODE_DETAIL and MODE_GRADIENTS_UPDATE:
-        model.make_average_gradients(msg_payload['avg_gradients'])
+        model.accumulate_gradients(msg_payload['avg_gradients'])
 
     elif topic == MQTT_TOPIC_SUCCESS_DONE:
         success_done_episode[msg_payload['worker_id']].append(msg_payload['episode'])
@@ -192,7 +198,6 @@ def process_message(topic, msg_payload):
 
 def on_message(client, userdata, msg):
     global episode_broker
-    global NUM_DONE_WORKERS
     global messages_received_from_workers
     global num_messages
 
@@ -252,6 +257,7 @@ def on_message(client, userdata, msg):
 
         num_messages += 1
 
+
 def send_transfer_ack(parameters_transferred):
     if MODE_PARAMETERS_TRANSFER:
         log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'parameters_length: {2}\n".format(
@@ -290,6 +296,8 @@ def send_update_ack():
             episode_broker,
             len(model.avg_gradients)
         )
+
+        model.get_average_gradients(NUM_WORKERS - NUM_DONE_WORKERS)
 
         grad_update_msg = {
             "episode_broker": episode_broker,

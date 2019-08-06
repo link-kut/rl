@@ -3,6 +3,7 @@
 - conda create -n rl python=3.7
 - conda activate rl
 - pip install --ignore-installed pip
+- pip install -r requirements.txt
 
 ### 2. OpenAI Gym 설치
 
@@ -12,9 +13,9 @@
   - mujoco 에러 무시 
   
   
-### 3. 패키지 설
+### 3. 패키지 설치 후 requirements.txt 신규 구성 
 
-- pip install -r requirements.txt
+- pip freeze > requirements.txt
 
 ### 4. mosquitto
 - 모스키토 설치
