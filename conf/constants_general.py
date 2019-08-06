@@ -1,5 +1,5 @@
 # [GENERAL]
-PYTHON_PATH="~/anaconda/envs/rl/bin/python3"
+PYTHON_PATH = "C:\\Users\\link\\Anaconda3\\envs\\rl\\python.exe"
 EMA_WINDOW = 10
 VERBOSE = False
 

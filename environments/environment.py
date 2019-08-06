@@ -1,4 +1,4 @@
-import roboschool, gym
+import gym
 from conf.constants_environments import ENVIRONMENT_ID
 from environments.environment_names import Environment_Name
 

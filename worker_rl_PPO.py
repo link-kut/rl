@@ -66,12 +66,12 @@ class PPOAgent:
             done_mask = 0 if done else 1
             done_mask_lst.append([done_mask])
 
-        state_lst = torch.tensor(state_lst, dtype=torch.float)
-        action_lst = torch.tensor(action_lst)
-        reward_lst = torch.tensor(reward_lst)
-        next_state_lst = torch.tensor(next_state_lst, dtype=torch.float)
-        done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float)
-        prob_action_lst = torch.tensor(prob_action_lst)
+        state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
+        action_lst = torch.tensor(action_lst).to(device)
+        reward_lst = torch.tensor(reward_lst).to(device)
+        next_state_lst = torch.tensor(next_state_lst, dtype=torch.float).to(device)
+        done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float).to(device)
+        prob_action_lst = torch.tensor(prob_action_lst).to(device)
 
         self.trajectory.clear()
         return state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst
@@ -84,7 +84,7 @@ class PPOAgent:
             v_target = reward_lst + self.gamma * self.model.v(next_state_lst) * done_mask_lst
 
             delta = v_target - self.model.v(state_lst)
-            delta = delta.detach().numpy()
+            delta = delta.cpu().detach().numpy()
 
             advantage_lst = []
             advantage = 0.0
@@ -92,7 +92,7 @@ class PPOAgent:
                 advantage = self.gamma * lmbda * advantage + delta_t[0]
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
-            advantage = torch.tensor(advantage_lst, dtype=torch.float)
+            advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
             pi = self.model.pi(state_lst, softmax_dim=1)
             new_prob_action_lst = pi.gather(dim=1, index=action_lst)
