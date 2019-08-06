@@ -2,7 +2,7 @@ import gym
 from environments.environment_names import Environment_Name
 from environments.environment_rip import *
 import paho.mqtt.client as mqtt
-from gym_unity.envs import UnityEnv
+# from gym_unity.envs import UnityEnv
 
 GYM_ENV_ID_LIST = [
     Environment_Name.CARTPOLE_V0.value,
@@ -182,9 +182,4 @@ class Quanser_Servo_2(Environment):
         client.loop_start()
         print("3")
 
-class Chaser_v0(Environment):
-    def __init__(self):
-        self.env = UnityEnv
 
-if __name__ == "__main__":
-    env = Quanser_Servo_2(owner="broker")
