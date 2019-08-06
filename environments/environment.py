@@ -3,6 +3,7 @@ import json
 
 from gym_unity.envs import UnityEnv
 
+from conf.constants_general import MQTT_SERVER_FOR_RIP
 from environments.environment_rip import *
 import paho.mqtt.client as mqtt
 
@@ -16,7 +17,7 @@ WIN_AND_LEARN_FINISH_SCORE = WIN_AND_LEARN_FINISH_SCORE_MINE
 WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE
 
 
-def get_environment(owner="broker"):
+def get_environment(owner="chief"):
     if ENVIRONMENT_ID == Environment_Name.QUANSER_SERVO_2.value:
         client = mqtt.Client(client_id="env_sub", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
@@ -65,7 +66,7 @@ def get_environment(owner="broker"):
         client.on_log = __on_log
 
         # client.username_pw_set(username="link", password="0123")
-        client.connect(MQTT_SERVER, 1883, 60)
+        client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
 
         print("***** Sub thread started!!! *****", flush=False)
         client.loop_start()
@@ -145,71 +146,6 @@ class CartPole_v0(Environment):
 
     def close(self):
         self.env.close()
-
-    def step(self, action):
-        next_state, reward, adjusted_reward, done, info = self.env.step(action)
-        return next_state, reward, adjusted_reward, done, info
-
-    def close(self):
-        self.env.close()
-
-    def setup_mqtt_stuff(self):
-
-        _env_ = self.env
-
-        def __on_connect(client, userdata, flags, rc):
-            print("mqtt broker connected with result code " + str(rc), flush=False)
-            client.subscribe(topic=MQTT_SUB_FROM_SERVO)
-            client.subscribe(topic=MQTT_SUB_MOTOR_LIMIT)
-            client.subscribe(topic=MQTT_SUB_RESET_COMPLETE)
-
-        def __on_log(client, userdata, level, buf):
-            print(buf)
-
-        def __on_message(client, userdata, msg):
-            global PUB_ID
-
-            if msg.topic == MQTT_SUB_FROM_SERVO:
-
-                servo_info = json.loads(msg.payload.decode("utf-8"))
-                motor_radian = float(servo_info["motor_radian"])
-                motor_velocity = float(servo_info["motor_velocity"])
-                pendulum_radian = float(servo_info["pendulum_radian"])
-                pendulum_velocity = float(servo_info["pendulum_velocity"])
-                pub_id = servo_info["pub_id"]
-                _env_.__set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
-
-            elif msg.topic == MQTT_SUB_MOTOR_LIMIT:
-                info = str(msg.payload.decode("utf-8")).split('|')
-                pub_id = info[1]
-                if info[0] == "limit_position":
-                    _env_.is_motor_limit = True
-                elif info[0] == "reset_complete":
-                    _env_.is_limit_complete = True
-
-            elif msg.topic == MQTT_SUB_RESET_COMPLETE:
-                _env_.is_reset_complete = True
-                servo_info = str(msg.payload.decode("utf-8")).split('|')
-                motor_radian = float(servo_info[0])
-                motor_velocity = float(servo_info[1])
-                pendulum_radian = float(servo_info[2])
-                pendulum_velocity = float(servo_info[3])
-                pub_id = servo_info[4]
-
-                _env_.__set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
-
-        print("2")
-
-        client = mqtt.Client(client_id="env_sub", transport="TCP")
-        client.on_connect = __on_connect
-        client.on_message = __on_message
-        client.on_log = __on_log
-        #client.username_pw_set(username="link", password="0123")
-        client.connect(MQTT_SERVER, 1883, 60)
-
-        print("***** Sub thread started!!! *****", flush=False)
-        client.loop_start()
-        print("3")
 
 
 class Chaser_v0(Environment):

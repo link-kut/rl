@@ -16,7 +16,7 @@ if not os.path.exists("./out_err/"):
 
 def run_broker():
     try:
-        os.system(PYTHON_PATH + " ./broker.py")
+        os.system(PYTHON_PATH + " ./chief.py")
         sys.stdout = open("./out_err/broker_stdout.out", "wb")
         sys.stderr = open("./out_err/broker_stderr.out", "wb")
     except KeyboardInterrupt:
