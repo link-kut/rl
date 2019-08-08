@@ -2,10 +2,8 @@ import threading
 import time
 import json
 import numpy as np
-from conf.constants_mine import *
 
-# MQTT Server IP config
-MQTT_SERVER = MQTT_SERVER_MINE
+from conf.constants_mine import *
 
 # MQTT Topic for RIP
 MQTT_PUB_TO_SERVO_POWER = 'motor_power_2'

@@ -1,8 +1,11 @@
 import gym
-from environments.environment_names import Environment_Name
+import json
+
+from gym_unity.envs import UnityEnv
+
+from conf.constants_general import MQTT_SERVER_FOR_RIP
 from environments.environment_rip import *
 import paho.mqtt.client as mqtt
-# from gym_unity.envs import UnityEnv
 
 GYM_ENV_ID_LIST = [
     Environment_Name.CARTPOLE_V0.value,
@@ -14,7 +17,7 @@ WIN_AND_LEARN_FINISH_SCORE = WIN_AND_LEARN_FINISH_SCORE_MINE
 WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE
 
 
-def get_environment(owner="broker"):
+def get_environment(owner="chief"):
     if ENVIRONMENT_ID == Environment_Name.QUANSER_SERVO_2.value:
         client = mqtt.Client(client_id="env_sub_2", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
@@ -63,7 +66,7 @@ def get_environment(owner="broker"):
         client.on_log = __on_log
 
         # client.username_pw_set(username="link", password="0123")
-        client.connect(MQTT_SERVER, 1883, 60)
+        client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
 
         print("***** Sub thread started!!! *****", flush=False)
         client.loop_start()
@@ -145,9 +148,40 @@ class CartPole_v0(Environment):
         self.env.close()
 
 
+class Chaser_v0(Environment):
+    def __init__(self):
+        ENV_NAME = "./3DBall"
+        self.env = UnityEnv(
+            environment_filename=ENV_NAME,
+            worker_id=self.worker_id,
+            use_visual=False,
+            multiagent=True
+        ).unwrapped
 
+    def get_n_states(self):
+        n_state = self.env.observation_space.shape[0]
+        return n_state
 
+    def get_n_actions(self):
+        n_action = self.env.action_space.shape[0]
+        return n_action
 
+    def get_state_shape(self):
+        return self.env.observation_space.shape
 
+    def get_action_shape(self):
+        return self.env.action_space.shape
 
+    def reset(self):
+        state = self.env.reset()
+        return state
 
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = reward
+
+        return next_state, reward, adjusted_reward, done, info
+
+    def close(self):
+        self.env.close()

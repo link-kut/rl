@@ -45,7 +45,7 @@ if MODE_PARAMETERS_TRANSFER:
 else:
     print("MODE3: PARAMETERS_TRANSFER vs. [NO PARAMETERS_TRANSFER]")
 
-logger = get_logger("broker")
+logger = get_logger("chief")
 
 messages_received_from_workers = {}
 
@@ -61,7 +61,7 @@ success_done_score = {}
 global_max_ema_score = 0
 global_min_ema_loss = 1000000000
 
-episode_broker = 0
+episode_chief = 0
 num_messages = 0
 
 env = get_environment()
@@ -198,7 +198,7 @@ def on_log(mqttc, obj, level, string):
     print(string)
 
 def on_message(client, userdata, msg):
-    global episode_broker
+    global episode_chief
     global messages_received_from_workers
     global num_messages
 
@@ -220,19 +220,19 @@ def on_message(client, userdata, msg):
 
         messages_received_from_workers[msg_payload['episode']][msg_payload["worker_id"]] = (msg.topic, msg_payload)
 
-        if len(messages_received_from_workers[episode_broker]) == NUM_WORKERS - NUM_DONE_WORKERS:
+        if len(messages_received_from_workers[episode_chief]) == NUM_WORKERS - NUM_DONE_WORKERS:
             is_include_topic_success_done = False
             parameters_transferred = None
             worker_score_str = ""
             for worker_id in range(NUM_WORKERS):
-                if worker_id in messages_received_from_workers[episode_broker]:
-                    topic, msg_payload = messages_received_from_workers[episode_broker][worker_id]
+                if worker_id in messages_received_from_workers[episode_chief]:
+                    topic, msg_payload = messages_received_from_workers[episode_chief][worker_id]
 
                     process_message(topic=topic, msg_payload=msg_payload)
 
                     worker_score_str += "W{0}[{1:5.1f}/{2:5.1f}] ".format(
                         worker_id,
-                        messages_received_from_workers[episode_broker][worker_id][1]['score'],
+                        messages_received_from_workers[episode_chief][worker_id][1]['score'],
                         np.mean(score_over_recent_100_episodes[worker_id])
                     )
                     if topic == MQTT_TOPIC_SUCCESS_DONE:
@@ -244,12 +244,12 @@ def on_message(client, userdata, msg):
             else:
                 send_update_ack()
 
-            messages_received_from_workers[episode_broker].clear()
+            messages_received_from_workers[episode_chief].clear()
 
             save_graph()
 
-            print("episode_broker: {0:3d} - {1}".format(episode_broker, worker_score_str))
-            episode_broker += 1
+            print("episode_chief: {0:3d} - {1}".format(episode_chief, worker_score_str))
+            episode_chief += 1
     else:
         process_message(msg.topic, msg_payload)
 
@@ -263,29 +263,29 @@ def send_transfer_ack(parameters_transferred):
     if MODE_PARAMETERS_TRANSFER:
         log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'parameters_length: {2}\n".format(
             MQTT_TOPIC_TRANSFER_ACK,
-            episode_broker,
+            episode_chief,
             len(parameters_transferred)
         )
 
         transfer_msg = {
-            "episode_broker": episode_broker,
+            "episode_chief": episode_chief,
             "parameters": parameters_transferred
         }
     else:
         log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}\n".format(
             MQTT_TOPIC_TRANSFER_ACK,
-            episode_broker
+            episode_chief
         )
 
         transfer_msg = {
-            "episode_broker": episode_broker
+            "episode_chief": episode_chief
         }
     logger.info(log_msg)
 
     transfer_msg = pickle.dumps(transfer_msg, protocol=-1)
     transfer_msg = zlib.compress(transfer_msg)
 
-    broker.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
+    chief.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
 
     model.reset_average_gradients()
     
@@ -294,44 +294,44 @@ def send_update_ack():
     if MODE_GRADIENTS_UPDATE:
         log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length: {2}\n".format(
             MQTT_TOPIC_UPDATE_ACK,
-            episode_broker,
+            episode_chief,
             len(model.avg_gradients)
         )
 
         model.get_average_gradients(NUM_WORKERS - NUM_DONE_WORKERS)
 
         grad_update_msg = {
-            "episode_broker": episode_broker,
+            "episode_chief": episode_chief,
             "avg_gradients": model.avg_gradients
         }
     else:
         log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}\n".format(
             MQTT_TOPIC_UPDATE_ACK,
-            episode_broker
+            episode_chief
         )
 
         grad_update_msg = {
-            "episode_broker": episode_broker
+            "episode_chief": episode_chief
         }
     logger.info(log_msg)
 
     grad_update_msg = pickle.dumps(grad_update_msg, protocol=-1)
     grad_update_msg = zlib.compress(grad_update_msg)
 
-    broker.publish(topic=MQTT_TOPIC_UPDATE_ACK, payload=grad_update_msg, qos=0, retain=False)
+    chief.publish(topic=MQTT_TOPIC_UPDATE_ACK, payload=grad_update_msg, qos=0, retain=False)
 
     model.reset_average_gradients()
 
 
-broker = mqtt.Client("dist_trans_ppo_broker")
-broker.on_connect = on_connect
-broker.on_message = on_message
-broker.on_log = on_log
-broker.connect(MQTT_SERVER, MQTT_PORT)
-broker.loop_start()
+chief = mqtt.Client("dist_trans_ppo_chief")
+chief.on_connect = on_connect
+chief.on_message = on_message
+chief.on_log = on_log
+chief.connect(MQTT_SERVER, MQTT_PORT)
+chief.loop_start()
 
 while True:
     time.sleep(1)
     if NUM_DONE_WORKERS == NUM_WORKERS:
-        broker.loop_stop()
+        chief.loop_stop()
         break
