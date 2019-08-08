@@ -3,7 +3,7 @@ import pickle
 import zlib
 from collections import deque
 
-from conf.constants_general import MQTT_PORT
+from conf.constants_general import MQTT_PORT, MQTT_SERVER
 from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
 from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
 from conf.constants_general import VERBOSE
@@ -41,7 +41,7 @@ local_losses = []
 score_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
-episode_broker = -1
+episode_chief = -1
 
 agent = PPOAgent_v0(
     env=env,
@@ -65,15 +65,15 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    global episode_broker
+    global episode_chief
 
     msg_payload = zlib.decompress(msg.payload)
     msg_payload = pickle.loads(msg_payload)
 
     if msg.topic == MQTT_TOPIC_UPDATE_ACK:
-        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_broker': {1}, avg_grad_length: {2} \n".format(
+        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_chief': {1}, avg_grad_length: {2} \n".format(
             msg.topic,
-            msg_payload['episode_broker'],
+            msg_payload['episode_chief'],
             len(msg_payload['avg_gradients'])
         )
 
@@ -82,13 +82,13 @@ def on_message(client, userdata, msg):
         if not is_success_or_fail_done and MODE_GRADIENTS_UPDATE:
             update_process(msg_payload['avg_gradients'])
 
-        episode_broker = msg_payload["episode_broker"]
-        print("Topic_Update: " + episode_broker)
+        episode_chief = msg_payload["episode_chief"]
+        print("Topic_Update: " + episode_chief)
         
     elif msg.topic == MQTT_TOPIC_TRANSFER_ACK:
-        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_broker': {1}, parameters_length: {2} \n".format(
+        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_chief': {1}, parameters_length: {2} \n".format(
             msg.topic,
-            msg_payload['episode_broker'],
+            msg_payload['episode_chief'],
             len(msg_payload['parameters'])
         )
 
@@ -97,8 +97,8 @@ def on_message(client, userdata, msg):
         if not is_success_or_fail_done and MODE_PARAMETERS_TRANSFER:
             transfer_process(msg_payload['parameters'])
 
-        episode_broker = msg_payload["episode_broker"]
-        print("Transfer ack: " + episode_broker)
+        episode_chief = msg_payload["episode_chief"]
+        print("Transfer ack: " + episode_chief)
 
     else:
         print("pass")
@@ -222,7 +222,7 @@ for episode in range(MAX_EPISODES):
         send_msg(MQTT_TOPIC_EPISODE_DETAIL, episode_msg)
 
     while True:
-        if episode == episode_broker:
+        if episode == episode_chief:
             break
         time.sleep(0.01)
 

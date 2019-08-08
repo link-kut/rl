@@ -4,6 +4,8 @@
 - conda activate rl
 - pip install --ignore-installed pip
 - pip install -r requirements.txt
+- pytorch 설치
+  - https://pytorch.org/ 홈페이지 참고
 
 ### 2. OpenAI Gym 설치
 

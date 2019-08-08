@@ -13,11 +13,11 @@ if not os.path.exists("./logs/"):
 if not os.path.exists("./out_err/"):
     os.makedirs("./out_err/")
 
-def run_broker():
+def run_chief():
     try:
-        os.system(PYTHON_PATH + " ./broker.py")
-        sys.stdout = open("./out_err/broker_stdout.out", "wb")
-        sys.stderr = open("./out_err/broker_stderr.out", "wb")
+        os.system(PYTHON_PATH + " ./chief.py")
+        sys.stdout = open("./out_err/chief_stdout.out", "wb")
+        sys.stderr = open("./out_err/chief_stderr.out", "wb")
     except KeyboardInterrupt:
         sys.stdout.flush()
         sys.stderr.flush()
@@ -53,8 +53,8 @@ if __name__ == "__main__":
         for f in files:
             os.remove(f)
 
-        broker = Process(target=run_broker, args=())
-        broker.start()
+        chief = Process(target=run_chief, args=())
+        chief.start()
 
         time.sleep(1)
 
@@ -67,4 +67,4 @@ if __name__ == "__main__":
         for worker in workers:
             worker.join()
 
-        broker.join()
+        chief.join()
