@@ -23,7 +23,7 @@ MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
 MQTT_SUB_RESET_COMPLETE = 'reset_complete'
 
 # [WORKER]
-NUM_WORKERS = 1
+NUM_WORKERS = 2
 
 # [TRANSFER]
 SOFT_TRANSFER = False

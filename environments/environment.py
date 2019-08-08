@@ -16,7 +16,7 @@ WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = WIN_AND_LEARN_FINISH_CONTINUOUS_EPISO
 
 def get_environment(owner="broker"):
     if ENVIRONMENT_ID == Environment_Name.QUANSER_SERVO_2.value:
-        client = mqtt.Client(client_id="env_sub", transport="TCP")
+        client = mqtt.Client(client_id="env_sub_2", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
 
         def __on_connect(client, userdata, flags, rc):
@@ -38,7 +38,7 @@ def get_environment(owner="broker"):
                 pendulum_radian = float(servo_info["pendulum_radian"])
                 pendulum_velocity = float(servo_info["pendulum_velocity"])
                 pub_id = servo_info["pub_id"]
-                env.__set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
+                env.set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
 
             elif msg.topic == MQTT_SUB_MOTOR_LIMIT:
                 info = str(msg.payload.decode("utf-8")).split('|')
@@ -56,8 +56,8 @@ def get_environment(owner="broker"):
                 pendulum_radian = float(servo_info[2])
                 pendulum_velocity = float(servo_info[3])
                 pub_id = servo_info[4]
+                env.set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
 
-                env.__set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
         client.on_connect = __on_connect
         client.on_message =  __on_message
         client.on_log = __on_log
