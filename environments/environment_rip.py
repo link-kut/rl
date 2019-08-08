@@ -6,11 +6,11 @@ import numpy as np
 from conf.constants_mine import *
 
 # MQTT Topic for RIP
-MQTT_PUB_TO_SERVO_POWER = 'motor_power_2'
-MQTT_PUB_RESET = 'reset_2'
-MQTT_SUB_FROM_SERVO = 'servo_info_2'
-MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info_2'
-MQTT_SUB_RESET_COMPLETE = 'reset_complete_2'
+MQTT_PUB_TO_SERVO_POWER = 'motor_power'
+MQTT_PUB_RESET = 'reset'
+MQTT_SUB_FROM_SERVO = 'servo_info'
+MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
+MQTT_SUB_RESET_COMPLETE = 'reset_complete'
 
 STATE_SIZE = 4
 

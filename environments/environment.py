@@ -1,10 +1,11 @@
 import gym
 import json
 
-from gym_unity.envs import UnityEnv
+# from gym_unity.envs import UnityEnv
 
 from conf.constants_general import MQTT_SERVER_FOR_RIP
 from environments.environment_rip import *
+from environments.environment_names import *
 import paho.mqtt.client as mqtt
 
 GYM_ENV_ID_LIST = [
@@ -60,6 +61,7 @@ def get_environment(owner="chief"):
                 pendulum_velocity = float(servo_info[3])
                 pub_id = servo_info[4]
                 env.set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
+
 
         client.on_connect = __on_connect
         client.on_message =  __on_message
@@ -147,7 +149,7 @@ class CartPole_v0(Environment):
     def close(self):
         self.env.close()
 
-
+"""
 class Chaser_v0(Environment):
     def __init__(self):
         ENV_NAME = "./3DBall"
@@ -185,3 +187,4 @@ class Chaser_v0(Environment):
 
     def close(self):
         self.env.close()
+"""
