@@ -22,7 +22,7 @@ PUB_ID = 0
 
 
 class EnvironmentRIP:
-    def __init__(self, owner):
+    def __init__(self, mqtt_client):
         self.episode = 0
 
         self.state_space_shape = (STATE_SIZE,)
@@ -44,9 +44,17 @@ class EnvironmentRIP:
         self.is_limit_complete = False
         self.is_reset_complete = False
 
+        self.mqtt_client = mqtt_client
+
+        self.n_states = self.get_n_states()
+        self.n_actions = self.get_n_actions()
+
+        self.state_shape = self.get_state_shape()
+        self.action_shape = self.get_action_shape()
+
     def __pub(self, topic, payload, require_response=True):
         global PUB_ID
-        self.sub.publish(topic=topic, payload=payload)
+        self.mqtt_client.publish(topic=topic, payload=payload)
         PUB_ID += 1
 
         if require_response:
@@ -60,7 +68,8 @@ class EnvironmentRIP:
         self.is_limit_complete = False
         self.is_reset_complete = False
 
-    def __set_state(self, motor_radian, motor_velocity, pendulum_radian, pendulum_velocity):
+    def set_state(self, motor_radian, motor_velocity, pendulum_radian, pendulum_velocity):
+        print("1111")
         self.is_state_changed = True
         # self.state = [pendulum_radian, pendulum_velocity, motor_radian, motor_velocity]
         self.state = [pendulum_radian, pendulum_velocity]
@@ -92,11 +101,13 @@ class EnvironmentRIP:
         n_actions = 3
         return n_actions
 
+    def get_state_shape(self):
+        return None
+
+    def get_action_shape(self):
+        return None
+
     def reset(self):
-        # state = self.env.reset()
-        # if ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
-        #     state = state[2:]
-        # else:
         self.steps = 0
         self.pendulum_radians = []
         self.reward = 0
@@ -123,12 +134,6 @@ class EnvironmentRIP:
         return np.asarray(self.state)
 
     def step(self, action):
-        # next_state, reward, done, info = self.env.step(action)
-        #
-        # if ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
-        #     next_state = next_state[2:]
-        #     adjusted_reward = reward / 100
-        # else:
         motor_power = balance_motor_power_list[action]
 
         self.__pub(MQTT_PUB_TO_SERVO_POWER, "{0}|{1}|{2}".format(motor_power, "balance", PUB_ID))
@@ -137,7 +142,7 @@ class EnvironmentRIP:
 
         next_state = np.asarray(self.state)
         self.reward = 1.0
-        adjusted_reward = 1.0
+        adjusted_reward = self.reward / 100
         self.steps += 1
         self.pendulum_radians.append(pendulum_radian)
         done, info = self.__isDone()
@@ -158,11 +163,11 @@ class EnvironmentRIP:
         if self.steps >= 5000:
             return True, "*** Success!!! ***"
         elif self.is_motor_limit:
-            self.reward = -100
+            self.reward = 0
             return True, "*** Limit position ***"
         elif abs(self.pendulum_radians[-1]) > 3.14 / 24:
             self.is_fail = True
-            self.reward = -100
+            self.reward = 0
             return True, "*** Fail!!! ***"
         else:
             return False, ""

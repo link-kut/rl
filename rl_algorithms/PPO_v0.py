@@ -136,6 +136,7 @@ class PPOAgent_v0:
             score += reward
 
             if done:
+                torch.save(self.model.state_dict(), "./model_save/model_{}").format(episode)
                 break
 
         avg_gradients, loss = self.train_net()
