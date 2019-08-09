@@ -7,6 +7,7 @@ from conf.constants_general import MQTT_SERVER_FOR_RIP
 from environments.environment_rip import *
 from environments.environment_names import *
 import paho.mqtt.client as mqtt
+from gym_unity.envs import UnityEnv
 
 GYM_ENV_ID_LIST = [
     Environment_Name.CARTPOLE_V0.value,
@@ -151,13 +152,7 @@ class CartPole_v0(Environment):
     def close(self):
         self.env.close()
 
-<<<<<<< HEAD
-
 class Chaser_v1(Environment):
-=======
-"""
-class Chaser_v0(Environment):
->>>>>>> 37b51a264a35bd4e70b6114303ecf36497d6f390
     def __init__(self):
         self.env = UnityEnv(
             environment_filename=ENVIRONMENT_ID,
@@ -194,4 +189,3 @@ class Chaser_v0(Environment):
 
     def close(self):
         self.env.close()
-"""
