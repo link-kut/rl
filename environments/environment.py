@@ -75,6 +75,8 @@ def get_environment(owner="chief"):
 
     elif ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
         env = CartPole_v0()
+    elif ENVIRONMENT_ID == Environment_Name.CHASER_V1.value:
+        env = Chaser_v1()
     else:
         env = None
     return env
@@ -148,15 +150,15 @@ class CartPole_v0(Environment):
         self.env.close()
 
 
-class Chaser_v0(Environment):
+class Chaser_v1(Environment):
     def __init__(self):
-        ENV_NAME = "./3DBall"
         self.env = UnityEnv(
-            environment_filename=ENV_NAME,
-            worker_id=self.worker_id,
-            use_visual=False,
+            environment_filename=ENVIRONMENT_ID,
+            worker_id=0,
+            use_visual=True,
             multiagent=True
         ).unwrapped
+        super(Chaser_v1, self).__init__()
 
     def get_n_states(self):
         n_state = self.env.observation_space.shape[0]
