@@ -194,8 +194,10 @@ def process_message(topic, msg_payload):
     else:
         pass
 
+
 def on_log(mqttc, obj, level, string):
     print(string)
+
 
 def on_message(client, userdata, msg):
     global episode_chief
