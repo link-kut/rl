@@ -24,8 +24,9 @@ class ActorCriticMLP(nn.Module):
         self.fc.append(self.fc3)
 
         self.avg_gradients = {}
-        self.reset_average_gradients()
         self.device = device
+
+        self.reset_average_gradients()
 
         # for m in self.modules():
         #     if isinstance(m, nn.Linear):
@@ -36,27 +37,27 @@ class ActorCriticMLP(nn.Module):
         named_parameters = self.fc0.named_parameters()
         self.avg_gradients["fc0"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc0"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc0"][name] = torch.zeros_like(param.data).to(self.device)
 
         named_parameters = self.fc1.named_parameters()
         self.avg_gradients["fc1"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc1"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc1"][name] = torch.zeros_like(param.data).to(self.device)
 
         named_parameters = self.fc2.named_parameters()
         self.avg_gradients["fc2"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc2"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc2"][name] = torch.zeros_like(param.data).to(self.device)
 
         named_parameters = self.fc3.named_parameters()
         self.avg_gradients["fc3"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc3"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc3"][name] = torch.zeros_like(param.data).to(self.device)
 
         named_parameters = self.fc3_v.named_parameters()
         self.avg_gradients["fc3_v"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc3_v"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc3_v"][name] = torch.zeros_like(param.data).to(self.device)
 
     def pi(self, state, softmax_dim=0):
         state = F.leaky_relu(self.fc0(state))
