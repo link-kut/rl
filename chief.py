@@ -8,7 +8,7 @@ import torch
 from environments.environment import Environment
 from utils import exp_moving_average
 
-from conf.constants_general import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP
+from conf.constants_general import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP, MQTT_LOG
 from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
 from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
 from conf.constants_general import NUM_WORKERS, EMA_WINDOW
@@ -80,7 +80,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = ActorCriticMLP(
     s_size=env.n_states,
-    hidden_size=hidden_size,
     a_size=env.n_actions,
     device=device
 ).to(device)
@@ -328,7 +327,7 @@ def send_update_ack():
 chief = mqtt.Client("dist_trans_ppo_chief")
 chief.on_connect = on_connect
 chief.on_message = on_message
-chief.on_log = on_log
+if MQTT_LOG: chief.on_log = on_log
 chief.connect(MQTT_SERVER, MQTT_PORT)
 chief.loop_start()
 

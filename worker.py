@@ -47,7 +47,6 @@ agent = PPOAgent_v0(
     env=env,
     worker_id=worker_id,
     n_states=env.n_states,
-    hidden_size=[HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE],
     n_actions=env.n_actions,
     gamma=GAMMA,
     env_render=ENV_RENDER,
