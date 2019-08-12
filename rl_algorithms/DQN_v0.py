@@ -14,6 +14,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
+from conf.constants_general import DEEP_LEARNING_MODEL
 from models.cnn import CNN
 
 Transition = namedtuple('Transition',
@@ -37,7 +38,7 @@ class ReplayMemory(object):
 
 
 class DQNAgent_v0:
-    def __init__(self, env, worker_id, n_states, hidden_size, n_actions, gamma, env_render, logger, verbose):
+    def __init__(self, env, worker_id, n_states, n_actions, gamma, env_render, logger, verbose):
         self.env = env
 
         self.worker_id = worker_id
@@ -46,7 +47,6 @@ class DQNAgent_v0:
         self.gamma = gamma
 
         self.n_states = n_states
-        self.hidden_size = hidden_size
         self.n_actions = n_actions
 
         self.trajectory = []
@@ -58,14 +58,25 @@ class DQNAgent_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.model = self.build_model(self.n_states, self.hidden_size, self.n_actions)
+        if DEEP_LEARNING_MODEL == "MLP":
+            pass
+        elif DEEP_LEARNING_MODEL == "CNN":
+            self.model = self.build_cnn_model(self.n_actions)
+        else:
+            pass
+
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
         print("----------Worker {0}: {1}:--------".format(
             self.worker_id, "PPO",
         ))
 
-    # Policy Network is 256-256-256-2 MLP
-    def build_model(self, n_states, hidden_size, n_actions):
-        model = CNN(n_states, hidden_size, n_actions, device).to(device)
+    def build_cnn_model(self, n_actions):
+        model = CNN(n_actions, device).to(device)
         return model
+
+    def on_episode(self, episode):
+        self.env.reset()
+        last_screen = get_screen()
+        current_screen = get_screen()
+        state = current_screen - last_screen

@@ -66,10 +66,7 @@ num_messages = 0
 
 env = get_environment()
 
-print("env.n_states: {0}".format(env.n_states))
 print("env.state_shape: {0}".format(env.state_shape))
-
-print("env.n_actions: {0}".format(env.n_actions))
 print("env.action_shape: {0}".format(env.action_shape))
 
 num_actions = 0

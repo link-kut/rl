@@ -1,10 +1,10 @@
+# https://becominghuman.ai/lets-build-an-atari-ai-part-1-dqn-df57e8ff3b26
 import gym
-import json
 
 # from gym_unity.envs import UnityEnv
 
 from conf.constants_general import MQTT_SERVER_FOR_RIP
-from environments.environment_rip import *
+from environments.envs.environment_rip import *
 from environments.environment_names import *
 import paho.mqtt.client as mqtt
 from gym_unity.envs import UnityEnv
@@ -74,12 +74,12 @@ def get_environment(owner="chief"):
         print("***** Sub thread started!!! *****", flush=False)
         client.loop_start()
 
-
-
     elif ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
         env = CartPole_v0()
     elif ENVIRONMENT_ID == Environment_Name.CHASER_V1.value:
         env = Chaser_v1()
+    elif ENVIRONMENT_ID == Environment_Name.BREAKOUT_DETERMINISTIC_V4.value:
+        env = BreakoutDeterministic_v4()
     else:
         env = None
     return env
@@ -152,6 +152,57 @@ class CartPole_v0(Environment):
     def close(self):
         self.env.close()
 
+
+class BreakoutDeterministic_v4(Environment):
+    def __init__(self):
+        self.env = gym.make(ENVIRONMENT_ID)
+        self.action_space = self.env.action_space
+        super(BreakoutDeterministic_v4, self).__init__()
+
+    def to_grayscale(self, img):
+        return np.mean(img, axis=2).astype(np.uint8)
+
+    def downsample(self, img):
+        return img[::2, ::2]
+
+    def preprocess(self, img):
+        return self.to_grayscale(self.downsample(img))
+
+    def transform_reward(self, reward):
+        return np.sign(reward)
+
+    def get_n_states(self):
+        return None
+
+    def get_n_actions(self):
+        return None
+
+    def get_state_shape(self):
+        state_shape = self.env.observation_space.shape
+        return tuple(state_shape)
+
+    def get_action_shape(self):
+        action_shape = self.env.action_space.shape
+        return tuple(action_shape)
+
+    def reset(self):
+        state = self.env.reset()
+        return state
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = reward
+
+        return next_state, reward, adjusted_reward, done, info
+
+    def render(self):
+        self.env.render()
+
+    def close(self):
+        self.env.close()
+
+
 class Chaser_v1(Environment):
     def __init__(self):
         self.env = UnityEnv(
@@ -189,3 +240,18 @@ class Chaser_v1(Environment):
 
     def close(self):
         self.env.close()
+
+
+if __name__ == "__main__":
+    env = get_environment()
+    # Reset it, returns the starting frame
+    frame = env.reset()
+    # Render
+    env.render()
+
+    is_done = False
+    while not is_done:
+        # Perform a random action, returns the new frame, reward and whether the game is over
+        frame, reward, adjusted_reward, is_done, _ = env.step(env.action_space.sample())
+        # Render
+        env.render()

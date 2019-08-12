@@ -6,15 +6,16 @@ import math
 from torch.nn import init
 from torchsummary import summary
 
+from conf.constants_general import CNN_INPUT_HEIGHT, CNN_INPUT_WIDTH, CNN_INPUT_CHANNELS
 from utils import get_conv2d_size, get_pool2d_size
 
 
 class CNN(nn.Module):
-    def __init__(self, input_width, input_height, a_size, device):
+    def __init__(self, a_size, device):
         super(CNN, self).__init__()
 
         self.conv_layer = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=8, kernel_size=2),
+            nn.Conv2d(in_channels=CNN_INPUT_CHANNELS, out_channels=8, kernel_size=2),
             nn.BatchNorm2d(8),
             nn.LeakyReLU(),
             nn.Conv2d(in_channels=8, out_channels=16, kernel_size=2),
@@ -27,7 +28,7 @@ class CNN(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=1)
         )
 
-        w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding_size=0, stride=1)
+        w, h = get_conv2d_size(w=CNN_INPUT_WIDTH, h=CNN_INPUT_HEIGHT, kernel_size=2, padding_size=0, stride=1)
         w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
         w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
         w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
@@ -68,7 +69,6 @@ class CNN(nn.Module):
         state = self.conv_layer(state)
         state = state.view(batch_size, -1)
         state = self.fc_layer(state)
-        state = self.fc_pi(state)
         out = F.softmax(state, dim=0)
         return out
 
@@ -156,9 +156,9 @@ class CNN(nn.Module):
 
 def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    cnn = CNN(input_width=10, input_height=10, a_size=2, device=device)
+    cnn = CNN(a_size=2, device=device)
 
-    summary(cnn, input_size=(1, 10, 10))
+    summary(cnn, input_size=(CNN_INPUT_CHANNELS, CNN_INPUT_WIDTH, CNN_INPUT_HEIGHT))
 
     gradients = cnn.get_gradients_for_current_parameters()
     print(gradients)
