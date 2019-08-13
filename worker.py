@@ -8,7 +8,7 @@ import sys
 
 from logger import get_logger
 from rl_algorithms.DQN_v0 import DQNAgent_v0
-
+from rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousActionAgent_v0
 from rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
 
 from utils import exp_moving_average
@@ -35,7 +35,7 @@ score_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
 episode_chief = -1
-
+print(RL_ALGORITHM)
 if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
     agent = PPODiscreteActionAgent_v0(
         env=env,
@@ -47,6 +47,15 @@ if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
     )
 elif RL_ALGORITHM == RLAlgorithmName.DQN_V0:
     agent = DQNAgent_v0(
+        env=env,
+        worker_id=worker_id,
+        gamma=GAMMA,
+        env_render=ENV_RENDER,
+        logger=logger,
+        verbose=VERBOSE
+    )
+elif RL_ALGORITHM == RLAlgorithmName.PPO_CONTINUOUS_TORCH_V0:
+    agent = PPOContinuousActionAgent_v0(
         env=env,
         worker_id=worker_id,
         gamma=GAMMA,

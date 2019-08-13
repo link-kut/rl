@@ -56,7 +56,6 @@ class PPODiscreteActionAgent_v0:
         model = ActorCriticMLP(
             s_size=self.env.n_states,
             a_size=self.env.n_actions,
-            continuous=self.env.continuous,
             device=device
         ).to(device)
         return model
@@ -67,7 +66,6 @@ class PPODiscreteActionAgent_v0:
             input_width=self.env.cnn_input_width,
             input_channels=self.env.cnn_input_channels,
             a_size=self.env.n_actions,
-            continuous=self.env.continuous,
             device=device
         ).to(device)
         return model
