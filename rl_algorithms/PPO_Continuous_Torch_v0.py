@@ -142,6 +142,7 @@ class PPOContinuousActionAgent_v0:
         # in CartPole-v0:
         # state = [theta, angular speed]
         state = self.env.reset()
+        state = torch.FloatTensor(state).float().to(device)
         done = False
         score = 0.0
 
@@ -151,7 +152,8 @@ class PPOContinuousActionAgent_v0:
 
             action, prob = self.model.continuous_act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
-
+            next_state = torch.FloatTensor(next_state).float().to(device)
+            adjusted_reward = torch.FloatTensor(adjusted_reward).float().to(device)
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
