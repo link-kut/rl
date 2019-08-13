@@ -103,6 +103,7 @@ elif DEEP_LEARNING_MODEL == ModelName.CNN:
         input_width=env.cnn_input_width,
         input_channels=env.cnn_input_channels,
         a_size=env.n_actions,
+        continuous=env.continuous,
         device=device
     ).to(device)
 else:
