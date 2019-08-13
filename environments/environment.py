@@ -3,7 +3,7 @@ import gym
 
 # from gym_unity.envs import UnityEnv
 
-from conf.constants_general import MQTT_SERVER_FOR_RIP
+from conf.constants_mine import MQTT_SERVER_FOR_RIP
 from environments.envs.environment_rip import *
 from conf.names import *
 import paho.mqtt.client as mqtt
@@ -91,6 +91,10 @@ class Environment:
 
         self.state_shape = self.get_state_shape()
         self.action_shape = self.get_action_shape()
+
+        self.cnn_input_height = None
+        self.cnn_input_width = None
+        self.cnn_input_channels = None
 
     def get_n_states(self):
         pass

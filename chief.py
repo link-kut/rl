@@ -9,12 +9,12 @@ from environments.environment import Environment
 from models.cnn import CNN
 from utils import exp_moving_average
 
-from conf.constants_general import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP, MQTT_LOG
-from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
-from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
-from conf.constants_general import NUM_WORKERS, EMA_WINDOW
-from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
-from conf.constants_general import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
+from conf.constants_mine import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP, MQTT_LOG
+from conf.constants_mine import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
+from conf.constants_mine import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK
+from conf.constants_mine import NUM_WORKERS, EMA_WINDOW
+from conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
+from conf.constants_mine import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
 from environments.environment import *
 
 from models.actor_critic_mlp import ActorCriticMLP
