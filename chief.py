@@ -55,6 +55,15 @@ def print_configuration():
     print(" State Shape: {0}".format(env.state_shape))
     print(" Action Shape: {0}".format(env.action_shape))
 
+    print("\n*** RL ALGORITHM ***")
+    print(" RL Algorithm:" + RL_ALGORITHM.value)
+
+    print("\n*** MODEL ***")
+    print(" Deep Learning Model:" + DEEP_LEARNING_MODEL.value)
+
+    print()
+
+
 print_configuration()
 
 logger = get_logger("chief")
