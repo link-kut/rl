@@ -103,6 +103,7 @@ elif DEEP_LEARNING_MODEL == ModelName.CNN:
         input_width=env.cnn_input_width,
         input_channels=env.cnn_input_channels,
         a_size=env.n_actions,
+        continuous=env.continuous,
         device=device
     ).to(device)
 else:
@@ -318,7 +319,7 @@ def send_transfer_ack(parameters_transferred):
 
 def send_update_ack():
     if MODE_GRADIENTS_UPDATE:
-        log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length: {2}\n".format(
+        log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length': {2}\n".format(
             MQTT_TOPIC_UPDATE_ACK,
             episode_chief,
             len(model.avg_gradients)

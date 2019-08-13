@@ -2,14 +2,6 @@
 import pickle
 import zlib
 from collections import deque
-
-from conf.constants_mine import MQTT_PORT, MQTT_SERVER
-from conf.constants_mine import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS_DONE, MQTT_TOPIC_FAIL_DONE
-from conf.constants_mine import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
-from conf.constants_mine import VERBOSE
-from conf.constants_mine import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
-from conf.constants_mine import GAMMA
-from conf.constants_mine import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
 from environments.environment import *
 
 import sys

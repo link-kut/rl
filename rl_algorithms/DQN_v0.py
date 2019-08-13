@@ -86,6 +86,8 @@ class DQNAgent_v0:
             self.worker_id, "PPO",
         ))
 
+        self.model = self.policy_model
+
     def build_actor_critic_mlp_model(self):
         model = ActorCriticMLP(
             s_size=self.env.n_states,
@@ -100,24 +102,27 @@ class DQNAgent_v0:
             input_width=self.env.cnn_input_width,
             input_channels=self.env.cnn_input_channels,
             a_size=self.env.n_actions,
+            continuous=self.env.continuous,
             device=device
         ).to(device)
         return model
 
     def on_episode(self, episode):
         state = self.env.reset()
+        state = torch.from_numpy(state).unsqueeze(dim=0).float().to(device)
+
         done = False
         score = 0.0
 
         while not done:
-            state = torch.DoubleTensor(state).to(device)
-            state = state.unsqueeze(dim=0)
-
             if self.env_render:
                 self.env.render()
+
             action = self.select_action(state)
             next_state, reward, adjusted_reward, done, _ = self.env.step(action.item())
-            reward = torch.tensor([adjusted_reward], device=device)
+
+            next_state = torch.from_numpy(next_state).unsqueeze(dim=0).float().to(device)
+            reward = torch.tensor([adjusted_reward], device=device).float().to(device)
 
             # Store the transition in memory
             self.memory.push(state, action, next_state, reward)
@@ -135,7 +140,7 @@ class DQNAgent_v0:
         if episode % TARGET_UPDATE_PERIOD == 0:
             self.target_model.load_state_dict(self.policy_model.state_dict())
 
-        return gradients, loss, score
+        return gradients, loss.item(), score.item()
 
     # epsilon greedy policy
     def select_action(self, state):
@@ -168,6 +173,7 @@ class DQNAgent_v0:
             device=device,
             dtype=torch.uint8
         )
+
         non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
         state_batch = torch.cat(batch.state)
         action_batch = torch.cat(batch.action)
@@ -208,3 +214,6 @@ class DQNAgent_v0:
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
         self.policy_model.transfer_process(parameters, soft_transfer, soft_transfer_tau)
+
+    def optimize_step(self):
+        self.optimizer.step()
