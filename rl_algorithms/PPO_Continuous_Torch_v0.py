@@ -20,7 +20,7 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPOKerasAgent_v0:
+class PPOContinuousActionAgent_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
@@ -115,8 +115,7 @@ class PPOKerasAgent_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
-            pi = self.model.pi(state_lst, softmax_dim=1)
-            new_prob_action_lst = pi.gather(dim=1, index=action_lst)
+            pi, new_prob_action_lst = self.model.continuous_act(state_lst, softmax_dim=1)
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage
@@ -149,7 +148,7 @@ class PPOKerasAgent_v0:
             if self.env_render:
                 self.env.render()
 
-            action, prob = self.model.act(state)
+            action, prob = self.model.continuous_act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
@@ -169,7 +168,7 @@ class PPOKerasAgent_v0:
                 break
 
         gradients, loss = self.train_net()
-
+        print(gradients, loss)
         return gradients, loss, score
 
     def get_parameters(self):

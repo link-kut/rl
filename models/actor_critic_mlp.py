@@ -7,12 +7,13 @@ from conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 
 
 class ActorCriticMLP(nn.Module):
-    def __init__(self, s_size, a_size, continuous, device):
+    def __init__(self, s_size, a_size, device):
         super(ActorCriticMLP, self).__init__()
         self.fc0 = nn.Linear(s_size, HIDDEN_1_SIZE)
         self.fc1 = nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE)
         self.fc2 = nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE)
         self.fc3 = nn.Linear(HIDDEN_3_SIZE, a_size)
+        self.fc3_log_std = nn.Parameter(torch.zeros(1, a_size))
         self.fc3_v = nn.Linear(HIDDEN_3_SIZE, 1)
 
         self.fc = []
@@ -22,7 +23,6 @@ class ActorCriticMLP(nn.Module):
         self.fc.append(self.fc3)
 
         self.avg_gradients = {}
-        self.continuous = continuous
         self.device = device
 
         self.reset_average_gradients()
@@ -62,9 +62,18 @@ class ActorCriticMLP(nn.Module):
         state = F.leaky_relu(self.fc0(state))
         state = F.leaky_relu(self.fc1(state))
         state = F.leaky_relu(self.fc2(state))
-        state = self.fc3(state)
+        state = F.leaky_relu(self.fc3(state))
         out = F.softmax(state, dim=softmax_dim)
         return out
+
+    def __get_dist(self, state):
+        state = F.tanh(self.fc0(state))
+        state = F.tanh(self.fc1(state))
+        state = F.tanh(self.fc2(state))
+        out = F.tanh(self.fc3(state))
+        out_log_std = self.fc3_log_std.expand_as(state)
+
+        return torch.distributions.Normal(out, out_log_std.exp())
 
     def v(self, state):
         state = F.leaky_relu(self.fc0(state))
@@ -81,6 +90,14 @@ class ActorCriticMLP(nn.Module):
         action = m.sample().item()
 
         return action, prob.squeeze(0)[action].item()
+
+    def continuous_act(self, state):
+        dist = self.__get_dist(state)
+        action = dist.sample()
+
+        action_log_probs = dist.log_prob(action).sum(-1, keepdim=True)
+
+        return action, action_log_probs
 
     def get_gradients_for_current_parameters(self):
         gradients = {}

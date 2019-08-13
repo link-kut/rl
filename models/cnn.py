@@ -10,7 +10,7 @@ from utils import get_conv2d_size, get_pool2d_size
 
 
 class CNN(nn.Module):
-    def __init__(self, input_height, input_width, input_channels, a_size, continuous, device):
+    def __init__(self, input_height, input_width, input_channels, a_size, device):
         super(CNN, self).__init__()
 
         self.conv_layer = nn.Sequential(
@@ -47,7 +47,6 @@ class CNN(nn.Module):
                 init.kaiming_normal_(m.weight.data)
                 m.bias.data.fill_(0)
 
-        self.continuous = continuous
         self.device = device
 
         self.avg_gradients = {}

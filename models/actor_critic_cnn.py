@@ -10,7 +10,7 @@ from utils import get_conv2d_size, get_pool2d_size
 
 
 class ActorCriticCNN(nn.Module):
-    def __init__(self, input_width, input_height, a_size, continuous, device):
+    def __init__(self, input_width, input_height, a_size, device):
         super(ActorCriticCNN, self).__init__()
 
         self.conv_layer = nn.Sequential(
@@ -49,7 +49,6 @@ class ActorCriticCNN(nn.Module):
                 init.kaiming_normal_(m.weight.data)
                 m.bias.data.fill_(0)
 
-        self.continuous = continuous
         self.device = device
 
         self.avg_gradients = {}
