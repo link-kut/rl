@@ -120,6 +120,7 @@ class PPOAgent_v0:
         # in CartPole-v0:
         # state = [theta, angular speed]
         state = self.env.reset()
+        print(state)
         done = False
         score = 0.0
 
