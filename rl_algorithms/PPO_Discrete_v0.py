@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+import glob
+import os
 
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+
+from conf.constants_general import DEEP_LEARNING_MODEL, ModelName
+from main import PROJECT_HOME
 from models.actor_critic_mlp import ActorCriticMLP
+from models.cnn import CNN
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -14,18 +20,14 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPOAgent_v0:
-    def __init__(self, env, worker_id, n_states, hidden_size, n_actions, gamma, env_render, logger, verbose):
+class PPODiscreteActionAgent_v0:
+    def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
         self.worker_id = worker_id
 
         # discount rate
         self.gamma = gamma
-
-        self.n_states = n_states
-        self.hidden_size = hidden_size
-        self.n_actions = n_actions
 
         self.trajectory = []
 
@@ -36,16 +38,36 @@ class PPOAgent_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.model = self.build_model(self.n_states, self.hidden_size, self.n_actions)
+        # [DEEP_LEARNING_MODELS]
+        if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
+            self.model = self.build_actor_critic_mlp_model()
+        elif DEEP_LEARNING_MODEL == ModelName.CNN:
+            self.model = self.build_cnn_model()
+        else:
+            self.model = None
+
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
         print("----------Worker {0}: {1}:--------".format(
             self.worker_id, "PPO",
         ))
 
-    # Policy Network is 256-256-256-2 MLP
-    def build_model(self, n_states, hidden_size, n_actions):
-        model = ActorCriticMLP(n_states, hidden_size, n_actions, device).to(device)
+    def build_actor_critic_mlp_model(self):
+        model = ActorCriticMLP(
+            s_size=self.env.n_states,
+            a_size=self.env.n_actions,
+            device=device
+        ).to(device)
+        return model
+
+    def build_cnn_model(self):
+        model = CNN(
+            input_height=self.env.cnn_input_height,
+            input_width=self.env.cnn_input_width,
+            input_channels=self.env.cnn_input_channels,
+            a_size=self.env.n_actions,
+            device=device
+        ).to(device)
         return model
 
     def put_data(self, transition):
@@ -137,12 +159,19 @@ class PPOAgent_v0:
             score += reward
 
             if done:
-                torch.save(self.model.state_dict(), "./model_save/MLP_model_{}".format(episode))
+                files = glob.glob(os.path.join(PROJECT_HOME, "models", "model_save_files", "*"))
+                for f in files:
+                    os.remove(f)
+
+                torch.save(
+                    self.model.state_dict(),
+                    os.path.join(PROJECT_HOME, "models", "model_save_files", "MLP_model_{}".format(episode))
+                )
                 break
 
-        avg_gradients, loss = self.train_net()
+        gradients, loss = self.train_net()
 
-        return avg_gradients, loss, score
+        return gradients, loss, score
 
     def get_parameters(self):
         return self.model.get_parameters()

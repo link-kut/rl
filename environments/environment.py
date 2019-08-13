@@ -1,26 +1,25 @@
+# https://becominghuman.ai/lets-build-an-atari-ai-part-1-dqn-df57e8ff3b26
 import gym
-import json
 
 # from gym_unity.envs import UnityEnv
 
 from conf.constants_general import MQTT_SERVER_FOR_RIP
-from environments.environment_rip import *
-from environments.environment_names import *
+from environments.envs.environment_rip import *
+from conf.names import *
 import paho.mqtt.client as mqtt
 from gym_unity.envs import UnityEnv
 
 GYM_ENV_ID_LIST = [
-    Environment_Name.CARTPOLE_V0.value,
+    EnvironmentName.CARTPOLE_V0.value,
 ]
 
-ENVIRONMENT_ID = ENVIRONMENT_ID_MINE
 ENV_RENDER = ENV_RENDER_MINE
 WIN_AND_LEARN_FINISH_SCORE = WIN_AND_LEARN_FINISH_SCORE_MINE
 WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE
 
 
 def get_environment(owner="chief"):
-    if ENVIRONMENT_ID == Environment_Name.QUANSER_SERVO_2.value:
+    if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
         client = mqtt.Client(client_id="env_sub_2", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
 
@@ -74,12 +73,12 @@ def get_environment(owner="chief"):
         print("***** Sub thread started!!! *****", flush=False)
         client.loop_start()
 
-
-
-    elif ENVIRONMENT_ID == Environment_Name.CARTPOLE_V0.value:
+    elif ENVIRONMENT_ID == EnvironmentName.CARTPOLE_V0:
         env = CartPole_v0()
-    elif ENVIRONMENT_ID == Environment_Name.CHASER_V1.value:
+    elif ENVIRONMENT_ID == EnvironmentName.CHASER_V1:
         env = Chaser_v1()
+    elif ENVIRONMENT_ID == EnvironmentName.BREAKOUT_DETERMINISTIC_V4:
+        env = BreakoutDeterministic_v4()
     else:
         env = None
     return env
@@ -117,7 +116,7 @@ class Environment:
 
 class CartPole_v0(Environment):
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID)
+        self.env = gym.make(ENVIRONMENT_ID.value)
         super(CartPole_v0, self).__init__()
 
     def get_n_states(self):
@@ -152,12 +151,13 @@ class CartPole_v0(Environment):
     def close(self):
         self.env.close()
 
+
 class Chaser_v1(Environment):
     unity_env_worker_id = 0
 
     def __init__(self):
         self.env = UnityEnv(
-            environment_filename=ENVIRONMENT_ID,
+            environment_filename=ENVIRONMENT_ID.value,
             worker_id=Chaser_v1.unity_env_worker_id,
             use_visual=True,
             multiagent=True
@@ -195,3 +195,87 @@ class Chaser_v1(Environment):
 
     def close(self):
         self.env.close()
+
+
+class BreakoutDeterministic_v4(Environment):
+    def __init__(self):
+        self.env = gym.make(ENVIRONMENT_ID.value)
+        self.action_shape = self.get_action_shape()
+        self.state_shape = self.get_state_shape()
+        self.cnn_input_height = self.state_shape[0]
+        self.cnn_input_width = self.state_shape[1]
+        self.cnn_input_channels = self.state_shape[2]
+        super(BreakoutDeterministic_v4, self).__init__()
+
+    def to_grayscale(self, img):
+        return np.mean(img, axis=2).astype(np.uint8)
+
+    def downsample(self, img):
+        return img[::2, ::2]
+
+    def preprocess(self, img):
+        return self.to_grayscale(self.downsample(img))
+
+    def transform_reward(self, reward):
+        return np.sign(reward)
+
+    def get_n_states(self):
+        return None
+
+    def get_n_actions(self):
+        return self.env.action_space.n
+
+    def get_state_shape(self):
+        state_shape = (int(self.env.observation_space.shape[0]/2), int(self.env.observation_space.shape[1]/2), 1)
+        return state_shape
+
+    def get_action_shape(self):
+        action_shape = self.env.action_space.n
+        return (action_shape,)
+
+    def reset(self):
+        state = self.env.reset()
+        return self.preprocess(state)
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = self.transform_reward(reward)
+
+        return self.preprocess(next_state), reward, adjusted_reward, done, info
+
+    def render(self):
+        self.env.render()
+
+    def close(self):
+        self.env.close()
+
+
+if __name__ == "__main__":
+    env = get_environment()
+    # Reset it, returns the starting frame
+    frame = env.reset()
+    print(env.get_state_shape())
+    print(env.get_action_shape())
+    print(frame.shape)
+
+    # Render
+    env.render()
+
+    is_done = False
+    last_frame = frame
+
+    idx = 0
+    while not is_done:
+        # Perform a random action, returns the new frame, reward and whether the game is over
+        frame, reward, adjusted_reward, is_done, _ = env.step(env.action_space.sample())
+
+        state = frame - last_frame
+
+        print(idx, state.mean(), reward, adjusted_reward, is_done)
+
+        last_frame = frame
+        idx = idx + 1
+
+        # Render
+        env.render()

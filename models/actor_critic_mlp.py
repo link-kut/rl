@@ -2,20 +2,19 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-import math
-from torch.nn import init
+
+from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 
 
 class ActorCriticMLP(nn.Module):
-    def __init__(self, s_size, hidden_size, a_size, device):
+    def __init__(self, s_size, a_size, device):
         super(ActorCriticMLP, self).__init__()
 
-        self.layer_depth = len(hidden_size) + 1
-        self.fc0 = nn.Linear(s_size, hidden_size[0])
-        self.fc1 = nn.Linear(hidden_size[0], hidden_size[1])
-        self.fc2 = nn.Linear(hidden_size[1], hidden_size[2])
-        self.fc3 = nn.Linear(hidden_size[2], a_size)
-        self.fc3_v = nn.Linear(hidden_size[2], 1)
+        self.fc0 = nn.Linear(s_size, HIDDEN_1_SIZE)
+        self.fc1 = nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE)
+        self.fc2 = nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE)
+        self.fc3 = nn.Linear(HIDDEN_3_SIZE, a_size)
+        self.fc3_v = nn.Linear(HIDDEN_3_SIZE, 1)
 
         self.fc = []
         self.fc.append(self.fc0)
