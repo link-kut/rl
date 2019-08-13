@@ -16,7 +16,7 @@ import sys
 
 from logger import get_logger
 
-from rl_algorithms.PPO_v0 import PPOAgent_v0
+from rl_algorithms.PPO_Discrete_v0 import PPOAgent_v0
 
 from utils import exp_moving_average
 

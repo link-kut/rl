@@ -156,9 +156,9 @@ class PPOAgent_v0:
                 )
                 break
 
-        avg_gradients, loss = self.train_net()
+        gradients, loss = self.train_net()
 
-        return avg_gradients, loss, score
+        return gradients, loss, score
 
     def get_parameters(self):
         return self.model.get_parameters()

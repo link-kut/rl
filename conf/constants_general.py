@@ -35,10 +35,6 @@ SOFT_TRANSFER_TAU = 0.3
 SOFT_TARGET_UPDATE = False
 SOFT_TARGET_UPDATE_TAU = 0.3
 
-# [DEEP_LEARNING_MODEL]
-DEEP_LEARNING_MODEL = "MLP"
-#DEEP_LEARNING_MODEL = "CNN"
-
 # [MLP_DEEP_LEARNING_MODEL]
 HIDDEN_SIZE = 3
 HIDDEN_1_SIZE = 128
@@ -59,3 +55,22 @@ MODE_SYNCHRONIZATION = True
 MODE_GRADIENTS_UPDATE = True         # Distributed
 MODE_PARAMETERS_TRANSFER = True     # Transfer
 MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
+
+########################################################################################
+# COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
+########################################################################################
+PYTHON_PATH_MINE = "~/anaconda3/envs/rl/bin/python"
+MQTT_SERVER_MINE = "localhost"
+
+ENV_RENDER_MINE = False
+WIN_AND_LEARN_FINISH_SCORE_MINE = 195
+WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE = 100
+
+# [1. ENVIRONMENTS]
+ENVIRONMENT_ID = EnvironmentName.BREAKOUT_DETERMINISTIC_V4
+
+# [2. DEEP_LEARNING_MODELS]
+DEEP_LEARNING_MODEL = ModelName.CNN
+
+# [3. ALGORITHMS]
+RL_ALGORITHM = RLAlgorithmName.DQN_V0
