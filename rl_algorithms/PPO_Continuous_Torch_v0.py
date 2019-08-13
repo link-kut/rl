@@ -65,6 +65,7 @@ class PPOContinuousActionAgent_v0:
             input_height=self.env.cnn_input_height,
             input_width=self.env.cnn_input_width,
             input_channels=self.env.cnn_input_channels,
+            continuous=self.env.continuous,
             a_size=self.env.n_actions,
             device=device
         ).to(device)
