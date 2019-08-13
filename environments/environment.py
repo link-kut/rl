@@ -173,12 +173,12 @@ class Chaser_v1(Environment):
         Chaser_v1.unity_env_worker_id += 1
 
     def get_n_states(self):
-        n_state = 3
-        return n_state
+        n_states = 3
+        return n_states
 
     def get_n_actions(self):
-        n_action = 3
-        return n_action
+        n_actions = 3
+        return n_actions
 
     def get_state_shape(self):
         return self.env.observation_space.shape
