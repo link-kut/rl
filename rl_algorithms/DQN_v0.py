@@ -15,6 +15,7 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 
 from conf.constants_mine import DEEP_LEARNING_MODEL
+from conf.names import ModelName
 from models.actor_critic_mlp import ActorCriticMLP
 from models.cnn import CNN
 
@@ -63,12 +64,12 @@ class DQNAgent_v0:
         self.logger = logger
         self.verbose = verbose
 
-        if DEEP_LEARNING_MODEL == "MLP":
+        if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
             self.policy_model = self.build_actor_critic_mlp_model()
             self.target_model = self.build_actor_critic_mlp_model()
             self.target_model.load_state_dict(self.policy_model.state_dict())
             self.target_model.eval()
-        elif DEEP_LEARNING_MODEL == "CNN":
+        elif DEEP_LEARNING_MODEL == ModelName.CNN:
             self.policy_model = self.build_cnn_model()
             self.target_model = self.build_cnn_model()
             self.target_model.load_state_dict(self.policy_model.state_dict())
@@ -105,16 +106,19 @@ class DQNAgent_v0:
 
     def on_episode(self, episode):
         state = self.env.reset()
-
         done = False
         score = 0.0
 
         while not done:
+            state = torch.DoubleTensor(state).to(device)
+            state = state.unsqueeze(dim=0)
+
             if self.env_render:
                 self.env.render()
             action = self.select_action(state)
             next_state, reward, adjusted_reward, done, _ = self.env.step(action.item())
             reward = torch.tensor([adjusted_reward], device=device)
+
             # Store the transition in memory
             self.memory.push(state, action, next_state, reward)
 

@@ -10,7 +10,7 @@ from utils import get_conv2d_size, get_pool2d_size
 
 
 class ActorCriticCNN(nn.Module):
-    def __init__(self, input_width, input_height, a_size, device):
+    def __init__(self, input_width, input_height, a_size, continuous, device):
         super(ActorCriticCNN, self).__init__()
 
         self.conv_layer = nn.Sequential(
@@ -49,6 +49,7 @@ class ActorCriticCNN(nn.Module):
                 init.kaiming_normal_(m.weight.data)
                 m.bias.data.fill_(0)
 
+        self.continuous = continuous
         self.device = device
 
         self.avg_gradients = {}
@@ -237,7 +238,7 @@ class ActorCriticCNN(nn.Module):
 
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    cnn = ActorCriticCNN(input_width=10, input_height=10, a_size=2, device=device)
+    cnn = ActorCriticCNN(input_width=10, input_height=10, a_size=2, continuous=False, device=device)
 
     summary(cnn, input_size=(1, 10, 10))
 

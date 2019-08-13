@@ -17,7 +17,7 @@ import sys
 from logger import get_logger
 from rl_algorithms.DQN_v0 import DQNAgent_v0
 
-from rl_algorithms.PPO_Discrete_v0 import PPODiscreteActionAgent_v0
+from rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
 
 from utils import exp_moving_average
 
@@ -44,7 +44,7 @@ loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
 episode_chief = -1
 
-if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_V0:
+if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
     agent = PPODiscreteActionAgent_v0(
         env=env,
         worker_id=worker_id,
@@ -54,7 +54,16 @@ if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_V0:
         verbose=VERBOSE
     )
 elif RL_ALGORITHM == RLAlgorithmName.DQN_V0:
-    agent = DQNAgent_v0()
+    agent = DQNAgent_v0(
+        env=env,
+        worker_id=worker_id,
+        gamma=GAMMA,
+        env_render=ENV_RENDER,
+        logger=logger,
+        verbose=VERBOSE
+    )
+else:
+    agent = None
 
 is_success_or_fail_done = False
 
@@ -149,7 +158,7 @@ worker.loop_start()
 
 cnt = 0
 for episode in range(MAX_EPISODES):
-    cnt+=1
+    cnt += 1
     avg_gradients, loss, score = agent.on_episode(episode)
 
     local_losses.append(loss)

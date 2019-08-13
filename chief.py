@@ -33,6 +33,7 @@ import numpy as np
 
 env = get_environment()
 
+
 def print_configuration():
     print("*** MODE ***")
     if MODE_SYNCHRONIZATION:
@@ -85,11 +86,6 @@ global_min_ema_loss = 1000000000
 episode_chief = 0
 num_messages = 0
 
-
-
-num_actions = 0
-score = 0
-
 hidden_size = [HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE]
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -98,6 +94,7 @@ if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
     model = ActorCriticMLP(
         s_size=env.n_states,
         a_size=env.n_actions,
+        continuous=env.continuous,
         device=device
     ).to(device)
 elif DEEP_LEARNING_MODEL == ModelName.CNN:

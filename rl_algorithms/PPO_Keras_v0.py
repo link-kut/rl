@@ -20,7 +20,7 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPODiscreteActionAgent_v0:
+class PPOKerasAgent_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 

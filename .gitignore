@@ -110,6 +110,8 @@ unity_envs/
 .idea/*
 
 *.out
+*.gz
 
 constants_mine.py
 /models/model_save_files/
+/temp/
