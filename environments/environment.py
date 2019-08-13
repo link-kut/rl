@@ -198,7 +198,6 @@ class Chaser_v1(Environment):
 
     def reset(self):
         state = self.env.reset()
-        print(type(state))
         return state
 
     def step(self, action):
