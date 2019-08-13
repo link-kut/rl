@@ -159,23 +159,29 @@ class CartPole_v0(Environment):
 
 
 class Chaser_v1(Environment):
+    unity_env_worker_id = 0
+
     def __init__(self):
         self.env = UnityEnv(
             environment_filename=ENVIRONMENT_ID.value,
-            worker_id=0,
+            worker_id=Chaser_v1.unity_env_worker_id,
             use_visual=True,
             multiagent=True
         ).unwrapped
+        self.increase_env_worker_id()
         super(Chaser_v1, self).__init__()
 
         self.continuous = True
 
+    def increase_env_worker_id(self):
+        Chaser_v1.unity_env_worker_id += 1
+
     def get_n_states(self):
-        n_state = self.env.observation_space.shape[0]
+        n_state = 3
         return n_state
 
     def get_n_actions(self):
-        n_action = self.env.action_space.shape[0]
+        n_action = 3
         return n_action
 
     def get_state_shape(self):
