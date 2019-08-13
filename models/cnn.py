@@ -73,7 +73,7 @@ class CNN(nn.Module):
 
     def act(self, state):
         state = torch.from_numpy(state).float().to(self.device)
-        prob = self.pi(state).cpu()
+        prob = self.forward(state).cpu()
         m = Categorical(prob)
 
         action = m.sample().item()

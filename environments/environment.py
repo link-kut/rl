@@ -217,7 +217,7 @@ class BreakoutDeterministic_v4(Environment):
         return None
 
     def get_n_actions(self):
-        return None
+        return self.env.action_space.n
 
     def get_state_shape(self):
         state_shape = (int(self.env.observation_space.shape[0]/2), int(self.env.observation_space.shape[1]/2), 1)
