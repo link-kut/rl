@@ -7,7 +7,7 @@ idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
-from conf.constants_general import PYTHON_PATH, NUM_WORKERS
+from conf.constants_mine import PYTHON_PATH, NUM_WORKERS
 
 if not os.path.exists(os.path.join(PROJECT_HOME, "graphs")):
     os.makedirs(os.path.join(PROJECT_HOME, "graphs"))

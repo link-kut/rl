@@ -2,7 +2,7 @@ import os, sys
 import glob
 import time
 from multiprocessing import Process
-from conf.constants_general import PYTHON_PATH, NUM_WORKERS
+from conf.constants_mine import PYTHON_PATH, NUM_WORKERS
 
 if not os.path.exists("./logs/"):
     os.makedirs("./logs/")

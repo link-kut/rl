@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from conf.constants_general import DEEP_LEARNING_MODEL, ModelName
+from conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
 from main import PROJECT_HOME
 from models.actor_critic_mlp import ActorCriticMLP
 from models.cnn import CNN

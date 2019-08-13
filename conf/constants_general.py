@@ -1,12 +1,12 @@
-from .constants_mine import *
-
 # [GENERAL]
-PYTHON_PATH = PYTHON_PATH_MINE
+from conf.names import EnvironmentName, ModelName, RLAlgorithmName
+
+PYTHON_PATH = None
 EMA_WINDOW = 10
 VERBOSE = False
 
 # [MQTT]
-MQTT_SERVER = "localhost"
+MQTT_SERVER = None
 MQTT_PORT = 1883
 MQTT_TOPIC_EPISODE_DETAIL = "Episode_Detail"
 MQTT_TOPIC_SUCCESS_DONE = "Success_Done"

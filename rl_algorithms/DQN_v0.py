@@ -14,7 +14,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
-from conf.constants_general import DEEP_LEARNING_MODEL
+from conf.constants_mine import DEEP_LEARNING_MODEL
 from models.actor_critic_mlp import ActorCriticMLP
 from models.cnn import CNN
 
