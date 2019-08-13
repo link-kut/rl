@@ -96,6 +96,8 @@ class Environment:
         self.cnn_input_width = None
         self.cnn_input_channels = None
 
+        self.continuous = False
+
     def get_n_states(self):
         pass
 
@@ -166,6 +168,8 @@ class Chaser_v1(Environment):
         ).unwrapped
         super(Chaser_v1, self).__init__()
 
+        self.continuous = True
+
     def get_n_states(self):
         n_state = self.env.observation_space.shape[0]
         return n_state
@@ -198,21 +202,23 @@ class Chaser_v1(Environment):
 class BreakoutDeterministic_v4(Environment):
     def __init__(self):
         self.env = gym.make(ENVIRONMENT_ID.value)
+        super(BreakoutDeterministic_v4, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
         self.cnn_input_height = self.state_shape[0]
         self.cnn_input_width = self.state_shape[1]
         self.cnn_input_channels = self.state_shape[2]
-        super(BreakoutDeterministic_v4, self).__init__()
 
     def to_grayscale(self, img):
-        return np.mean(img, axis=2).astype(np.uint8)
+        return np.mean(img, axis=2)
 
     def downsample(self, img):
         return img[::2, ::2]
 
     def preprocess(self, img):
-        return self.to_grayscale(self.downsample(img))
+        gray_frame = self.to_grayscale(self.downsample(img))
+        gray_frame = np.expand_dims(gray_frame, axis=0)
+        return gray_frame
 
     def transform_reward(self, reward):
         return np.sign(reward)

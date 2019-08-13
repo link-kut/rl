@@ -14,5 +14,6 @@ class ModelName(enum.Enum):
 
 
 class RLAlgorithmName(enum.Enum):
-    DQN_V0 = "DQN-v0"
-    PPO_DISCRETE_V0 = "PPO-Discrete-v0"
+    DQN_V0 = "DQN_v0"
+    PPO_DISCRETE_TORCH_V0 = "PPO_Discrete_Torch_v0"
+    PPO_KERAS_V0 = "PPO_Keras_v0"
