@@ -170,6 +170,12 @@ class Chaser_v1(Environment):
         ).unwrapped
         self.increase_env_worker_id()
         super(Chaser_v1, self).__init__()
+        self.action_shape = self.get_action_shape()
+        self.state_shape = self.get_state_shape()
+
+        self.cnn_input_height = self.state_shape[0]
+        self.cnn_input_width = self.state_shape[1]
+        self.cnn_input_channels = self.state_shape[2]
 
         self.continuous = True
 
