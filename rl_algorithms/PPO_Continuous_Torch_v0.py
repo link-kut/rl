@@ -9,6 +9,7 @@ import torch.optim as optim
 from conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
 from main import PROJECT_HOME
 from models.actor_critic_mlp import ActorCriticMLP
+from models.actor_critic_cnn import ActorCriticCNN
 from models.cnn import CNN
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -43,6 +44,8 @@ class PPOContinuousActionAgent_v0:
             self.model = self.build_actor_critic_mlp_model()
         elif DEEP_LEARNING_MODEL == ModelName.CNN:
             self.model = self.build_cnn_model()
+        elif DEEP_LEARNING_MODEL == ModelName.ActorCriticCNN:
+            self.model = self.build_actor_critic_cnn_model()
         else:
             self.model = None
 
@@ -55,6 +58,15 @@ class PPOContinuousActionAgent_v0:
     def build_actor_critic_mlp_model(self):
         model = ActorCriticMLP(
             s_size=self.env.n_states,
+            a_size=self.env.n_actions,
+            device=device
+        ).to(device)
+        return model
+
+    def build_actor_critic_cnn_model(self):
+        model = ActorCriticCNN(
+            input_height=self.env.cnn_input_height,
+            input_width=self.env.cnn_input_width,
             a_size=self.env.n_actions,
             device=device
         ).to(device)

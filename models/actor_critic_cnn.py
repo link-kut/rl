@@ -41,7 +41,16 @@ class ActorCriticCNN(nn.Module):
             nn.LeakyReLU(),
         )
 
+        self.fc_layer_for_continuous = nn.Sequential(
+            nn.Linear(w * h * 32, 128),
+            nn.Tanh(),
+            nn.Dropout2d(0.25),
+            nn.Linear(128, 64),
+            nn.Tanh(),
+        )
+
         self.fc_pi = nn.Linear(64, a_size)     # for pi
+        self.fc_log_std = nn.Parameter(torch.zeros(1, a_size))  # for
         self.fc_v = nn.Linear(64, 1)        # for v
 
         for m in self.modules():
@@ -87,11 +96,21 @@ class ActorCriticCNN(nn.Module):
         out = F.softmax(state, dim=softmax_dim)
         return out
 
+    def __get_dist(self, state):
+        batch_size = state.size(0)
+        state = self.conv_layer(state)
+        state = state.view(batch_size, -1)
+        state = self.fc_layer_for_continuous(state)
+        out = self.fc_pi(state)
+        out_log_std = self.fc_log_std.expand_as(state)
+        return torch.distributions.Normal(out, out_log_std.exp())
+
     def v(self, state):
         batch_size = state.size(0)
         state = self.conv_layer(state)
         state = state.view(batch_size, -1)
         state = self.fc_layer(state)
+        # state = self.fc_layer_for_continuous(state)
         v = self.fc3_v(state)
         return v
 
@@ -103,6 +122,14 @@ class ActorCriticCNN(nn.Module):
         action = m.sample().item()
 
         return action, prob.squeeze(0)[action].item()
+
+    def continuous_act(self, state):
+        dist = self.__get_dist(state)
+        action = dist.sample()
+
+        action_log_probs = dist.log_prob(action).sum(-1, keepdim=True)
+
+        return action, action_log_probs
 
     def get_gradients_for_current_parameters(self):
         gradients = {}

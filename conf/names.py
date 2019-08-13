@@ -11,6 +11,7 @@ class EnvironmentName(enum.Enum):
 class ModelName(enum.Enum):
     ActorCriticMLP = "Actor_Critic_MLP"
     CNN = "CNN"
+    ActorCriticCNN = "Actor_Critic_CNN"
 
 
 class RLAlgorithmName(enum.Enum):
