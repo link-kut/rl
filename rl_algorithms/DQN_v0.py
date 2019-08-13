@@ -19,8 +19,7 @@ from conf.names import ModelName
 from models.actor_critic_mlp import ActorCriticMLP
 from models.cnn import CNN
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'adjusted_reward'))
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -122,10 +121,10 @@ class DQNAgent_v0:
             next_state, reward, adjusted_reward, done, _ = self.env.step(action.item())
 
             next_state = torch.from_numpy(next_state).unsqueeze(dim=0).float().to(device)
-            reward = torch.tensor([adjusted_reward], device=device).float().to(device)
+            adjusted_reward = torch.tensor([adjusted_reward], device=device).float().to(device)
 
             # Store the transition in memory
-            self.memory.push(state, action, next_state, reward)
+            self.memory.push(state, action, next_state, adjusted_reward)
 
             # Move to the next state
             state = next_state
@@ -140,7 +139,7 @@ class DQNAgent_v0:
         if episode % TARGET_UPDATE_PERIOD == 0:
             self.target_model.load_state_dict(self.policy_model.state_dict())
 
-        return gradients, loss.item(), score.item()
+        return gradients, loss.item(), score
 
     # epsilon greedy policy
     def select_action(self, state):
@@ -177,7 +176,7 @@ class DQNAgent_v0:
         non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
         state_batch = torch.cat(batch.state)
         action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
+        reward_batch = torch.cat(batch.adjusted_reward)
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
@@ -216,4 +215,6 @@ class DQNAgent_v0:
         self.policy_model.transfer_process(parameters, soft_transfer, soft_transfer_tau)
 
     def optimize_step(self):
+        for param in self.policy_model.parameters():
+            param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
