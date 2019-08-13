@@ -86,6 +86,8 @@ class DQNAgent_v0:
             self.worker_id, "PPO",
         ))
 
+        self.model = self.policy_model
+
     def build_actor_critic_mlp_model(self):
         model = ActorCriticMLP(
             s_size=self.env.n_states,
@@ -212,3 +214,6 @@ class DQNAgent_v0:
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
         self.policy_model.transfer_process(parameters, soft_transfer, soft_transfer_tau)
+
+    def optimize_step(self):
+        self.optimizer.step()

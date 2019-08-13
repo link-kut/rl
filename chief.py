@@ -319,7 +319,7 @@ def send_transfer_ack(parameters_transferred):
 
 def send_update_ack():
     if MODE_GRADIENTS_UPDATE:
-        log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length: {2}\n".format(
+        log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length': {2}\n".format(
             MQTT_TOPIC_UPDATE_ACK,
             episode_chief,
             len(model.avg_gradients)
