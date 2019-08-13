@@ -116,7 +116,7 @@ class Environment:
 
 class CartPole_v0(Environment):
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID)
+        self.env = gym.make(ENVIRONMENT_ID.value)
         super(CartPole_v0, self).__init__()
 
     def get_n_states(self):
@@ -155,7 +155,7 @@ class CartPole_v0(Environment):
 class Chaser_v1(Environment):
     def __init__(self):
         self.env = UnityEnv(
-            environment_filename=ENVIRONMENT_ID,
+            environment_filename=ENVIRONMENT_ID.value,
             worker_id=0,
             use_visual=True,
             multiagent=True
@@ -193,8 +193,12 @@ class Chaser_v1(Environment):
 
 class BreakoutDeterministic_v4(Environment):
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID)
-        self.action_space = self.env.action_space
+        self.env = gym.make(ENVIRONMENT_ID.value)
+        self.action_shape = self.get_action_shape()
+        self.state_shape = self.get_state_shape()
+        self.cnn_input_height = self.state_shape[0]
+        self.cnn_input_width = self.state_shape[1]
+        self.cnn_input_channels = self.state_shape[2]
         super(BreakoutDeterministic_v4, self).__init__()
 
     def to_grayscale(self, img):
@@ -216,12 +220,12 @@ class BreakoutDeterministic_v4(Environment):
         return None
 
     def get_state_shape(self):
-        state_shape = self.env.observation_space.shape
-        return tuple(state_shape)
+        state_shape = (int(self.env.observation_space.shape[0]/2), int(self.env.observation_space.shape[1]/2), 1)
+        return state_shape
 
     def get_action_shape(self):
-        action_shape = self.env.action_space.shape
-        return tuple(action_shape)
+        action_shape = self.env.action_space.n
+        return (action_shape,)
 
     def reset(self):
         state = self.env.reset()
@@ -245,6 +249,8 @@ if __name__ == "__main__":
     env = get_environment()
     # Reset it, returns the starting frame
     frame = env.reset()
+    print(env.get_state_shape())
+    print(env.get_action_shape())
     print(frame.shape)
 
     # Render

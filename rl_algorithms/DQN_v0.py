@@ -15,6 +15,7 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 
 from conf.constants_general import DEEP_LEARNING_MODEL
+from models.actor_critic_mlp import ActorCriticMLP
 from models.cnn import CNN
 
 Transition = namedtuple('Transition',
@@ -45,16 +46,13 @@ class ReplayMemory(object):
 
 
 class DQNAgent_v0:
-    def __init__(self, env, worker_id, n_states, n_actions, gamma, env_render, logger, verbose):
+    def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
         self.worker_id = worker_id
 
         # discount rate
         self.gamma = gamma
-
-        self.n_states = n_states
-        self.n_actions = n_actions
 
         self.trajectory = []
 
@@ -66,28 +64,43 @@ class DQNAgent_v0:
         self.verbose = verbose
 
         if DEEP_LEARNING_MODEL == "MLP":
-            pass
+            self.policy_model = self.build_actor_critic_mlp_model()
+            self.target_model = self.build_actor_critic_mlp_model()
+            self.target_model.load_state_dict(self.policy_model.state_dict())
+            self.target_model.eval()
         elif DEEP_LEARNING_MODEL == "CNN":
-            self.policy_model = self.build_cnn_model(self.n_actions)
-            self.target_model = self.build_cnn_model(self.n_actions)
+            self.policy_model = self.build_cnn_model()
+            self.target_model = self.build_cnn_model()
             self.target_model.load_state_dict(self.policy_model.state_dict())
             self.target_model.eval()
         else:
             pass
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.Adam(self.policy_model.parameters(), lr=self.learning_rate)
 
         self.memory = ReplayMemory(10000)
         self.steps_done = 0
-
-        self.i_episode = 0
 
         print("----------Worker {0}: {1}:--------".format(
             self.worker_id, "PPO",
         ))
 
-    def build_cnn_model(self, n_actions):
-        model = CNN(n_actions, device).to(device)
+    def build_actor_critic_mlp_model(self):
+        model = ActorCriticMLP(
+            s_size=self.env.n_states,
+            a_size=self.env.n_actions,
+            device=device
+        ).to(device)
+        return model
+
+    def build_cnn_model(self):
+        model = CNN(
+            input_height=self.env.cnn_input_height,
+            input_width=self.env.cnn_input_width,
+            input_channels=self.env.cnn_input_channels,
+            a_size=self.env.n_actions,
+            device=device
+        ).to(device)
         return model
 
     def on_episode(self, episode):
@@ -115,10 +128,8 @@ class DQNAgent_v0:
         gradients, loss = self.train_net()
 
         # Update the target network, copying all weights and biases in DQN
-        if self.i_episode % TARGET_UPDATE_PERIOD == 0:
+        if episode % TARGET_UPDATE_PERIOD == 0:
             self.target_model.load_state_dict(self.policy_model.state_dict())
-
-        self.i_episode += 1
 
         return gradients, loss, score
 
@@ -134,7 +145,7 @@ class DQNAgent_v0:
                 # found, so we pick action with the larger expected reward.
                 return self.policy_model(state).max(1)[1].view(1, 1)
         else:
-            return torch.tensor([[random.randrange(self.n_actions)]], device=device, dtype=torch.long)
+            return torch.tensor([[random.randrange(self.env.n_actions)]], device=device, dtype=torch.long)
 
     def train_net(self):
         if len(self.memory) < BATCH_SIZE:

@@ -8,15 +8,16 @@ from conf.constants_general import MQTT_TOPIC_EPISODE_DETAIL, MQTT_TOPIC_SUCCESS
 from conf.constants_general import MQTT_TOPIC_TRANSFER_ACK, MQTT_TOPIC_UPDATE_ACK, MAX_EPISODES
 from conf.constants_general import VERBOSE
 from conf.constants_general import EMA_WINDOW, SOFT_TRANSFER, SOFT_TRANSFER_TAU
-from conf.constants_general import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, GAMMA
+from conf.constants_general import GAMMA
 from conf.constants_general import MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER
 from environments.environment import *
 
 import sys
 
 from logger import get_logger
+from rl_algorithms.DQN_v0 import DQNAgent_v0
 
-from rl_algorithms.PPO_Discrete_v0 import PPOAgent_v0
+from rl_algorithms.PPO_Discrete_v0 import PPODiscreteActionAgent_v0
 
 from utils import exp_moving_average
 
@@ -43,16 +44,17 @@ loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
 episode_chief = -1
 
-agent = PPOAgent_v0(
-    env=env,
-    worker_id=worker_id,
-    n_states=env.n_states,
-    n_actions=env.n_actions,
-    gamma=GAMMA,
-    env_render=ENV_RENDER,
-    logger=logger,
-    verbose=VERBOSE
-)
+if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_V0:
+    agent = PPODiscreteActionAgent_v0(
+        env=env,
+        worker_id=worker_id,
+        gamma=GAMMA,
+        env_render=ENV_RENDER,
+        logger=logger,
+        verbose=VERBOSE
+    )
+elif RL_ALGORITHM == RLAlgorithmName.DQN_V0:
+    agent = DQNAgent_v0()
 
 is_success_or_fail_done = False
 

@@ -9,7 +9,7 @@ class EnvironmentName(enum.Enum):
 
 
 class ModelName(enum.Enum):
-    MLP = "MLP"
+    ActorCriticMLP = "Actor_Critic_MLP"
     CNN = "CNN"
 
 

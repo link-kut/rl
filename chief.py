@@ -6,6 +6,7 @@ import zlib
 import torch
 
 from environments.environment import Environment
+from models.cnn import CNN
 from utils import exp_moving_average
 
 from conf.constants_general import MQTT_SERVER, MQTT_PORT, MQTT_SERVER_FOR_RIP, MQTT_LOG
@@ -30,20 +31,31 @@ import numpy as np
 # import warnings
 # warnings.filterwarnings("ignore")
 
-if MODE_SYNCHRONIZATION:
-    print("MODE1: [SYNCHRONOUS_COMMUNICATION] vs. ASYNCHRONOUS_COMMUNICATION")
-else:
-    print("MODE1: SYNCHRONOUS_COMMUNICATION vs. [ASYNCHRONOUS_COMMUNICATION]")
+env = get_environment()
 
-if MODE_GRADIENTS_UPDATE:
-    print("MODE2: [GRADIENTS_UPDATE] vs. NO GRADIENTS_UPDATE")
-else:
-    print("MODE2: GRADIENTS_UPDATE vs. [NO GRADIENTS_UPDATE]")
+def print_configuration():
+    print("*** MODE ***")
+    if MODE_SYNCHRONIZATION:
+        print(" MODE1: [SYNCHRONOUS_COMMUNICATION] vs. ASYNCHRONOUS_COMMUNICATION")
+    else:
+        print(" MODE1: SYNCHRONOUS_COMMUNICATION vs. [ASYNCHRONOUS_COMMUNICATION]")
 
-if MODE_PARAMETERS_TRANSFER:
-    print("MODE3: [PARAMETERS_TRANSFER] vs. NO PARAMETERS_TRANSFER")
-else:
-    print("MODE3: PARAMETERS_TRANSFER vs. [NO PARAMETERS_TRANSFER]")
+    if MODE_GRADIENTS_UPDATE:
+        print(" MODE2: [GRADIENTS_UPDATE] vs. NO GRADIENTS_UPDATE")
+    else:
+        print(" MODE2: GRADIENTS_UPDATE vs. [NO GRADIENTS_UPDATE]")
+
+    if MODE_PARAMETERS_TRANSFER:
+        print(" MODE3: [PARAMETERS_TRANSFER] vs. NO PARAMETERS_TRANSFER")
+    else:
+        print(" MODE3: PARAMETERS_TRANSFER vs. [NO PARAMETERS_TRANSFER]")
+
+    print("\n*** ENVIRONMENT ***")
+    print(" Environment Name:" + ENVIRONMENT_ID.value)
+    print(" State Shape: {0}".format(env.state_shape))
+    print(" Action Shape: {0}".format(env.action_shape))
+
+print_configuration()
 
 logger = get_logger("chief")
 
@@ -64,10 +76,7 @@ global_min_ema_loss = 1000000000
 episode_chief = 0
 num_messages = 0
 
-env = get_environment()
 
-print("env.state_shape: {0}".format(env.state_shape))
-print("env.action_shape: {0}".format(env.action_shape))
 
 num_actions = 0
 score = 0
@@ -75,11 +84,24 @@ score = 0
 hidden_size = [HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE]
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model = ActorCriticMLP(
-    s_size=env.n_states,
-    a_size=env.n_actions,
-    device=device
-).to(device)
+# [DEEP_LEARNING_MODELS]
+if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
+    model = ActorCriticMLP(
+        s_size=env.n_states,
+        a_size=env.n_actions,
+        device=device
+    ).to(device)
+elif DEEP_LEARNING_MODEL == ModelName.CNN:
+    model = CNN(
+        input_height=env.cnn_input_height,
+        input_width=env.cnn_input_width,
+        input_channels=env.cnn_input_channels,
+        a_size=env.n_actions,
+        device=device
+    ).to(device)
+else:
+    model = None
+
 
 for worker_id in range(NUM_WORKERS):
     scores[worker_id] = []
@@ -319,7 +341,6 @@ def send_update_ack():
     chief.publish(topic=MQTT_TOPIC_UPDATE_ACK, payload=grad_update_msg, qos=0, retain=False)
 
     model.reset_average_gradients()
-
 
 chief = mqtt.Client("dist_trans_ppo_chief")
 chief.on_connect = on_connect
