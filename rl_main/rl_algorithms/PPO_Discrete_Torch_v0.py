@@ -48,11 +48,7 @@ class PPODiscreteActionAgent_v0:
         model = ActorCriticMLP(
             s_size=self.env.n_states,
             a_size=self.env.n_actions,
-<<<<<<< HEAD:rl_algorithms/PPO_Discrete_Torch_v0.py
             continuous=self.env.continuous,
-=======
-            continuous=False,
->>>>>>> b921e14593ffe8f90a5d4931bcecb4cdb670afe8:rl_main/rl_algorithms/PPO_Discrete_Torch_v0.py
             device=device
         ).to(device)
         return model

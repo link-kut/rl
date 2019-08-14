@@ -129,12 +129,12 @@ class PPOContinuousActionAgent_v0:
 
             pi, new_prob_action_lst = self.model.continuous_act(state_lst)
             new_prob_action_lst = torch.tensor(new_prob_action_lst, dtype=torch.float).to(device)
-            ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
+            ratio = torch.exp(new_prob_action_lst - prob_action_lst)  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip) * advantage
-            entropy = new_prob_action_lst * torch.log(prob_action_lst + 1.e-10) + \
-                      (1.0 - new_prob_action_lst) * torch.log(-prob_action_lst + 1.0 + 1.e-10)
+            entropy = new_prob_action_lst * prob_action_lst + \
+                      (1.0 - new_prob_action_lst.item()) * (-prob_action_lst)
 
             loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
 

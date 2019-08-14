@@ -85,7 +85,7 @@ class ActorCriticMLP(nn.Module):
         return out
 
     def __get_dist(self, state):
-        state = torch.tensor(state, dtype=torch.float)
+        state = state.clone().detach().requires_grad_(True)
         # state = torch.from_numpy(state).float().to(self.device)
         out = self.actor_fc_layer(state)
         out = torch.tanh(self.action_mean(out))
