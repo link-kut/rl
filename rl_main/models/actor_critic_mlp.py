@@ -2,32 +2,59 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
+from random import sample
 
 from rl_main.conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 
 
-def init_layer(m):
-    weight = m.weight.data
-    weight.normal_(0, 1)
-    weight *= 1.0 / torch.sqrt(weight.pow(2).sum(1, keepdim=True))
-    nn.init.constant_(m.bias.data, 0)
-    return m
-
 class ActorCriticMLP(nn.Module):
     def __init__(self, s_size, a_size, continuous, device):
         super(ActorCriticMLP, self).__init__()
-        self.fc0 = nn.Linear(s_size, HIDDEN_1_SIZE)
-        self.fc1 = nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE)
-        self.fc2 = nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE)
-        self.fc3 = nn.Linear(HIDDEN_3_SIZE, a_size)
-        self.fc3_log_std = nn.Parameter(torch.zeros(a_size))
-        self.fc3_v = nn.Linear(HIDDEN_3_SIZE, 1)
+        self.continuous = continuous
 
-        self.fc = []
-        self.fc.append(self.fc0)
-        self.fc.append(self.fc1)
-        self.fc.append(self.fc2)
-        self.fc.append(self.fc3)
+        if continuous:
+            self.actor_fc_layer = nn.Sequential(
+                nn.Linear(s_size, HIDDEN_1_SIZE),
+                nn.Tanh(),
+                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
+                nn.Tanh(),
+                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
+                nn.Tanh(),
+            )
+
+            self.critic_fc_layer = nn.Sequential(
+                nn.Linear(s_size, HIDDEN_1_SIZE),
+                nn.Tanh(),
+                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
+                nn.Tanh(),
+                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
+                nn.Tanh(),
+                nn.Linear(HIDDEN_3_SIZE, 1),
+                nn.Tanh(),
+            )
+        else:
+            self.actor_fc_layer = nn.Sequential(
+                nn.Linear(s_size, HIDDEN_1_SIZE),
+                nn.LeakyReLU(),
+                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
+                nn.LeakyReLU(),
+                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
+                nn.LeakyReLU(),
+            )
+
+            self.critic_fc_layer = nn.Sequential(
+                nn.Linear(s_size, HIDDEN_1_SIZE),
+                nn.LeakyReLU(),
+                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
+                nn.LeakyReLU(),
+                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
+                nn.LeakyReLU(),
+                nn.Linear(HIDDEN_3_SIZE, 1),
+                nn.LeakyReLU(),
+            )
+
+        self.action_mean = nn.Linear(HIDDEN_3_SIZE, a_size)
+        self.action_log_std = nn.Parameter(torch.zeros(a_size))
 
         self.avg_gradients = {}
         self.continuous = continuous
@@ -35,59 +62,40 @@ class ActorCriticMLP(nn.Module):
 
         self.reset_average_gradients()
 
-        # for m in self.modules():
-        #     if isinstance(m, nn.Linear):
-        #         init.kaiming_normal_(m.weight.data)
-        #         init.zeros_(m.bias.data)
-
     def reset_average_gradients(self):
-        named_parameters = self.fc0.named_parameters()
-        self.avg_gradients["fc0"] = {}
+        named_parameters = self.actor_fc_layer.named_parameters()
+        self.avg_gradients["actor_fc_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc0"][name] = torch.zeros_like(param.data).to(self.device)
+            self.avg_gradients["actor_fc_layer"][name] = torch.zeros_like(param.data)
 
-        named_parameters = self.fc1.named_parameters()
-        self.avg_gradients["fc1"] = {}
+        named_parameters = self.critic_fc_layer.named_parameters()
+        self.avg_gradients["critic_fc_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc1"][name] = torch.zeros_like(param.data).to(self.device)
+            self.avg_gradients["critic_fc_layer"][name] = torch.zeros_like(param.data)
 
-        named_parameters = self.fc2.named_parameters()
-        self.avg_gradients["fc2"] = {}
+        named_parameters = self.action_mean.named_parameters()
+        self.avg_gradients["action_mean"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc2"][name] = torch.zeros_like(param.data).to(self.device)
-
-        named_parameters = self.fc3.named_parameters()
-        self.avg_gradients["fc3"] = {}
-        for name, param in named_parameters:
-            self.avg_gradients["fc3"][name] = torch.zeros_like(param.data).to(self.device)
-
-        named_parameters = self.fc3_v.named_parameters()
-        self.avg_gradients["fc3_v"] = {}
-        for name, param in named_parameters:
-            self.avg_gradients["fc3_v"][name] = torch.zeros_like(param.data).to(self.device)
+            self.avg_gradients["action_mean"][name] = torch.zeros_like(param.data)
 
     def pi(self, state, softmax_dim=0):
-        state = F.leaky_relu(self.fc0(state))
-        state = F.leaky_relu(self.fc1(state))
-        state = F.leaky_relu(self.fc2(state))
-        state = F.leaky_relu(self.fc3(state))
-        out = F.softmax(state, dim=softmax_dim)
+        state = self.actor_fc_layer(state)
+        out = self.action_mean(state)
+        out = F.softmax(out, dim=softmax_dim)
         return out
 
     def __get_dist(self, state):
-        state = torch.tanh(self.fc0(state))
-        state = torch.tanh(self.fc1(state))
-        state = torch.tanh(self.fc2(state))
-        out = torch.tanh(self.fc3(state))
-        out_log_std = self.fc3_log_std.expand_as(out)
+        state = state.clone().detach().requires_grad_(True)
+        # state = torch.from_numpy(state).float().to(self.device)
+        out = self.actor_fc_layer(state)
+        out = torch.tanh(self.action_mean(out))
+        out_log_std = self.action_log_std.expand_as(out)
 
         return torch.distributions.Normal(out, out_log_std.exp())
 
     def v(self, state):
-        state = F.leaky_relu(self.fc0(state))
-        state = F.leaky_relu(self.fc1(state))
-        state = F.leaky_relu(self.fc2(state))
-        v = self.fc3_v(state)
+        state = torch.tensor(state, dtype=torch.float)
+        v = self.critic_fc_layer(state)
         return v
 
     def act(self, state):
@@ -100,168 +108,112 @@ class ActorCriticMLP(nn.Module):
         return action, prob.squeeze(0)[action].item()
 
     def continuous_act(self, state):
+        state = torch.tensor(state, dtype=torch.float)
+        # state = torch.from_numpy(state).float().to(self.device)
         dist = self.__get_dist(state)
-        action = dist.sample()
-
-        action_log_probs = dist.log_prob(action).sum(-1, keepdim=True)
+        action = sample(dist.sample().tolist(), k=1)[0]
+        _action = torch.tensor(action, dtype=torch.float)
+        action_log_probs = sample(dist.log_prob(_action).sum(-1, keepdim=True).tolist(), k=1)[0]
 
         return action, action_log_probs
 
     def get_gradients_for_current_parameters(self):
         gradients = {}
 
-        named_parameters = self.fc0.named_parameters()
-        gradients["fc0"] = {}
+        named_parameters = self.actor_fc_layer.named_parameters()
+        gradients["actor_fc_layer"] = {}
         for name, param in named_parameters:
-            gradients["fc0"][name] = param.grad
+            gradients["actor_fc_layer"][name] = param.grad
 
-        named_parameters = self.fc1.named_parameters()
-        gradients["fc1"] = {}
+        named_parameters = self.critic_fc_layer.named_parameters()
+        gradients["critic_fc_layer"] = {}
         for name, param in named_parameters:
-            gradients["fc1"][name] = param.grad
+            gradients["critic_fc_layer"][name] = param.grad
 
-        named_parameters = self.fc2.named_parameters()
-        gradients["fc2"] = {}
+        named_parameters = self.action_mean.named_parameters()
+        gradients["action_mean"] = {}
         for name, param in named_parameters:
-            gradients["fc2"][name] = param.grad
-
-        named_parameters = self.fc3.named_parameters()
-        gradients["fc3"] = {}
-        for name, param in named_parameters:
-            gradients["fc3"][name] = param.grad
-
-        named_parameters = self.fc3_v.named_parameters()
-        gradients["fc3_v"] = {}
-        for name, param in named_parameters:
-            gradients["fc3_v"][name] = param.grad
+            gradients["action_mean"][name] = param.grad
 
         return gradients
 
     def set_gradients_to_current_parameters(self, gradients):
-        named_parameters = self.fc0.named_parameters()
+        named_parameters = self.actor_fc_layer.named_parameters()
         for name, param in named_parameters:
-            param.grad = gradients["fc0"][name]
+            param.grad = gradients["actor_fc_layer"][name]
 
-        named_parameters = self.fc1.named_parameters()
+        named_parameters = self.critic_fc_layer.named_parameters()
         for name, param in named_parameters:
-            param.grad = gradients["fc1"][name]
+            param.grad = gradients["critic_fc_layer"][name]
 
-        named_parameters = self.fc2.named_parameters()
+        named_parameters = self.action_mean.named_parameters()
         for name, param in named_parameters:
-            param.grad = gradients["fc2"][name]
-
-        named_parameters = self.fc3.named_parameters()
-        for name, param in named_parameters:
-            param.grad = gradients["fc3"][name]
-
-        named_parameters = self.fc3_v.named_parameters()
-        for name, param in named_parameters:
-            param.grad = gradients["fc3_v"][name]
+            param.grad = gradients["action_mean"][name]
 
     def accumulate_gradients(self, gradients):
-        named_parameters = self.fc0.named_parameters()
+        named_parameters = self.actor_fc_layer.named_parameters()
         for name, param in named_parameters:
-            self.avg_gradients["fc0"][name] += gradients["fc0"][name]
+            self.avg_gradients["actor_fc_layer"][name] += gradients["actor_fc_layer"][name]
 
-        named_parameters = self.fc1.named_parameters()
+        named_parameters = self.critic_fc_layer.named_parameters()
         for name, param in named_parameters:
-            self.avg_gradients["fc1"][name] += gradients["fc1"][name]
+            self.avg_gradients["critic_fc_layer"][name] += gradients["critic_fc_layer"][name]
 
-        named_parameters = self.fc2.named_parameters()
+        named_parameters = self.action_mean.named_parameters()
         for name, param in named_parameters:
-            self.avg_gradients["fc2"][name] += gradients["fc2"][name]
-
-        named_parameters = self.fc3.named_parameters()
-        for name, param in named_parameters:
-            self.avg_gradients["fc3"][name] += gradients["fc3"][name]
-
-        named_parameters = self.fc3_v.named_parameters()
-        for name, param in named_parameters:
-            self.avg_gradients["fc3_v"][name] += gradients["fc3_v"][name]
+            self.avg_gradients["action_mean"][name] += gradients["action_mean"][name]
 
     def get_average_gradients(self, num_workers):
-        named_parameters = self.fc0.named_parameters()
+        named_parameters = self.actor_fc_layer.named_parameters()
         for name, param in named_parameters:
-            self.avg_gradients["fc0"][name] /= num_workers
+            self.avg_gradients["actor_fc_layer"][name] /= num_workers
 
-        named_parameters = self.fc1.named_parameters()
+        named_parameters = self.critic_fc_layer.named_parameters()
         for name, param in named_parameters:
-            self.avg_gradients["fc1"][name] /= num_workers
+            self.avg_gradients["critic_fc_layer"][name] /= num_workers
 
-        named_parameters = self.fc2.named_parameters()
+        named_parameters = self.action_mean.named_parameters()
         for name, param in named_parameters:
-            self.avg_gradients["fc2"][name] /= num_workers
-
-        named_parameters = self.fc3.named_parameters()
-        for name, param in named_parameters:
-            self.avg_gradients["fc3"][name] /= num_workers
-
-        named_parameters = self.fc3_v.named_parameters()
-        for name, param in named_parameters:
-            self.avg_gradients["fc3_v"][name] /= num_workers
+            self.avg_gradients["action_mean"][name] /= num_workers
 
     def get_parameters(self):
         parameters = {}
 
-        named_parameters = self.fc0.named_parameters()
-        parameters['fc0'] = {}
+        named_parameters = self.actor_fc_layer.named_parameters()
+        parameters['actor_fc_layer'] = {}
         for name, param in named_parameters:
-            parameters["fc0"][name] = param.data
+            parameters["actor_fc_layer"][name] = param.data
 
-        named_parameters = self.fc1.named_parameters()
-        parameters['fc1'] = {}
+        named_parameters = self.critic_fc_layer.named_parameters()
+        parameters['critic_fc_layer'] = {}
         for name, param in named_parameters:
-            parameters["fc1"][name] = param.data
+            parameters["critic_fc_layer"][name] = param.data
 
-        named_parameters = self.fc2.named_parameters()
-        parameters['fc2'] = {}
+        named_parameters = self.action_mean.named_parameters()
+        parameters['action_mean'] = {}
         for name, param in named_parameters:
-            parameters["fc2"][name] = param.data
-
-        named_parameters = self.fc3.named_parameters()
-        parameters['fc3'] = {}
-        for name, param in named_parameters:
-            parameters["fc3"][name] = param.data
-
-        named_parameters = self.fc3_v.named_parameters()
-        parameters['fc3_v'] = {}
-        for name, param in named_parameters:
-            parameters["fc3_v"][name] = param.data
+            parameters["action_mean"][name] = param.data
 
         return parameters
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
-        named_parameters = self.fc0.named_parameters()
+        named_parameters = self.actor_fc_layer.named_parameters()
         for name, param in named_parameters:
             if soft_transfer:
-                param.data = param.data * soft_transfer_tau + parameters["fc0"][name] * (1 - soft_transfer_tau)
+                param.data = param.data * soft_transfer_tau + parameters["actor_fc_layer"][name] * (1 - soft_transfer_tau)
             else:
-                param.data = parameters["fc0"][name]
+                param.data = parameters["actor_fc_layer"][name]
 
-        named_parameters = self.fc1.named_parameters()
+        named_parameters = self.critic_fc_layer.named_parameters()
         for name, param in named_parameters:
             if soft_transfer:
-                param.data = param.data * soft_transfer_tau + parameters["fc1"][name] * (1 - soft_transfer_tau)
+                param.data = param.data * soft_transfer_tau + parameters["critic_fc_layer"][name] * (1 - soft_transfer_tau)
             else:
-                param.data = parameters["fc1"][name]
+                param.data = parameters["critic_fc_layer"][name]
 
-        named_parameters = self.fc2.named_parameters()
+        named_parameters = self.action_mean.named_parameters()
         for name, param in named_parameters:
             if soft_transfer:
-                param.data = param.data * soft_transfer_tau + parameters["fc2"][name] * (1 - soft_transfer_tau)
+                param.data = param.data * soft_transfer_tau + parameters["action_mean"][name] * (1 - soft_transfer_tau)
             else:
-                param.data = parameters["fc2"][name]
-
-        named_parameters = self.fc3.named_parameters()
-        for name, param in named_parameters:
-            if soft_transfer:
-                param.data = param.data * soft_transfer_tau + parameters["fc3"][name] * (1 - soft_transfer_tau)
-            else:
-                param.data = parameters["fc3"][name]
-
-        named_parameters = self.fc3_v.named_parameters()
-        for name, param in named_parameters:
-            if soft_transfer:
-                param.data = param.data * soft_transfer_tau + parameters["fc3_v"][name] * (1 - soft_transfer_tau)
-            else:
-                param.data = parameters["fc3_v"][name]
+                param.data = parameters["action_mean"][name]
