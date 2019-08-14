@@ -9,11 +9,11 @@ from rl_main.utils import get_conv2d_size, get_pool2d_size
 
 
 class ActorCriticCNN(nn.Module):
-    def __init__(self, input_width, input_height, a_size, device):
+    def __init__(self, input_width, input_height, input_channels, continuous, a_size, device):
         super(ActorCriticCNN, self).__init__()
 
         self.conv_layer = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=8, kernel_size=2),
+            nn.Conv2d(in_channels=input_channels, out_channels=8, kernel_size=2),
             nn.BatchNorm2d(8),
             nn.LeakyReLU(),
             nn.Conv2d(in_channels=8, out_channels=16, kernel_size=2),
@@ -57,6 +57,7 @@ class ActorCriticCNN(nn.Module):
                 init.kaiming_normal_(m.weight.data)
                 m.bias.data.fill_(0)
 
+        self.continuous = continuous
         self.device = device
 
         self.avg_gradients = {}

@@ -6,6 +6,7 @@ import torch.optim as optim
 from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
 from rl_main.models.actor_critic_mlp import ActorCriticMLP
 from rl_main.models.cnn import CNN
+import rl_main.rl_utils as rl_utils
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -34,35 +35,9 @@ class PPODiscreteActionAgent_v0:
         self.logger = logger
         self.verbose = verbose
 
-        # [DEEP_LEARNING_MODELS]
-        if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
-            self.model = self.build_actor_critic_mlp_model()
-        elif DEEP_LEARNING_MODEL == ModelName.CNN:
-            self.model = self.build_cnn_model()
-        else:
-            self.model = None
+        self.model = rl_utils.get_rl_model(self.env)
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
-
-    def build_actor_critic_mlp_model(self):
-        model = ActorCriticMLP(
-            s_size=self.env.n_states,
-            a_size=self.env.n_actions,
-            continuous=False,
-            device=device
-        ).to(device)
-        return model
-
-    def build_cnn_model(self):
-        model = CNN(
-            input_height=self.env.cnn_input_height,
-            input_width=self.env.cnn_input_width,
-            input_channels=self.env.cnn_input_channels,
-            a_size=self.env.n_actions,
-            continuous=False,
-            device=device
-        ).to(device)
-        return model
 
     def put_data(self, transition):
         self.trajectory.append(transition)

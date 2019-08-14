@@ -14,6 +14,7 @@ class BreakoutDeterministic_v4(Environment):
         self.cnn_input_height = self.state_shape[0]
         self.cnn_input_width = self.state_shape[1]
         self.cnn_input_channels = self.state_shape[2]
+        self.continuous = False
 
     @staticmethod
     def to_grayscale(img):

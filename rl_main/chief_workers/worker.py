@@ -16,9 +16,10 @@ from rl_main.rl_algorithms.DQN_v0 import DQNAgent_v0
 from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousActionAgent_v0
 from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
 
-from rl_main.utils import exp_moving_average, get_environment
+from rl_main.utils import exp_moving_average
+import rl_main.rl_utils as rl_utils
 
-env = get_environment(owner="worker")
+env = rl_utils.get_environment(owner="worker")
 
 
 class Worker:

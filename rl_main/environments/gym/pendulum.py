@@ -8,6 +8,7 @@ class Pendulum_v0(Environment):
     def __init__(self):
         self.env = gym.make(ENVIRONMENT_ID.PENDULUM_V0.value)
         super(Pendulum_v0, self).__init__()
+        self.continuous = True
 
     def get_n_states(self):
         n_states = self.env.observation_space.shape[0]

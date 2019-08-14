@@ -2,6 +2,8 @@ import time
 import numpy as np
 
 # MQTT Topic for RIP
+from rl_main.environments.environment import Environment
+
 MQTT_PUB_TO_SERVO_POWER = 'motor_power'
 MQTT_PUB_RESET = 'reset'
 MQTT_SUB_FROM_SERVO = 'servo_info'
@@ -15,7 +17,7 @@ balance_motor_power_list = [-60, 0, 60]
 PUB_ID = 0
 
 
-class EnvironmentRIP:
+class EnvironmentRIP(Environment):
     def __init__(self, mqtt_client):
         self.episode = 0
 
@@ -39,12 +41,15 @@ class EnvironmentRIP:
         self.is_reset_complete = False
 
         self.mqtt_client = mqtt_client
+        super(EnvironmentRIP, self).__init__()
 
         self.n_states = self.get_n_states()
         self.n_actions = self.get_n_actions()
 
         self.state_shape = self.get_state_shape()
         self.action_shape = self.get_action_shape()
+
+        self.continuous = False
 
     def __pub(self, topic, payload, require_response=True):
         global PUB_ID

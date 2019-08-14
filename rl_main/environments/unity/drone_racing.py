@@ -18,6 +18,8 @@ class Drone_Racing(Environment):
         self.action_shape = self.get_action_shape()
         self.action_space = self.env.action_space
 
+        self.continuous = False
+
     def get_n_states(self):
         return self.env.observation_space.shape[0]
 

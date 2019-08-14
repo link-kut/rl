@@ -5,7 +5,8 @@ import zlib
 import torch
 
 from rl_main.models.cnn import CNN
-from rl_main.utils import exp_moving_average, get_environment
+from rl_main.utils import exp_moving_average
+import rl_main.rl_utils as rl_utils
 
 from rl_main.models.actor_critic_mlp import ActorCriticMLP
 
@@ -15,7 +16,7 @@ from matplotlib import gridspec
 from collections import deque
 from rl_main.conf.constants_mine import *
 
-env = get_environment()
+env = rl_utils.get_environment()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

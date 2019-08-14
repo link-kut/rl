@@ -5,11 +5,7 @@ from collections import namedtuple, deque
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-
-from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL
-from rl_main.conf.names import ModelName
-from rl_main.models.actor_critic_mlp import ActorCriticMLP
-from rl_main.models.cnn import CNN
+import rl_main.rl_utils as rl_utils
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'adjusted_reward'))
 
@@ -55,18 +51,10 @@ class DQNAgent_v0:
         self.logger = logger
         self.verbose = verbose
 
-        if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
-            self.policy_model = self.build_actor_critic_mlp_model()
-            self.target_model = self.build_actor_critic_mlp_model()
-            self.target_model.load_state_dict(self.policy_model.state_dict())
-            self.target_model.eval()
-        elif DEEP_LEARNING_MODEL == ModelName.CNN:
-            self.policy_model = self.build_cnn_model()
-            self.target_model = self.build_cnn_model()
-            self.target_model.load_state_dict(self.policy_model.state_dict())
-            self.target_model.eval()
-        else:
-            pass
+        self.policy_model = rl_utils.get_rl_model(self.env)
+        self.target_model = rl_utils.get_rl_model(self.env)
+        self.target_model.load_state_dict(self.policy_model.state_dict())
+        self.target_model.eval()
 
         self.optimizer = optim.Adam(self.policy_model.parameters(), lr=self.learning_rate)
 
@@ -78,25 +66,6 @@ class DQNAgent_v0:
         ))
 
         self.model = self.policy_model
-
-    def build_actor_critic_mlp_model(self):
-        model = ActorCriticMLP(
-            s_size=self.env.n_states,
-            a_size=self.env.n_actions,
-            device=device
-        ).to(device)
-        return model
-
-    def build_cnn_model(self):
-        model = CNN(
-            input_height=self.env.cnn_input_height,
-            input_width=self.env.cnn_input_width,
-            input_channels=self.env.cnn_input_channels,
-            a_size=self.env.n_actions,
-            continuous=self.env.continuous,
-            device=device
-        ).to(device)
-        return model
 
     def on_episode(self, episode):
         state = self.env.reset()
