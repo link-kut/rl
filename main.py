@@ -29,7 +29,7 @@ if not os.path.exists(os.path.join(PROJECT_HOME, "models", "model_save_files")):
 
 def run_chief():
     try:
-        os.system(PYTHON_PATH + " " + os.path.join(PROJECT_HOME, "chief.py"))
+        os.system(PYTHON_PATH + " " + os.path.join(PROJECT_HOME, "chief_mqtt_main.py"))
         sys.stdout = open(os.path.join(PROJECT_HOME, "out_err", "chief_stdout.out"), "wb")
         sys.stderr = open(os.path.join(PROJECT_HOME, "out_err", "chief_stderr.out"), "wb")
     except KeyboardInterrupt:

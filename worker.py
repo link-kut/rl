@@ -159,7 +159,6 @@ def send_msg(topic, msg):
 
     worker.publish(topic=topic, payload=msg, qos=0, retain=False)
 
-
 worker = mqtt.Client("rl_worker_{0}".format(worker_id))
 worker.on_connect = on_worker_connect
 worker.on_message = on_worker_message
