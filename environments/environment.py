@@ -272,6 +272,7 @@ class Pendulum_v0(Environment):
     def __init__(self):
         self.env = gym.make(ENVIRONMENT_ID.value)
         super(Pendulum_v0, self).__init__()
+        self.continuous = True
 
     def get_n_states(self):
         n_states = self.env.observation_space.shape[0]
@@ -294,7 +295,7 @@ class Pendulum_v0(Environment):
         return state
 
     def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
+        next_state, reward, done, info = self.env.step([action])
 
         adjusted_reward = reward / 100
 

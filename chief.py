@@ -91,9 +91,11 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # [DEEP_LEARNING_MODELS]
 if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
+    print("dddddddd", env.continuous)
     model = ActorCriticMLP(
         s_size=env.n_states,
         a_size=env.n_actions,
+        continuous=env.continuous,
         device=device
     ).to(device)
 elif DEEP_LEARNING_MODEL == ModelName.CNN:

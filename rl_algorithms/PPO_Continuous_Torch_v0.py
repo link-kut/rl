@@ -59,6 +59,7 @@ class PPOContinuousActionAgent_v0:
         model = ActorCriticMLP(
             s_size=self.env.n_states,
             a_size=self.env.n_actions,
+            continuous=self.env.continuous,
             device=device
         ).to(device)
         return model
@@ -102,8 +103,8 @@ class PPOContinuousActionAgent_v0:
             done_mask = 0 if done else 1
             done_mask_lst.append([done_mask])
 
-        state_lst = torch.stack(state_lst)
-        action_lst = torch.tensor(action_lst).to(device)
+        # state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
+        # action_lst = torch.tensor(action_lst).to(device)
         reward_lst = torch.tensor(reward_lst).to(device)
         next_state_lst = torch.tensor(next_state_lst, dtype=torch.float).to(device)
         done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float).to(device)
@@ -130,6 +131,7 @@ class PPOContinuousActionAgent_v0:
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
             pi, new_prob_action_lst = self.model.continuous_act(state_lst)
+            new_prob_action_lst = torch.tensor(new_prob_action_lst, dtype=torch.float).to(device)
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage
@@ -155,7 +157,7 @@ class PPOContinuousActionAgent_v0:
         # in CartPole-v0:
         # state = [theta, angular speed]
         state = self.env.reset()
-        state = torch.tensor(state, dtype=torch.float).to(device)
+        # state = torch.tensor(state, dtype=torch.float).to(device)
         done = False
         score = 0.0
 
@@ -170,7 +172,7 @@ class PPOContinuousActionAgent_v0:
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
-            state = torch.tensor(state, dtype=torch.float).to(device)
+            # state = torch.tensor(state, dtype=torch.float).to(device)
             score += reward
 
             if done:
