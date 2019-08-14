@@ -105,9 +105,7 @@ class Worker:
         self.worker_mqtt_client.publish(topic=topic, payload=msg, qos=0, retain=False)
 
     def start_train(self):
-        cnt = 0
         for episode in range(MAX_EPISODES):
-            cnt += 1
             avg_gradients, loss, score = self.agent.on_episode(episode)
             self.local_losses.append(loss)
             self.local_scores.append(score)

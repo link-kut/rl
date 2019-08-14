@@ -66,17 +66,20 @@ class ActorCriticMLP(nn.Module):
         named_parameters = self.actor_fc_layer.named_parameters()
         self.avg_gradients["actor_fc_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["actor_fc_layer"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["actor_fc_layer"][name] = torch.zeros(size=param.size())
 
         named_parameters = self.critic_fc_layer.named_parameters()
         self.avg_gradients["critic_fc_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["critic_fc_layer"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["critic_fc_layer"][name] = torch.zeros(size=param.size())
 
         named_parameters = self.action_mean.named_parameters()
         self.avg_gradients["action_mean"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["action_mean"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["action_mean"][name] = torch.zeros(size=param.size())
+
+    def forward(self, state):
+        return self.pi(state), self.v(state)
 
     def pi(self, state, softmax_dim=0):
         state = self.actor_fc_layer(state)

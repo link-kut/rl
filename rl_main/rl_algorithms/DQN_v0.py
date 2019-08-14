@@ -61,10 +61,6 @@ class DQNAgent_v0:
         self.memory = ReplayMemory(10000)
         self.steps_done = 0
 
-        print("----------Worker {0}: {1}:--------".format(
-            self.worker_id, "PPO",
-        ))
-
         self.model = self.policy_model
 
     def on_episode(self, episode):

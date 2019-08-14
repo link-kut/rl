@@ -56,12 +56,12 @@ class CNN(nn.Module):
         named_parameters = self.conv_layer.named_parameters()
         self.avg_gradients["conv_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["conv_layer"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["conv_layer"][name] = torch.zeros(size=param.size())
 
         named_parameters = self.fc_layer.named_parameters()
         self.avg_gradients["fc_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc_layer"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc_layer"][name] = torch.zeros(size=param.size())
 
     def forward(self, state):
         batch_size = state.size(0)

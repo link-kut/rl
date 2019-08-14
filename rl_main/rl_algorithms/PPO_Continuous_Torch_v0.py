@@ -41,10 +41,6 @@ class PPOContinuousActionAgent_v0:
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
-        print("----------Worker {0}: {1}:--------".format(
-            self.worker_id, "PPO",
-        ))
-
     def put_data(self, transition):
         self.trajectory.append(transition)
 
@@ -102,7 +98,26 @@ class PPOContinuousActionAgent_v0:
 
             loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
 
+            actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
+            critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
+            for name, param in actor_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 1 - actor", name)
+                print(param.grad)
+            for name, param in critic_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 2 - critic", name)
+                print(param.grad)
+
             self.optimizer.zero_grad()
+
+            actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
+            critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
+            for name, param in actor_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 3 - actor", name)
+                print(param.grad)
+            for name, param in critic_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 4 - critic", name)
+                print(param.grad)
+
             loss.mean().backward()
             self.optimize_step()
 

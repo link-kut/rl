@@ -67,22 +67,22 @@ class ActorCriticCNN(nn.Module):
         named_parameters = self.conv_layer.named_parameters()
         self.avg_gradients["conv_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["conv_layer"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["conv_layer"][name] = torch.zeros(size=param.size())
 
         named_parameters = self.fc_layer.named_parameters()
         self.avg_gradients["fc_layer"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc_layer"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc_layer"][name] = torch.zeros(size=param.size())
 
         named_parameters = self.fc_pi.named_parameters()
         self.avg_gradients["fc_pi"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc_pi"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc_pi"][name] = torch.zeros(size=param.size())
 
         named_parameters = self.fc_v.named_parameters()
         self.avg_gradients["fc_v"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["fc_v"][name] = torch.zeros_like(param.data)
+            self.avg_gradients["fc_v"][name] = torch.zeros(size=param.size())
 
     def forward(self, state):
         return self.pi(state)

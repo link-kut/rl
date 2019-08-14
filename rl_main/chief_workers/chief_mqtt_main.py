@@ -58,6 +58,8 @@ def on_chief_message(client, userdata, msg):
                 if worker_id in chief.messages_received_from_workers[chief.episode_chief]:
                     topic, msg_payload = chief.messages_received_from_workers[chief.episode_chief][worker_id]
 
+                    print("!!!! - {0} - {1}".format(worker_id, msg_payload))
+
                     chief.process_message(topic=topic, msg_payload=msg_payload)
 
                     worker_score_str += "W{0}[{1:5.1f}/{2:5.1f}] ".format(
@@ -65,6 +67,7 @@ def on_chief_message(client, userdata, msg):
                         chief.messages_received_from_workers[chief.episode_chief][worker_id][1]['score'],
                         np.mean(chief.score_over_recent_100_episodes[worker_id])
                     )
+
                     if topic == MQTT_TOPIC_SUCCESS_DONE:
                         parameters_transferred = msg_payload["parameters"]
                         is_include_topic_success_done = True
@@ -73,6 +76,7 @@ def on_chief_message(client, userdata, msg):
                 transfer_msg = chief.send_transfer_ack(parameters_transferred)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
             else:
+                print("!!!!")
                 grad_update_msg = chief.send_update_ack()
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_UPDATE_ACK, payload=grad_update_msg, qos=0, retain=False)
 
