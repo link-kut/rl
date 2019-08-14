@@ -1,8 +1,10 @@
 # -*- coding:utf-8 -*-
 import pickle
+import time
 import zlib
 
-from rl_main.environments.environment import *
+import paho.mqtt.client as mqtt
+
 from rl_main.conf.constants_mine import *
 
 import sys
@@ -79,6 +81,5 @@ worker_mqtt_client.loop_start()
 worker = Worker(logger, worker_id, worker_mqtt_client)
 worker.start_train()
 
-env.close()
 time.sleep(1)
 worker_mqtt_client.loop_stop()

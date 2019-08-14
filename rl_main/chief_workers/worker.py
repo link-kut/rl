@@ -2,20 +2,21 @@
 import glob
 import os
 import pickle
+import time
 import zlib
 from collections import deque
 
+import numpy as np
 import torch
 
 from rl_main.conf.constants_mine import *
-from rl_main.environments.environment import *
 
 from rl_main.main import PROJECT_HOME
 from rl_main.rl_algorithms.DQN_v0 import DQNAgent_v0
 from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousActionAgent_v0
 from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
 
-from rl_main.utils import exp_moving_average
+from rl_main.utils import exp_moving_average, get_environment
 
 env = get_environment(owner="worker")
 
@@ -197,5 +198,6 @@ class Worker:
 
             while True:
                 if episode == self.episode_chief:
+                    env.close()
                     break
                 time.sleep(0.01)

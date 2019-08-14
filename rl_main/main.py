@@ -3,13 +3,11 @@ import time
 from multiprocessing import Process
 
 import sys, os
-
-from rl_main.chief_workers.chief import env
-
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
+from rl_main.chief_workers.chief import env
 from rl_main.conf.constants_mine import PYTHON_PATH, NUM_WORKERS, MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, \
     MODE_PARAMETERS_TRANSFER, ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL
 
