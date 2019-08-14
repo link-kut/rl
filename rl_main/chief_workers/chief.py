@@ -4,9 +4,8 @@ import zlib
 
 import torch
 
-from rl_main.environments.environment import get_environment
 from rl_main.models.cnn import CNN
-from rl_main.utils import exp_moving_average
+from rl_main.utils import exp_moving_average, get_environment
 
 from rl_main.models.actor_critic_mlp import ActorCriticMLP
 

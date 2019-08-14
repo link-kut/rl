@@ -1,12 +1,12 @@
 # -*- coding:utf-8 -*-
 import pickle
+import time
 import zlib
 
 import torch
 
 from rl_main.chief_workers.chief import Chief
 from rl_main.conf.constants_mine import *
-from rl_main.environments.environment import *
 
 import paho.mqtt.client as mqtt
 from rl_main.logger import get_logger
