@@ -3,9 +3,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
-from models.actor_critic_mlp import ActorCriticMLP
-from models.cnn import CNN
+from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
+from rl_main.models.actor_critic_mlp import ActorCriticMLP
+from rl_main.models.cnn import CNN
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -43,10 +43,6 @@ class PPODiscreteActionAgent_v0:
             self.model = None
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
-
-        print("----------Worker {0}: {1}:--------".format(
-            self.worker_id, "PPO",
-        ))
 
     def build_actor_critic_mlp_model(self):
         model = ActorCriticMLP(

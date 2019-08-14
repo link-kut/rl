@@ -1,11 +1,13 @@
 # https://becominghuman.ai/lets-build-an-atari-ai-part-1-dqn-df57e8ff3b26
+import json
+
 import gym
 
 # from gym_unity.envs import UnityEnv
 
-from conf.constants_mine import MQTT_SERVER_FOR_RIP
-from environments.envs.environment_rip import *
-from conf.names import *
+from rl_main.conf.constants_mine import MQTT_SERVER_FOR_RIP, ENVIRONMENT_ID
+from rl_main.environments.envs.environment_rip import *
+from rl_main.conf.names import *
 import paho.mqtt.client as mqtt
 from gym_unity.envs import UnityEnv
 

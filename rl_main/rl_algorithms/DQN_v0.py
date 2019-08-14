@@ -6,10 +6,10 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 
-from conf.constants_mine import DEEP_LEARNING_MODEL
-from conf.names import ModelName
-from models.actor_critic_mlp import ActorCriticMLP
-from models.cnn import CNN
+from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL
+from rl_main.conf.names import ModelName
+from rl_main.models.actor_critic_mlp import ActorCriticMLP
+from rl_main.models.cnn import CNN
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'adjusted_reward'))
 

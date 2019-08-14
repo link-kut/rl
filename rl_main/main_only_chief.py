@@ -2,7 +2,7 @@ import os, sys
 import glob
 import time
 from multiprocessing import Process
-from conf.constants_mine import PYTHON_PATH, NUM_WORKERS
+from rl_main.conf.constants_mine import PYTHON_PATH
 
 if not os.path.exists("./graphs/"):
     os.makedirs("./graphs/")

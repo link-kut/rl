@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
-import glob
-import os
 
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
-from main import PROJECT_HOME
-from models.actor_critic_mlp import ActorCriticMLP
-from models.actor_critic_cnn import ActorCriticCNN
-from models.cnn import CNN
+from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
+from rl_main.models.actor_critic_mlp import ActorCriticMLP
+from rl_main.models.actor_critic_cnn import ActorCriticCNN
+from rl_main.models.cnn import CNN
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -172,17 +169,6 @@ class PPOContinuousActionAgent_v0:
             state = next_state
             state = torch.tensor(state, dtype=torch.float).to(device)
             score += reward
-
-            if done:
-                files = glob.glob(os.path.join(PROJECT_HOME, "models", "model_save_files", "*"))
-                for f in files:
-                    os.remove(f)
-
-                torch.save(
-                    self.model.state_dict(),
-                    os.path.join(PROJECT_HOME, "models", "model_save_files", "MLP_model_{}".format(episode))
-                )
-                break
 
         gradients, loss = self.train_net()
         return gradients, loss, score

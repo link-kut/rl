@@ -1,5 +1,5 @@
 # [GENERAL]
-from conf.names import EnvironmentName, ModelName, RLAlgorithmName
+from rl_main.conf.names import EnvironmentName, ModelName, RLAlgorithmName
 
 PYTHON_PATH = None
 EMA_WINDOW = 10

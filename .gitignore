@@ -113,5 +113,6 @@ unity_envs/
 *.gz
 
 constants_mine.py
-/models/model_save_files/
+/model_save_files/
 /temp/
+/src/

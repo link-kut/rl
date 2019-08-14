@@ -4,17 +4,17 @@ import zlib
 
 import torch
 
-from environments.environment import get_environment
-from models.cnn import CNN
-from utils import exp_moving_average
+from rl_main.environments.environment import get_environment
+from rl_main.models.cnn import CNN
+from rl_main.utils import exp_moving_average
 
-from models.actor_critic_mlp import ActorCriticMLP
+from rl_main.models.actor_critic_mlp import ActorCriticMLP
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
 from collections import deque
-from conf.constants_mine import *
+from rl_main.conf.constants_mine import *
 
 env = get_environment()
 

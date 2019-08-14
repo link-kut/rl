@@ -4,11 +4,12 @@ import zlib
 
 import torch
 
-from chief import Chief
-from environments.environment import *
+from rl_main.chief_workers.chief import Chief
+from rl_main.conf.constants_mine import *
+from rl_main.environments.environment import *
 
 import paho.mqtt.client as mqtt
-from logger import get_logger
+from rl_main.logger import get_logger
 import numpy as np
 
 logger = get_logger("chief")
@@ -18,11 +19,12 @@ chief = Chief(logger=logger)
 
 
 def on_chief_connect(client, userdata, flags, rc):
-    logger.info("Connected with result code {}".format(rc))
+    msg = "Chief is successfully connected with broker@{0}".format(MQTT_SERVER)
+    logger.info(msg)
     client.subscribe(MQTT_TOPIC_EPISODE_DETAIL)
     client.subscribe(MQTT_TOPIC_SUCCESS_DONE)
     client.subscribe(MQTT_TOPIC_FAIL_DONE)
-    print("on_connect completed!")
+    print(msg)
 
 
 def on_chief_log(mqttc, obj, level, string):
@@ -78,7 +80,7 @@ def on_chief_message(client, userdata, msg):
 
             chief.save_graph()
 
-            print("episode_chief: {0:3d} - {1}".format(chief.episode_chief, worker_score_str))
+            print("episode_chief:{0:3d} - {1}".format(chief.episode_chief, worker_score_str))
             chief.episode_chief += 1
     else:
         chief. process_message(msg.topic, msg_payload)
