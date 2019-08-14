@@ -6,6 +6,13 @@ from torch.distributions import Categorical
 from conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 
 
+def init_layer(m):
+    weight = m.weight.data
+    weight.normal_(0, 1)
+    weight *= 1.0 / torch.sqrt(weight.pow(2).sum(1, keepdim=True))
+    nn.init.constant_(m.bias.data, 0)
+    return m
+
 class ActorCriticMLP(nn.Module):
     def __init__(self, s_size, a_size, continuous, device):
         super(ActorCriticMLP, self).__init__()
@@ -13,7 +20,7 @@ class ActorCriticMLP(nn.Module):
         self.fc1 = nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE)
         self.fc2 = nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE)
         self.fc3 = nn.Linear(HIDDEN_3_SIZE, a_size)
-        self.fc3_log_std = nn.Parameter(torch.zeros(1, a_size))
+        self.fc3_log_std = nn.Parameter(torch.zeros(a_size))
         self.fc3_v = nn.Linear(HIDDEN_3_SIZE, 1)
 
         self.fc = []
@@ -68,11 +75,11 @@ class ActorCriticMLP(nn.Module):
         return out
 
     def __get_dist(self, state):
-        state = F.tanh(self.fc0(state))
-        state = F.tanh(self.fc1(state))
-        state = F.tanh(self.fc2(state))
-        out = F.tanh(self.fc3(state))
-        out_log_std = self.fc3_log_std.expand_as(state)
+        state = torch.tanh(self.fc0(state))
+        state = torch.tanh(self.fc1(state))
+        state = torch.tanh(self.fc2(state))
+        out = torch.tanh(self.fc3(state))
+        out_log_std = self.fc3_log_std.expand_as(out)
 
         return torch.distributions.Normal(out, out_log_std.exp())
 

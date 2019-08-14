@@ -102,7 +102,7 @@ class ActorCriticCNN(nn.Module):
         state = state.view(batch_size, -1)
         state = self.fc_layer_for_continuous(state)
         out = self.fc_pi(state)
-        out_log_std = self.fc_log_std.expand_as(state)
+        out_log_std = self.fc_log_std.expand_as(out)
         return torch.distributions.Normal(out, out_log_std.exp())
 
     def v(self, state):
