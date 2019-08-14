@@ -48,3 +48,13 @@
 ### 7. 새로운 패키지 설치 후 requirements.txt 새로 만들기
 
 - pip freeze > requirements.txt
+
+### 8. MuJoCo 설치
+
+- brew install gcc@6
+- mkdir ~/.mujoco
+- https://github.com/openai/mujoco-py 에서 다운로드
+- mv Downloads/mujoco200_macos ~/.mujoco/mujoco200
+- cp Downloads/mjkey.txt ~/.mujoco/
+- pip install -U 'mujoco-py<2.1,>=2.0'
+
