@@ -76,6 +76,8 @@ def get_environment(owner="chief"):
         env = BreakoutDeterministic_v4()
     elif ENVIRONMENT_ID == EnvironmentName.PENDULUM_V0:
         env = Pendulum_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING:
+        env = Drone_Racing()
     else:
         env = None
     return env
@@ -263,6 +265,7 @@ class BreakoutDeterministic_v4(Environment):
     def close(self):
         self.env.close()
 
+
 class Pendulum_v0(Environment):
     def __init__(self):
         self.env = gym.make(ENVIRONMENT_ID.value)
@@ -292,6 +295,42 @@ class Pendulum_v0(Environment):
         next_state, reward, done, info = self.env.step(action)
 
         adjusted_reward = reward / 100
+
+        return next_state, reward, adjusted_reward, done, info
+
+    def close(self):
+        self.env.close()
+
+
+class Drone_Racing(Environment):
+    worker_id = 0
+
+    def __init__(self):
+        self.env = UnityEnv(environment_filename='C:\\cs\\DroneEnv\\Drone Asset.exe',
+                            worker_id=self.worker_id, use_visual=False, multiagent=False).unwrapped
+        super(Drone_Racing, self).__init__()
+        Drone_Racing.worker_id += 1
+
+    def get_n_states(self):
+        return self.env.observation_space.shape[0]
+
+    def get_n_actions(self):
+        return self.env.action_space.shape[0]
+
+    def get_state_shape(self):
+        return self.env.observation_space
+
+    def get_action_shape(self):
+        return self.env.action_space
+
+    def reset(self):
+        state = self.env.reset()
+        return state
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = reward
 
         return next_state, reward, adjusted_reward, done, info
 
