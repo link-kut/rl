@@ -7,7 +7,7 @@ from conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 
 
 class ActorCriticMLP(nn.Module):
-    def __init__(self, s_size, a_size, device):
+    def __init__(self, s_size, a_size, continuous, device):
         super(ActorCriticMLP, self).__init__()
         self.fc0 = nn.Linear(s_size, HIDDEN_1_SIZE)
         self.fc1 = nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE)
@@ -23,6 +23,7 @@ class ActorCriticMLP(nn.Module):
         self.fc.append(self.fc3)
 
         self.avg_gradients = {}
+        self.continuous = continuous
         self.device = device
 
         self.reset_average_gradients()

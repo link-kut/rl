@@ -13,11 +13,6 @@ GYM_ENV_ID_LIST = [
     EnvironmentName.CARTPOLE_V0.value,
 ]
 
-ENV_RENDER = ENV_RENDER_MINE
-WIN_AND_LEARN_FINISH_SCORE = WIN_AND_LEARN_FINISH_SCORE_MINE
-WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE
-
-
 def get_environment(owner="chief"):
     if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
         client = mqtt.Client(client_id="env_sub_2", transport="TCP")

@@ -156,18 +156,6 @@ class PPODiscreteActionAgent_v0:
 
             state = next_state
             score += reward
-
-            if done:
-                files = glob.glob(os.path.join(PROJECT_HOME, "models", "model_save_files", "*"))
-                for f in files:
-                    os.remove(f)
-
-                torch.save(
-                    self.model.state_dict(),
-                    os.path.join(PROJECT_HOME, "models", "model_save_files", "MLP_model_{}".format(episode))
-                )
-                break
-
         gradients, loss = self.train_net()
 
         return gradients, loss, score

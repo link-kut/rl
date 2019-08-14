@@ -1,12 +1,18 @@
 # -*- coding:utf-8 -*-
+import glob
+import os
 import pickle
 import zlib
 from collections import deque
+
+import torch
+
 from environments.environment import *
 
 import sys
 
 from logger import get_logger
+from main import PROJECT_HOME
 from rl_algorithms.DQN_v0 import DQNAgent_v0
 from rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousActionAgent_v0
 from rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
@@ -177,6 +183,25 @@ for episode in range(MAX_EPISODES):
         "loss": loss,
         "score": score
     }
+
+    if MODEL_SAVE:
+        files = glob.glob(os.path.join(PROJECT_HOME, "models", "model_save_files", "*"))
+        for f in files:
+            os.remove(f)
+
+        torch.save(
+            agent.model.state_dict(),
+            os.path.join(
+                PROJECT_HOME, "models", "model_save_files",
+                "{0}_{1}_{2}.{3}.pt".format(
+                    ENVIRONMENT_ID.value,
+                    DEEP_LEARNING_MODEL.value,
+                    RL_ALGORITHM.value,
+                    episode
+                )
+            )
+        )
+        break
 
     if mean_score_over_recent_100_episodes >= WIN_AND_LEARN_FINISH_SCORE:
         log_msg = "******* Worker {0} - Solved in episode {1}: Mean score = {2}".format(
