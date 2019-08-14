@@ -11,13 +11,10 @@ import paho.mqtt.client as mqtt
 from logger import get_logger
 import numpy as np
 
-# import warnings
-# warnings.filterwarnings("ignore")
-
 logger = get_logger("chief")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-chief = Chief()
+chief = Chief(logger=logger)
 
 
 def on_chief_connect(client, userdata, flags, rc):
@@ -92,7 +89,7 @@ def on_chief_message(client, userdata, msg):
         chief.num_messages += 1
 
 
-chief_mqtt_client = mqtt.Client("dist_trans_ppo_chief")
+chief_mqtt_client = mqtt.Client("dist_trans_chief")
 
 chief_mqtt_client.on_connect = on_chief_connect
 chief_mqtt_client.on_message = on_chief_message

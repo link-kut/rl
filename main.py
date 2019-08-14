@@ -29,17 +29,12 @@ if not os.path.exists(os.path.join(PROJECT_HOME, "models", "model_save_files")):
 
 def run_chief():
     try:
-        #os.system(PYTHON_PATH + " " + os.path.join(PROJECT_HOME, "chief.py"))
-
-        with subprocess.Popen([PYTHON_PATH, os.path.join(PROJECT_HOME, "chief_mqtt_main.py")], shell=True) as proc:
-            # sys.stdout = open(os.path.join(PROJECT_HOME, "out_err", "chief_stdout.out"), "wb")
-            # sys.stderr = open(os.path.join(PROJECT_HOME, "out_err", "chief_stderr.out"), "wb")
-            print(proc.stdout.read())
-            print(proc.stderr.read())
-
+        os.system(PYTHON_PATH + " " + os.path.join(PROJECT_HOME, "chief.py"))
+        sys.stdout = open(os.path.join(PROJECT_HOME, "out_err", "chief_stdout.out"), "wb")
+        sys.stderr = open(os.path.join(PROJECT_HOME, "out_err", "chief_stderr.out"), "wb")
     except KeyboardInterrupt:
         sys.stdout.flush()
-        sys.stderr.flush()
+        sys.stdout.flush()
 
 
 def run_worker(worker_id):

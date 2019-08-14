@@ -75,13 +75,17 @@ else:
 is_success_or_fail_done = False
 
 
-def on_connect(client, userdata, flags, rc):
+def on_worker_log(mqttc, obj, level, string):
+    print(string)
+
+
+def on_worker_connect(client, userdata, flags, rc):
     logger.info("Connected with result code {}".format(rc))
     client.subscribe(MQTT_TOPIC_TRANSFER_ACK)
     client.subscribe(MQTT_TOPIC_UPDATE_ACK)
 
 
-def on_message(client, userdata, msg):
+def on_worker_message(client, userdata, msg):
     global episode_chief
 
     msg_payload = zlib.decompress(msg.payload)
@@ -157,17 +161,20 @@ def send_msg(topic, msg):
 
 
 worker = mqtt.Client("rl_worker_{0}".format(worker_id))
-worker.on_connect = on_connect
-worker.on_message = on_message
-worker.connect(MQTT_SERVER, MQTT_PORT)
+worker.on_connect = on_worker_connect
+worker.on_message = on_worker_message
+if MQTT_LOG:
+    worker.on_log = on_worker_log
 
+worker.connect(MQTT_SERVER, MQTT_PORT)
 worker.loop_start()
 
 cnt = 0
 for episode in range(MAX_EPISODES):
     cnt += 1
+    print("!!!! - 1", agent)
     avg_gradients, loss, score = agent.on_episode(episode)
-
+    print("!!!! - 2")
     local_losses.append(loss)
     local_scores.append(score)
 

@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import pickle
-import time
 import zlib
 
 import torch
@@ -11,9 +10,6 @@ from utils import exp_moving_average
 
 from models.actor_critic_mlp import ActorCriticMLP
 
-import paho.mqtt.client as mqtt
-from logger import get_logger
-
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
@@ -22,12 +18,12 @@ from conf.constants_mine import *
 
 env = get_environment()
 
-logger = get_logger("chief")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Chief:
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         self.messages_received_from_workers = {}
 
         self.NUM_DONE_WORKERS = 0
@@ -185,7 +181,7 @@ class Chief:
             transfer_msg = {
                 "episode_chief": self.episode_chief
             }
-        logger.info(log_msg)
+        self.logger.info(log_msg)
 
         transfer_msg = pickle.dumps(transfer_msg, protocol=-1)
         transfer_msg = zlib.compress(transfer_msg)
@@ -217,7 +213,7 @@ class Chief:
             grad_update_msg = {
                 "episode_chief": self.episode_chief
             }
-        logger.info(log_msg)
+        self.logger.info(log_msg)
 
         grad_update_msg = pickle.dumps(grad_update_msg, protocol=-1)
         grad_update_msg = zlib.compress(grad_update_msg)

@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-import glob
-import os
-
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
 from conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
-from main import PROJECT_HOME
 from models.actor_critic_mlp import ActorCriticMLP
 from models.cnn import CNN
 
@@ -56,6 +52,7 @@ class PPODiscreteActionAgent_v0:
         model = ActorCriticMLP(
             s_size=self.env.n_states,
             a_size=self.env.n_actions,
+            continuous=False,
             device=device
         ).to(device)
         return model
@@ -66,6 +63,7 @@ class PPODiscreteActionAgent_v0:
             input_width=self.env.cnn_input_width,
             input_channels=self.env.cnn_input_channels,
             a_size=self.env.n_actions,
+            continuous=False,
             device=device
         ).to(device)
         return model
