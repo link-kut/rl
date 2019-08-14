@@ -171,9 +171,7 @@ worker.loop_start()
 cnt = 0
 for episode in range(MAX_EPISODES):
     cnt += 1
-    print("!!!! - 1", agent)
     avg_gradients, loss, score = agent.on_episode(episode)
-    print("!!!! - 2")
     local_losses.append(loss)
     local_scores.append(score)
 
@@ -207,7 +205,6 @@ for episode in range(MAX_EPISODES):
                 )
             )
         )
-        break
 
     if mean_score_over_recent_100_episodes >= WIN_AND_LEARN_FINISH_SCORE:
         log_msg = "******* Worker {0} - Solved in episode {1}: Mean score = {2}".format(

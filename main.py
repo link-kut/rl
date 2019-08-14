@@ -103,7 +103,7 @@ if __name__ == "__main__":
     chief = Process(target=run_chief, args=())
     chief.start()
 
-    time.sleep(1)
+    time.sleep(2)
 
     workers = []
     for worker_id in range(NUM_WORKERS):

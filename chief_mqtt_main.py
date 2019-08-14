@@ -48,7 +48,7 @@ def on_chief_message(client, userdata, msg):
 
         chief.messages_received_from_workers[msg_payload['episode']][msg_payload["worker_id"]] = (msg.topic, msg_payload)
 
-        if len(chief.messages_received_from_workers[chief.episode_chief]) == NUM_WORKERS - NUM_DONE_WORKERS:
+        if len(chief.messages_received_from_workers[chief.episode_chief]) == NUM_WORKERS - chief.NUM_DONE_WORKERS:
             is_include_topic_success_done = False
             parameters_transferred = None
             worker_score_str = ""

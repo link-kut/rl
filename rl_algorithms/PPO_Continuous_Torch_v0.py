@@ -154,9 +154,6 @@ class PPOContinuousActionAgent_v0:
     def on_episode(self, episode):
         # in CartPole-v0:
         # state = [theta, angular speed]
-        print("00000000000")
-        print(self.env, "00000000000")
-
         state = self.env.reset()
         state = torch.tensor(state, dtype=torch.float).to(device)
         done = False
