@@ -96,12 +96,13 @@ class PPOContinuousActionAgent_v0:
             action_lst.append([a])
             reward_lst.append([r])
             next_state_lst.append(s_prime)
+
             prob_action_lst.append([prob_a])
 
             done_mask = 0 if done else 1
             done_mask_lst.append([done_mask])
 
-        state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
+        state_lst = torch.stack(state_lst)
         action_lst = torch.tensor(action_lst).to(device)
         reward_lst = torch.tensor(reward_lst).to(device)
         next_state_lst = torch.tensor(next_state_lst, dtype=torch.float).to(device)
@@ -128,7 +129,7 @@ class PPOContinuousActionAgent_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
-            pi, new_prob_action_lst = self.model.continuous_act(state_lst, softmax_dim=1)
+            pi, new_prob_action_lst = self.model.continuous_act(state_lst)
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage
@@ -154,7 +155,7 @@ class PPOContinuousActionAgent_v0:
         # in CartPole-v0:
         # state = [theta, angular speed]
         state = self.env.reset()
-        state = torch.FloatTensor(state).float().to(device)
+        state = torch.tensor(state, dtype=torch.float).to(device)
         done = False
         score = 0.0
 
@@ -164,11 +165,12 @@ class PPOContinuousActionAgent_v0:
 
             action, prob = self.model.continuous_act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
-            next_state = torch.FloatTensor(next_state).float().to(device)
-            adjusted_reward = torch.FloatTensor(adjusted_reward).float().to(device)
+            # next_state = torch.FloatTensor(next_state).float().to(device)
+            # adjusted_reward = torch.FloatTensor(adjusted_reward).float().to(device)
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
+            state = torch.tensor(state, dtype=torch.float).to(device)
             score += reward
 
             if done:
@@ -183,7 +185,6 @@ class PPOContinuousActionAgent_v0:
                 break
 
         gradients, loss = self.train_net()
-        print(gradients, loss)
         return gradients, loss, score
 
     def get_parameters(self):

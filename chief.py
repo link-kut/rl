@@ -94,7 +94,6 @@ if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
     model = ActorCriticMLP(
         s_size=env.n_states,
         a_size=env.n_actions,
-        continuous=env.continuous,
         device=device
     ).to(device)
 elif DEEP_LEARNING_MODEL == ModelName.CNN:
