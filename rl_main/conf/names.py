@@ -7,6 +7,7 @@ class EnvironmentName(enum.Enum):
     CHASER_V1 = "unity_envs/Chaser_v1"
     BREAKOUT_DETERMINISTIC_V4 = "BreakoutDeterministic-v4"
     PENDULUM_V0 = 'Pendulum-v0'
+    DRONE_RACING = "Drone_Racing"
 
 
 class ModelName(enum.Enum):

@@ -1,22 +1,19 @@
 # https://becominghuman.ai/lets-build-an-atari-ai-part-1-dqn-df57e8ff3b26
+import json
+
 import gym
 
 # from gym_unity.envs import UnityEnv
 
-from conf.constants_mine import MQTT_SERVER_FOR_RIP
-from environments.envs.environment_rip import *
-from conf.names import *
+from rl_main.conf.constants_mine import MQTT_SERVER_FOR_RIP, ENVIRONMENT_ID
+from rl_main.environments.envs.environment_rip import *
+from rl_main.conf.names import *
 import paho.mqtt.client as mqtt
 from gym_unity.envs import UnityEnv
 
 GYM_ENV_ID_LIST = [
     EnvironmentName.CARTPOLE_V0.value,
 ]
-
-ENV_RENDER = ENV_RENDER_MINE
-WIN_AND_LEARN_FINISH_SCORE = WIN_AND_LEARN_FINISH_SCORE_MINE
-WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE
-
 
 def get_environment(owner="chief"):
     if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
@@ -81,6 +78,8 @@ def get_environment(owner="chief"):
         env = BreakoutDeterministic_v4()
     elif ENVIRONMENT_ID == EnvironmentName.PENDULUM_V0:
         env = Pendulum_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING:
+        env = Drone_Racing()
     else:
         env = None
     return env
@@ -268,6 +267,7 @@ class BreakoutDeterministic_v4(Environment):
     def close(self):
         self.env.close()
 
+
 class Pendulum_v0(Environment):
     def __init__(self):
         self.env = gym.make(ENVIRONMENT_ID.value)
@@ -298,6 +298,42 @@ class Pendulum_v0(Environment):
         next_state, reward, done, info = self.env.step([action])
 
         adjusted_reward = reward / 100
+
+        return next_state, reward, adjusted_reward, done, info
+
+    def close(self):
+        self.env.close()
+
+
+class Drone_Racing(Environment):
+    worker_id = 0
+
+    def __init__(self):
+        self.env = UnityEnv(environment_filename='C:\\cs\\DroneEnv\\Drone Asset.exe',
+                            worker_id=self.worker_id, use_visual=False, multiagent=False).unwrapped
+        super(Drone_Racing, self).__init__()
+        Drone_Racing.worker_id += 1
+
+    def get_n_states(self):
+        return self.env.observation_space.shape[0]
+
+    def get_n_actions(self):
+        return self.env.action_space.shape[0]
+
+    def get_state_shape(self):
+        return self.env.observation_space
+
+    def get_action_shape(self):
+        return self.env.action_space
+
+    def reset(self):
+        state = self.env.reset()
+        return state
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = reward
 
         return next_state, reward, adjusted_reward, done, info
 

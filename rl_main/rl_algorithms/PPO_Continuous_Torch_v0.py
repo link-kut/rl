@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-import glob
-import os
 
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
-from main import PROJECT_HOME
-from models.actor_critic_mlp import ActorCriticMLP
-from models.cnn import CNN
+from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
+from rl_main.models.actor_critic_mlp import ActorCriticMLP
+from rl_main.models.actor_critic_cnn import ActorCriticCNN
+from rl_main.models.cnn import CNN
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -20,7 +18,7 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPODiscreteActionAgent_v0:
+class PPOContinuousActionAgent_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
@@ -43,6 +41,8 @@ class PPODiscreteActionAgent_v0:
             self.model = self.build_actor_critic_mlp_model()
         elif DEEP_LEARNING_MODEL == ModelName.CNN:
             self.model = self.build_cnn_model()
+        elif DEEP_LEARNING_MODEL == ModelName.ActorCriticCNN:
+            self.model = self.build_actor_critic_cnn_model()
         else:
             self.model = None
 
@@ -61,11 +61,21 @@ class PPODiscreteActionAgent_v0:
         ).to(device)
         return model
 
+    def build_actor_critic_cnn_model(self):
+        model = ActorCriticCNN(
+            input_height=self.env.cnn_input_height,
+            input_width=self.env.cnn_input_width,
+            a_size=self.env.n_actions,
+            device=device
+        ).to(device)
+        return model
+
     def build_cnn_model(self):
         model = CNN(
             input_height=self.env.cnn_input_height,
             input_width=self.env.cnn_input_width,
             input_channels=self.env.cnn_input_channels,
+            continuous=self.env.continuous,
             a_size=self.env.n_actions,
             device=device
         ).to(device)
@@ -84,13 +94,14 @@ class PPODiscreteActionAgent_v0:
             action_lst.append([a])
             reward_lst.append([r])
             next_state_lst.append(s_prime)
+
             prob_action_lst.append([prob_a])
 
             done_mask = 0 if done else 1
             done_mask_lst.append([done_mask])
 
-        state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
-        action_lst = torch.tensor(action_lst).to(device)
+        # state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
+        # action_lst = torch.tensor(action_lst).to(device)
         reward_lst = torch.tensor(reward_lst).to(device)
         next_state_lst = torch.tensor(next_state_lst, dtype=torch.float).to(device)
         done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float).to(device)
@@ -116,8 +127,8 @@ class PPODiscreteActionAgent_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
-            pi = self.model.pi(state_lst, softmax_dim=1)
-            new_prob_action_lst = pi.gather(dim=1, index=action_lst)
+            pi, new_prob_action_lst = self.model.continuous_act(state_lst)
+            new_prob_action_lst = torch.tensor(new_prob_action_lst, dtype=torch.float).to(device)
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage
@@ -143,6 +154,7 @@ class PPODiscreteActionAgent_v0:
         # in CartPole-v0:
         # state = [theta, angular speed]
         state = self.env.reset()
+        # state = torch.tensor(state, dtype=torch.float).to(device)
         done = False
         score = 0.0
 
@@ -150,27 +162,17 @@ class PPODiscreteActionAgent_v0:
             if self.env_render:
                 self.env.render()
 
-            action, prob = self.model.act(state)
+            action, prob = self.model.continuous_act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
-
+            # next_state = torch.FloatTensor(next_state).float().to(device)
+            # adjusted_reward = torch.FloatTensor(adjusted_reward).float().to(device)
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
             state = next_state
+            # state = torch.tensor(state, dtype=torch.float).to(device)
             score += reward
 
-            if done:
-                files = glob.glob(os.path.join(PROJECT_HOME, "models", "model_save_files", "*"))
-                for f in files:
-                    os.remove(f)
-
-                torch.save(
-                    self.model.state_dict(),
-                    os.path.join(PROJECT_HOME, "models", "model_save_files", "MLP_model_{}".format(episode))
-                )
-                break
-
         gradients, loss = self.train_net()
-
         return gradients, loss, score
 
     def get_parameters(self):

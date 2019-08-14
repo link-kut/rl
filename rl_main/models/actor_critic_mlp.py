@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.distributions import Categorical
 from random import sample
 
-from conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
+from rl_main.conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
 
 
 class ActorCriticMLP(nn.Module):
@@ -57,6 +57,7 @@ class ActorCriticMLP(nn.Module):
         self.action_log_std = nn.Parameter(torch.zeros(a_size))
 
         self.avg_gradients = {}
+        self.continuous = continuous
         self.device = device
 
         self.reset_average_gradients()
