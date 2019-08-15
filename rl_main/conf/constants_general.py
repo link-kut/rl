@@ -1,6 +1,4 @@
 # [GENERAL]
-from rl_main.conf.names import EnvironmentName, ModelName, RLAlgorithmName, OSName
-
 MY_PLATFORM = None
 PYTHON_PATH = None
 EMA_WINDOW = 10
@@ -27,7 +25,7 @@ MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
 MQTT_SUB_RESET_COMPLETE = 'reset_complete'
 
 # [WORKER]
-NUM_WORKERS = 1
+NUM_WORKERS = 2
 
 # [TRANSFER]
 SOFT_TRANSFER = False
@@ -55,20 +53,20 @@ MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
 ########################################################################################
 # COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
 ########################################################################################
-ENV_RENDER = None
-
-PYTHON_PATH_MINE = "~/anaconda3/envs/rl/bin/python"
-MQTT_SERVER_MINE = "localhost"
-
-ENV_RENDER_MINE = False
-WIN_AND_LEARN_FINISH_SCORE_MINE = 195
-WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE = 100
-
-# [1. ENVIRONMENTS]
-ENVIRONMENT_ID = EnvironmentName.BREAKOUT_DETERMINISTIC_V4
-
-# [2. DEEP_LEARNING_MODELS]
-DEEP_LEARNING_MODEL = ModelName.CNN
-
-# [3. ALGORITHMS]
-RL_ALGORITHM = RLAlgorithmName.DQN_V0
+# ENV_RENDER = None
+#
+# PYTHON_PATH_MINE = "~/anaconda3/envs/rl/bin/python"
+# MQTT_SERVER_MINE = "localhost"
+#
+# ENV_RENDER_MINE = False
+# WIN_AND_LEARN_FINISH_SCORE_MINE = 195
+# WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE = 100
+#
+# # [1. ENVIRONMENTS]
+# ENVIRONMENT_ID = EnvironmentName.BREAKOUT_DETERMINISTIC_V4
+#
+# # [2. DEEP_LEARNING_MODELS]
+# DEEP_LEARNING_MODEL = ModelName.CNN
+#
+# # [3. ALGORITHMS]
+# RL_ALGORITHM = RLAlgorithmName.DQN_V0

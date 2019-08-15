@@ -120,6 +120,7 @@ class PPODiscreteActionAgent_v0:
             if self.env_render:
                 self.env.render()
 
+            print(state)
             action, prob = self.model.act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
