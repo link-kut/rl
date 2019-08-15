@@ -11,6 +11,8 @@ class CartPole_v0(Environment):
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
         self.continuous = False
+        self.WIN_AND_LEARN_FINISH_SCORE = 195
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 100
 
     def get_n_states(self):
         n_states = int(self.env.observation_space.shape[0] / 2)

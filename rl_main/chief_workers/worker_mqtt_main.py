@@ -62,7 +62,7 @@ def on_worker_message(client, userdata, msg):
             worker.transfer_process(msg_payload['parameters'])
 
         worker.episode_chief = msg_payload["episode_chief"]
-        print("Transfer ack: " + worker.episode_chief)
+        print("Transfer_Ack: " + worker.episode_chief)
 
     else:
         print("pass")

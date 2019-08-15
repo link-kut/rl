@@ -197,6 +197,5 @@ class Worker:
 
             while True:
                 if episode == self.episode_chief:
-                    env.close()
                     break
                 time.sleep(0.01)
