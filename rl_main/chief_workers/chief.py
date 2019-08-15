@@ -70,7 +70,7 @@ class Chief:
             self.success_done_episode[worker_id] = []
             self.success_done_score[worker_id] = []
 
-            self.score_over_recent_100_episodes[worker_id] = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+            self.score_over_recent_100_episodes[worker_id] = deque(maxlen=env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
     def update_loss_score(self, msg_payload):
         worker_id = msg_payload['worker_id']
