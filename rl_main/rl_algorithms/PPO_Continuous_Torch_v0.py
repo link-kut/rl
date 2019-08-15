@@ -110,26 +110,27 @@ class PPOContinuousActionAgent_v0:
 
             actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
-            # for name, param in actor_fc_named_parameters:
-                # print("!!!!!!!!!!!!!! - 1 - actor", name)
-                # print(param.grad)
-            # for name, param in critic_fc_named_parameters:
-            #     print("!!!!!!!!!!!!!! - 2 - critic", name)
-            #     print(param.grad)
+            for name, param in actor_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 1 - actor", name)
+                print(param.grad)
+            for name, param in critic_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 2 - critic", name)
+                print(param.grad)
 
             self.optimizer.zero_grad()
+            loss.mean().backward()
+            self.optimize_step()
 
             actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
-            # for name, param in actor_fc_named_parameters:
-            #     print("!!!!!!!!!!!!!! - 3 - actor", name)
-            #     print(param.grad)
-            # for name, param in critic_fc_named_parameters:
-            #     print("!!!!!!!!!!!!!! - 4 - critic", name)
-            #     print(param.grad)
+            for name, param in actor_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 3 - actor", name)
+                print(param.grad)
+            for name, param in critic_fc_named_parameters:
+                print("!!!!!!!!!!!!!! - 4 - critic", name)
+                print(param.grad)
 
-            loss.mean().backward()
-            self.optimize_step()
+
 
             loss_sum += loss.mean().item()
 
