@@ -136,7 +136,7 @@ class Chief:
                 c='red'
             )
 
-        plt.savefig(PROJECT_HOME + "graphs/loss_score.png")
+        plt.savefig(os.path.join(PROJECT_HOME, "graphs", "loss_score.png"))
         plt.close('all')
 
     def process_message(self, topic, msg_payload):
