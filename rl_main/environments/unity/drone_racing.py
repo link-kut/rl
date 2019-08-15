@@ -1,17 +1,26 @@
 from gym_unity.envs import UnityEnv
 
+from rl_main.conf.names import OSName, EnvironmentName
 from rl_main.environments.environment import Environment
 
 
 class Drone_Racing(Environment):
     worker_id = 0
 
-    def __init__(self):
+    def __init__(self, platform):
+        if platform == OSName.MAC:
+            env_filename = EnvironmentName.DRONE_RACING_MAC.value
+        elif platform == OSName.WINDOWS:
+            env_filename = EnvironmentName.DRONE_RACING_WINDOWS.value
+        else:
+            env_filename = None
+
         self.env = UnityEnv(
-            environment_filename='C:\\cs\\DroneEnv\\Drone Asset.exe',
+            environment_filename=env_filename,
             worker_id=self.worker_id,
             use_visual=False,
-            multiagent=False).unwrapped
+            multiagent=False
+        ).unwrapped
 
         super(Drone_Racing, self).__init__()
         Drone_Racing.worker_id += 1

@@ -1,7 +1,6 @@
 # [GENERAL]
-from rl_main.conf.names import EnvironmentName, ModelName, RLAlgorithmName
-
-PYTHON_PATH = "/anaconda3/envs/rl/bin/python"
+MY_PLATFORM = None
+PYTHON_PATH = None
 EMA_WINDOW = 10
 VERBOSE = False
 MODEL_SAVE = True

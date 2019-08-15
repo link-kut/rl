@@ -11,7 +11,6 @@ import torch
 
 from rl_main.conf.constants_mine import *
 
-from rl_main.main import PROJECT_HOME
 from rl_main.rl_algorithms.DQN_v0 import DQNAgent_v0
 from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousActionAgent_v0
 from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
