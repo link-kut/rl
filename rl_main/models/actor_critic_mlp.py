@@ -56,17 +56,15 @@ class ActorCriticMLP(nn.Module):
                 nn.Linear(HIDDEN_3_SIZE, 1),
                 nn.LeakyReLU(),
             )
-        action_std
-        self.action_var = torch.full((a_size,), action_std * action_std).to(device)
+
+        self.action_std = 0.5
+        self.action_var = torch.full((a_size,), self.action_std * self.action_std).to(device)
 
         self.avg_gradients = {}
         self.continuous = continuous
         self.device = device
 
         self.reset_average_gradients()
-
-    def forward(self, x):
-        return self.actor_fc_layer(x), self.critic_fc_layer(x)
 
     def reset_average_gradients(self):
         named_parameters = self.actor_fc_layer.named_parameters()
@@ -79,29 +77,28 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["critic_fc_layer"][name] = torch.zeros(size=param.size())
 
-        named_parameters = self.action_mean.named_parameters()
-        self.avg_gradients["action_mean"] = {}
-        for name, param in named_parameters:
-            self.avg_gradients["action_mean"][name] = torch.zeros(size=param.size())
+        # named_parameters = self.action_mean.named_parameters()
+        # self.avg_gradients["action_mean"] = {}
+        # for name, param in named_parameters:
+        #     self.avg_gradients["action_mean"][name] = torch.zeros(size=param.size())
 
     def pi(self, state, softmax_dim=0):
-        out, _ = self.forward(state)
-        out = self.action_mean(out)
-        out = F.softmax(out, dim=softmax_dim)
+        action_mean = self.actor_fc_layer(state)
+        out = F.softmax(action_mean, dim=softmax_dim)
         return out
 
-    def __get_dist(self, state):
-        state = state.clone().detach().requires_grad_(True)
-        # state = torch.from_numpy(state).float().to(self.device)
-        out, _ = self.forward(state)
-        out = torch.tanh(self.action_mean(out))
-        out_log_std = self.action_log_std.expand_as(out)
-
-        return torch.distributions.Normal(out, out_log_std.exp())
+    # def __get_dist(self, state):
+    #     state = state.clone().detach().requires_grad_(True)
+    #     # state = torch.from_numpy(state).float().to(self.device)
+    #     out, _ = self.forward(state)
+    #     out = torch.tanh(self.action_mean(out))
+    #     out_log_std = self.action_log_std.expand_as(out)
+    #
+    #     return torch.distributions.Normal(out, out_log_std.exp())
 
     def v(self, state):
         state = torch.tensor(state, dtype=torch.float)
-        _, v = self.forward(state)
+        v = self.critic_fc_layer(state)
         return v
 
     def act(self, state):
@@ -114,14 +111,38 @@ class ActorCriticMLP(nn.Module):
         return action, prob.squeeze(0)[action].item()
 
     def continuous_act(self, state):
-        state = torch.tensor(state, dtype=torch.float)
-        # state = torch.from_numpy(state).float().to(self.device)
-        dist = self.__get_dist(state)
-        action = sample(dist.sample().tolist(), k=1)[0]
-        _action = torch.tensor(action, dtype=torch.float)
-        action_log_probs = sample(dist.log_prob(_action).sum(-1, keepdim=True).tolist(), k=1)[0]
+        action_mean = self.actor_fc_layer(state)
+        cov_mat = torch.diag(self.action_var)
 
-        return action, action_log_probs
+        dist = torch.distributions.MultivariateNormal(action_mean, cov_mat)
+        action = dist.sample()
+        action_logprob = dist.log_prob(action)
+
+        return action, action_logprob
+
+    def evaluate(self, state, action):
+        action_mean = torch.squeeze(self.actor_fc_layer(state))
+
+        action_var = self.action_var.expand_as(action_mean)
+        cov_mat = torch.diag_embed(action_var)
+
+        dist = torch.distributions.MultivariateNormal(action_mean, cov_mat)
+
+        action_logprobs = dist.log_prob(torch.squeeze(action))
+        dist_entropy = dist.entropy()
+        state_value = self.critic(state)
+
+        return action_logprobs, torch.squeeze(state_value), dist_entropy
+
+    # def continuous_act(self, state):
+    #     state = torch.tensor(state, dtype=torch.float)
+    #     # state = torch.from_numpy(state).float().to(self.device)
+    #     dist = self.__get_dist(state)
+    #     action = sample(dist.sample().tolist(), k=1)[0]
+    #     _action = torch.tensor(action, dtype=torch.float)
+    #     action_log_probs = sample(dist.log_prob(_action).sum(-1, keepdim=True).tolist(), k=1)[0]
+    #
+    #     return action, action_log_probs
 
     def get_gradients_for_current_parameters(self):
         gradients = {}
@@ -136,10 +157,10 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             gradients["critic_fc_layer"][name] = param.grad
 
-        named_parameters = self.action_mean.named_parameters()
-        gradients["action_mean"] = {}
-        for name, param in named_parameters:
-            gradients["action_mean"][name] = param.grad
+        # named_parameters = self.action_mean.named_parameters()
+        # gradients["action_mean"] = {}
+        # for name, param in named_parameters:
+        #     gradients["action_mean"][name] = param.grad
 
         return gradients
 
@@ -152,9 +173,9 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             param.grad = gradients["critic_fc_layer"][name]
 
-        named_parameters = self.action_mean.named_parameters()
-        for name, param in named_parameters:
-            param.grad = gradients["action_mean"][name]
+        # named_parameters = self.action_mean.named_parameters()
+        # for name, param in named_parameters:
+        #     param.grad = gradients["action_mean"][name]
 
     def accumulate_gradients(self, gradients):
         named_parameters = self.actor_fc_layer.named_parameters()
@@ -165,9 +186,9 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["critic_fc_layer"][name] += gradients["critic_fc_layer"][name]
 
-        named_parameters = self.action_mean.named_parameters()
-        for name, param in named_parameters:
-            self.avg_gradients["action_mean"][name] += gradients["action_mean"][name]
+        # named_parameters = self.action_mean.named_parameters()
+        # for name, param in named_parameters:
+        #     self.avg_gradients["action_mean"][name] += gradients["action_mean"][name]
 
     def get_average_gradients(self, num_workers):
         named_parameters = self.actor_fc_layer.named_parameters()
@@ -178,9 +199,9 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["critic_fc_layer"][name] /= num_workers
 
-        named_parameters = self.action_mean.named_parameters()
-        for name, param in named_parameters:
-            self.avg_gradients["action_mean"][name] /= num_workers
+        # named_parameters = self.action_mean.named_parameters()
+        # for name, param in named_parameters:
+        #     self.avg_gradients["action_mean"][name] /= num_workers
 
     def get_parameters(self):
         parameters = {}
@@ -195,10 +216,10 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             parameters["critic_fc_layer"][name] = param.data
 
-        named_parameters = self.action_mean.named_parameters()
-        parameters['action_mean'] = {}
-        for name, param in named_parameters:
-            parameters["action_mean"][name] = param.data
+        # named_parameters = self.action_mean.named_parameters()
+        # parameters['action_mean'] = {}
+        # for name, param in named_parameters:
+        #     parameters["action_mean"][name] = param.data
 
         return parameters
 
@@ -217,9 +238,9 @@ class ActorCriticMLP(nn.Module):
             else:
                 param.data = parameters["critic_fc_layer"][name]
 
-        named_parameters = self.action_mean.named_parameters()
-        for name, param in named_parameters:
-            if soft_transfer:
-                param.data = param.data * soft_transfer_tau + parameters["action_mean"][name] * (1 - soft_transfer_tau)
-            else:
-                param.data = parameters["action_mean"][name]
+        # named_parameters = self.action_mean.named_parameters()
+        # for name, param in named_parameters:
+        #     if soft_transfer:
+        #         param.data = param.data * soft_transfer_tau + parameters["action_mean"][name] * (1 - soft_transfer_tau)
+        #     else:
+        #         param.data = parameters["action_mean"][name]

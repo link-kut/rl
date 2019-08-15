@@ -74,7 +74,7 @@ def get_environment(owner="chief"):
 
     elif ENVIRONMENT_ID == EnvironmentName.CARTPOLE_V0:
         env = CartPole_v0()
-    elif ENVIRONMENT_ID == EnvironmentName.CHASER_V1:
+    elif ENVIRONMENT_ID == EnvironmentName.CHASER_V1_MAC:
         env = Chaser_v1()
     elif ENVIRONMENT_ID == EnvironmentName.BREAKOUT_DETERMINISTIC_V4:
         env = BreakoutDeterministic_v4()
