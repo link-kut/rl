@@ -61,7 +61,7 @@ class Drone_Racing(Environment):
 
 
 if __name__ == "__main__":
-    env = Drone_Racing(OSName.WINDOWS)
+    env = Drone_Racing(OSName.MAC)
     # Reset it, returns the starting frame
     frame = env.reset()
     print(env.get_state_shape())
