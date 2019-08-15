@@ -1,3 +1,4 @@
+from random import *
 from gym_unity.envs import UnityEnv
 
 from rl_main.conf.names import OSName, EnvironmentName
@@ -60,7 +61,7 @@ class Drone_Racing(Environment):
 
 
 if __name__ == "__main__":
-    env = Drone_Racing()
+    env = Drone_Racing(OSName.WINDOWS)
     # Reset it, returns the starting frame
     frame = env.reset()
     print(env.get_state_shape())
@@ -76,11 +77,13 @@ if __name__ == "__main__":
     idx = 0
     while not is_done:
         # Perform a random action, returns the new frame, reward and whether the game is over
-        frame, reward, adjusted_reward, is_done, _ = env.step(env.action_space.sample())
+        action_space = [0] * 8
+        action_space[randint(0, 7)] = 1
+        frame, reward, adjusted_reward, is_done, _ = env.step(action_space)
 
         state = frame - last_frame
 
-        print(idx, state.mean(), reward, adjusted_reward, is_done)
+        # print(idx, state.mean(), reward, adjusted_reward, is_done)
 
         last_frame = frame
         idx = idx + 1
