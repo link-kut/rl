@@ -12,6 +12,9 @@ class Environment:
 
         self.continuous = False
 
+        self.WIN_AND_LEARN_FINISH_SCORE = 195
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 100
+
     def get_n_states(self):
         pass
 

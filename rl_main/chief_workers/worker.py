@@ -65,8 +65,8 @@ class Worker:
         self.local_scores = []
         self.local_losses = []
 
-        self.score_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
-        self.loss_dequeue = deque(maxlen=WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+        self.score_dequeue = deque(maxlen=env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+        self.loss_dequeue = deque(maxlen=env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
         self.episode_chief = -1
 
@@ -141,7 +141,7 @@ class Worker:
                     )
                 )
 
-            if mean_score_over_recent_100_episodes >= WIN_AND_LEARN_FINISH_SCORE:
+            if mean_score_over_recent_100_episodes >= env.WIN_AND_LEARN_FINISH_SCORE:
                 log_msg = "******* Worker {0} - Solved in episode {1}: Mean score = {2}".format(
                     self.worker_id,
                     episode,

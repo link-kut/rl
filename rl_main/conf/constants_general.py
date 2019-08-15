@@ -55,8 +55,6 @@ MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
 # COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
 ########################################################################################
 ENV_RENDER = None
-WIN_AND_LEARN_FINISH_SCORE = None
-WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = None
 
 PYTHON_PATH_MINE = "~/anaconda3/envs/rl/bin/python"
 MQTT_SERVER_MINE = "localhost"
