@@ -62,6 +62,9 @@ class ActorCriticMLP(nn.Module):
 
         self.reset_average_gradients()
 
+    def forward(self, x):
+        return self.actor_fc_layer(x), self.critic_fc_layer(x)
+
     def reset_average_gradients(self):
         named_parameters = self.actor_fc_layer.named_parameters()
         self.avg_gradients["actor_fc_layer"] = {}
@@ -78,11 +81,8 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["action_mean"][name] = torch.zeros(size=param.size())
 
-    def forward(self, state):
-        return self.pi(state), self.v(state)
-
     def pi(self, state, softmax_dim=0):
-        state = self.actor_fc_layer(state)
+        out, _ = self.forward(state)
         out = self.action_mean(state)
         out = F.softmax(out, dim=softmax_dim)
         return out
@@ -90,7 +90,7 @@ class ActorCriticMLP(nn.Module):
     def __get_dist(self, state):
         state = state.clone().detach().requires_grad_(True)
         # state = torch.from_numpy(state).float().to(self.device)
-        out = self.actor_fc_layer(state)
+        out, _ = self.forward(state)
         out = torch.tanh(self.action_mean(out))
         out_log_std = self.action_log_std.expand_as(out)
 
@@ -98,7 +98,7 @@ class ActorCriticMLP(nn.Module):
 
     def v(self, state):
         state = torch.tensor(state, dtype=torch.float)
-        v = self.critic_fc_layer(state)
+        _, v = self.forward(state)
         return v
 
     def act(self, state):
