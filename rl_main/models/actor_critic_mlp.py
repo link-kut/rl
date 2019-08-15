@@ -97,7 +97,6 @@ class ActorCriticMLP(nn.Module):
     #     return torch.distributions.Normal(out, out_log_std.exp())
 
     def v(self, state):
-        state = torch.tensor(state, dtype=torch.float)
         v = self.critic_fc_layer(state)
         return v
 
