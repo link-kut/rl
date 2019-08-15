@@ -131,7 +131,8 @@ class Worker:
                     self.agent.model.state_dict(),
                     os.path.join(
                         PROJECT_HOME, "model_save_files",
-                        "{0}_{1}_{2}.{3}.pt".format(
+                        "{0}_{1}_{2}_{3}.{4}.pt".format(
+                            self.worker_id,
                             ENVIRONMENT_ID.value,
                             DEEP_LEARNING_MODEL.value,
                             RL_ALGORITHM.value,
