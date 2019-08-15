@@ -18,7 +18,7 @@ class Drone_Racing(Environment):
 
         self.env = UnityEnv(
             environment_filename=env_filename,
-            worker_id=self.worker_id,
+            worker_id=randrange(65536),
             use_visual=False,
             multiagent=False
         ).unwrapped
