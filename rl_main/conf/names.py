@@ -21,7 +21,6 @@ class EnvironmentName(enum.Enum):
     DRONE_RACING_WINDOWS = os.path.join(PROJECT_HOME, "rl_main", "environments", "unity", "unity_envs", "Dron_Racing.exe")
 
 
-
 class ModelName(enum.Enum):
     ActorCriticMLP = "Actor_Critic_MLP"
     CNN = "CNN"

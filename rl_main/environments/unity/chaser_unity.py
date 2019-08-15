@@ -1,23 +1,22 @@
 from gym_unity.envs import UnityEnv
 
-from rl_main.conf.constants_mine import ENVIRONMENT_ID, PLATFORM, OSName
-from rl_main.conf.names import EnvironmentName
+from rl_main.conf.names import EnvironmentName, OSName
 from rl_main.environments.environment import Environment
 
 
 class Chaser_v1(Environment):
-    if PLATFORM == OSName.MAC:
-        env_filename = EnvironmentName.CHASER_V1_MAC.value
-    elif PLATFORM == OSName.WINDOWS:
-        env_filename = EnvironmentName.CHASER_V1_WINDOWS.value
-    else:
-        env_filename = None
-
     unity_env_worker_id = 0
 
-    def __init__(self):
+    def __init__(self, platform):
+        if platform == OSName.MAC:
+            env_filename = EnvironmentName.CHASER_V1_MAC.value
+        elif platform == OSName.WINDOWS:
+            env_filename = EnvironmentName.CHASER_V1_WINDOWS.value
+        else:
+            env_filename = None
+
         self.env = UnityEnv(
-            environment_filename=ENVIRONMENT_ID.CHASER_V1.value,
+            environment_filename=env_filename,
             worker_id=Chaser_v1.unity_env_worker_id,
             use_visual=True,
             multiagent=True
@@ -31,6 +30,7 @@ class Chaser_v1(Environment):
         self.cnn_input_width = self.state_shape[1]
         self.cnn_input_channels = self.state_shape[2]
 
+        self.observation_space = self.env.observation_space
         self.continuous = True
 
     @staticmethod
@@ -64,3 +64,9 @@ class Chaser_v1(Environment):
 
     def close(self):
         self.env.close()
+
+
+if __name__ == "__main__":
+    from rl_main.conf.constants_mine import MY_PLATFORM
+    env = Chaser_v1(MY_PLATFORM)
+    print(env.observation_space)

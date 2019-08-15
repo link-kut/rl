@@ -1,7 +1,7 @@
 # [GENERAL]
 from rl_main.conf.names import EnvironmentName, ModelName, RLAlgorithmName, OSName
 
-PLATFORM = None
+MY_PLATFORM = None
 PYTHON_PATH = None
 EMA_WINDOW = 10
 VERBOSE = False

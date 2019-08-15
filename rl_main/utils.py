@@ -10,7 +10,7 @@ PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
 from rl_main.conf.constants_mine import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
-    ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, PLATFORM
+    ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM
 
 torch.manual_seed(0) # set random seed
 
@@ -57,8 +57,8 @@ def print_configuration(env):
     else:
         print(" MODE3: PARAMETERS_TRANSFER vs. [NO PARAMETERS_TRANSFER]")
 
-    print("\n*** PLATFORM & ENVIRONMENT ***")
-    print(" Platform:" + PLATFORM.value)
+    print("\n*** MY_PLATFORM & ENVIRONMENT ***")
+    print(" Platform:" + MY_PLATFORM.value)
     print(" Environment Name:" + ENVIRONMENT_ID.value)
     print(" State Shape: {0}".format(env.state_shape))
     print(" Action Shape: {0}".format(env.action_shape))
