@@ -123,7 +123,7 @@ class Worker:
             }
 
             if MODEL_SAVE:
-                files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
+                files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "{0}_*".format(self.worker_id)))
                 for f in files:
                     os.remove(f)
 
