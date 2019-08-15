@@ -65,7 +65,7 @@ class ActorCriticMLP(nn.Module):
         self.device = device
 
         self.reset_average_gradients()
-
+    
     def reset_average_gradients(self):
         named_parameters = self.actor_fc_layer.named_parameters()
         self.avg_gradients["actor_fc_layer"] = {}
