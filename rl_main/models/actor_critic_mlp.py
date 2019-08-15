@@ -111,6 +111,7 @@ class ActorCriticMLP(nn.Module):
         return action, prob.squeeze(0)[action].item()
 
     def continuous_act(self, state):
+        state = torch.tensor(state, dtype=torch.float)
         action_mean = self.actor_fc_layer(state)
         cov_mat = torch.diag(self.action_var)
 
@@ -121,6 +122,7 @@ class ActorCriticMLP(nn.Module):
         return action, action_logprob
 
     def evaluate(self, state, action):
+        state = torch.tensor(state, dtype=torch.float)
         action_mean = torch.squeeze(self.actor_fc_layer(state))
 
         action_var = self.action_var.expand_as(action_mean)
@@ -130,7 +132,7 @@ class ActorCriticMLP(nn.Module):
 
         action_logprobs = dist.log_prob(torch.squeeze(action))
         dist_entropy = dist.entropy()
-        state_value = self.critic(state)
+        state_value = self.critic_fc_layer(state)
 
         return action_logprobs, torch.squeeze(state_value), dist_entropy
 

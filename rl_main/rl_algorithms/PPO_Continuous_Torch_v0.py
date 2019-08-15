@@ -87,36 +87,46 @@ class PPOContinuousActionAgent_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
-            pi, new_prob_action_lst = self.model.continuous_act(state_lst)
-            print(new_prob_action_lst)
-            new_prob_action_lst = torch.tensor(new_prob_action_lst, dtype=torch.float).to(device)
-            ratio = torch.exp(new_prob_action_lst - prob_action_lst)  # a/b == exp(log(a)-log(b))
+            logprobs, state_values, dist_entropy = self.model.evaluate(state_lst, prob_action_lst)
 
+            # Finding the ratio (pi_theta / pi_theta__old):
+            ratio = torch.exp(logprobs - prob_action_lst.detach())
+
+            # Finding Surrogate Loss:
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip) * advantage
-            entropy = new_prob_action_lst * prob_action_lst + \
-                      (1.0 - new_prob_action_lst.item()) * (-prob_action_lst)
-            loss = -torch.min(surr1, surr2).mean() + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
+            loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * dist_entropy
+
+            # pi, new_prob_action_lst = self.model.continuous_act(state_lst)
+            # print(new_prob_action_lst)
+            # new_prob_action_lst = torch.tensor(new_prob_action_lst, dtype=torch.float).to(device)
+            # ratio = torch.exp(new_prob_action_lst - prob_action_lst)  # a/b == exp(log(a)-log(b))
+            #
+            # surr1 = ratio * advantage
+            # surr2 = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip) * advantage
+            # entropy = new_prob_action_lst * prob_action_lst + \
+            #           (1.0 - new_prob_action_lst.item()) * (-prob_action_lst)
+            # loss = -torch.min(surr1, surr2).mean() + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
 
             actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
-            for name, param in actor_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 1 - actor", name)
-                print(param.grad)
-            for name, param in critic_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 2 - critic", name)
-                print(param.grad)
+            # for name, param in actor_fc_named_parameters:
+                # print("!!!!!!!!!!!!!! - 1 - actor", name)
+                # print(param.grad)
+            # for name, param in critic_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 2 - critic", name)
+            #     print(param.grad)
 
             self.optimizer.zero_grad()
 
             actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
-            for name, param in actor_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 3 - actor", name)
-                print(param.grad)
-            for name, param in critic_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 4 - critic", name)
-                print(param.grad)
+            # for name, param in actor_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 3 - actor", name)
+            #     print(param.grad)
+            # for name, param in critic_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 4 - critic", name)
+            #     print(param.grad)
 
             loss.mean().backward()
             self.optimize_step()
