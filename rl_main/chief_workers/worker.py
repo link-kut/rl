@@ -133,7 +133,7 @@ class Worker:
                         PROJECT_HOME, "model_save_files",
                         "{0}_{1}_{2}_{3}.{4}.pt".format(
                             self.worker_id,
-                            ENVIRONMENT_ID.value,
+                            ENVIRONMENT_ID.name,
                             DEEP_LEARNING_MODEL.value,
                             RL_ALGORITHM.value,
                             episode
@@ -197,6 +197,6 @@ class Worker:
 
             while True:
                 if episode == self.episode_chief:
-                    env.close()
+                    # env.close()
                     break
                 time.sleep(0.01)
