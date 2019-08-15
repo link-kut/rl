@@ -88,6 +88,7 @@ class PPOContinuousActionAgent_v0:
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
             pi, new_prob_action_lst = self.model.continuous_act(state_lst)
+            print(new_prob_action_lst)
             new_prob_action_lst = torch.tensor(new_prob_action_lst, dtype=torch.float).to(device)
             ratio = torch.exp(new_prob_action_lst - prob_action_lst)  # a/b == exp(log(a)-log(b))
 
