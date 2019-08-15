@@ -2,9 +2,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from random import sample
+from random import sample, random, randint
+import math
 
-from rl_main.conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
+from rl_main.conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, EPSILON_GREEDY_ACT
+
+EPS_START = 0.9     # e-greedy threshold start value
+EPS_END = 0.05      # e-greedy threshold end value
+EPS_DECAY = 200     # e-greedy threshold decay
 
 
 class ActorCriticMLP(nn.Module):
@@ -65,6 +70,8 @@ class ActorCriticMLP(nn.Module):
         self.device = device
 
         self.reset_average_gradients()
+
+        self.steps_done = 0
     
     def reset_average_gradients(self):
         named_parameters = self.actor_fc_layer.named_parameters()
@@ -103,9 +110,21 @@ class ActorCriticMLP(nn.Module):
     def act(self, state):
         state = torch.from_numpy(state).float().to(self.device)
         prob = self.pi(state).to(self.device)
-        m = Categorical(prob)
 
-        action = m.sample().item()
+        if EPSILON_GREEDY_ACT:
+            eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * self.steps_done / EPS_DECAY)
+            self.steps_done += 1
+
+            if random() > eps_threshold:
+                m = Categorical(prob)
+                action = m.sample().item()
+            else:
+                action = randint(0, 7)
+                print(action)
+        else:
+            m = Categorical(prob)
+
+            action = m.sample().item()
 
         return action, prob.squeeze(0)[action].item()
 

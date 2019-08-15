@@ -50,6 +50,9 @@ MODE_GRADIENTS_UPDATE = True         # Distributed
 MODE_PARAMETERS_TRANSFER = True     # Transfer
 MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
 
+# [TRAINING]
+EPSILON_GREEDY_ACT = False
+
 ########################################################################################
 # COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
 ########################################################################################
