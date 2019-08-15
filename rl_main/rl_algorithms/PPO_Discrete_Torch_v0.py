@@ -121,6 +121,7 @@ class PPODiscreteActionAgent_v0:
                 self.env.render()
 
             action, prob = self.model.act(state)
+
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
