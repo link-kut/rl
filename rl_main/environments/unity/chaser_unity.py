@@ -1,10 +1,18 @@
 from gym_unity.envs import UnityEnv
 
-from rl_main.conf.constants_mine import ENVIRONMENT_ID
+from rl_main.conf.constants_mine import ENVIRONMENT_ID, PLATFORM, OSName
+from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 
 class Chaser_v1(Environment):
+    if PLATFORM == OSName.MAC:
+        env_filename = EnvironmentName.CHASER_V1_MAC.value
+    elif PLATFORM == OSName.WINDOWS:
+        env_filename = EnvironmentName.CHASER_V1_WINDOWS.value
+    else:
+        env_filename = None
+
     unity_env_worker_id = 0
 
     def __init__(self):
