@@ -1,6 +1,5 @@
 from gym_unity.envs import UnityEnv
 
-from rl_main.conf.constants_mine import PLATFORM
 from rl_main.conf.names import OSName, EnvironmentName
 from rl_main.environments.environment import Environment
 
@@ -8,10 +7,10 @@ from rl_main.environments.environment import Environment
 class Drone_Racing(Environment):
     worker_id = 0
 
-    def __init__(self):
-        if PLATFORM == OSName.MAC:
+    def __init__(self, platform):
+        if platform == OSName.MAC:
             env_filename = EnvironmentName.DRONE_RACING_MAC.value
-        elif PLATFORM == OSName.WINDOWS:
+        elif platform == OSName.WINDOWS:
             env_filename = EnvironmentName.DRONE_RACING_WINDOWS.value
         else:
             env_filename = None

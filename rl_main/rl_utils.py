@@ -79,9 +79,9 @@ def get_environment(owner="chief"):
     elif ENVIRONMENT_ID == EnvironmentName.BREAKOUT_DETERMINISTIC_V4:
         env = BreakoutDeterministic_v4()
     elif ENVIRONMENT_ID == EnvironmentName.PENDULUM_V0:
-        env = Pendulum_v0()
+        env = Pendulum_v0(MY_PLATFORM)
     elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING:
-        env = Drone_Racing()
+        env = Drone_Racing(MY_PLATFORM)
     else:
         env = None
     return env
