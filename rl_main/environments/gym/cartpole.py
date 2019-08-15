@@ -41,5 +41,8 @@ class CartPole_v0(Environment):
 
         return next_state, reward, adjusted_reward, done, info
 
+    def render(self):
+        self.env.render()
+
     def close(self):
         self.env.close()
