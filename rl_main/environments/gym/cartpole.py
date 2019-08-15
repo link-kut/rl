@@ -1,12 +1,12 @@
 import gym
 
-from rl_main.conf.constants_mine import ENVIRONMENT_ID
+from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 
 class CartPole_v0(Environment):
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID.CARTPOLE_V0.value)
+        self.env = gym.make(EnvironmentName.CARTPOLE_V0.value)
         super(CartPole_v0, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()

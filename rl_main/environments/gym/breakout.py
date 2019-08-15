@@ -1,13 +1,13 @@
 import gym
 import numpy as np
 
-from rl_main.conf.constants_mine import ENVIRONMENT_ID
+from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 
 class BreakoutDeterministic_v4(Environment):
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID.BREAKOUT_DETERMINISTIC_V4.value)
+        self.env = gym.make(EnvironmentName.BREAKOUT_DETERMINISTIC_V4.value)
         super(BreakoutDeterministic_v4, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()

@@ -1,12 +1,12 @@
 import gym
 
-from rl_main.conf.constants_mine import ENVIRONMENT_ID
+from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 
 class Pendulum_v0(Environment):
     def __init__(self):
-        self.env = gym.make(ENVIRONMENT_ID.PENDULUM_V0.value)
+        self.env = gym.make(EnvironmentName.PENDULUM_V0.value)
         super(Pendulum_v0, self).__init__()
         self.continuous = True
 
