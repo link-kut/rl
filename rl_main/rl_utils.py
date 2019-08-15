@@ -74,13 +74,13 @@ def get_environment(owner="chief"):
 
     elif ENVIRONMENT_ID == EnvironmentName.CARTPOLE_V0:
         env = CartPole_v0()
-    elif ENVIRONMENT_ID == EnvironmentName.CHASER_V1_MAC:
+    elif ENVIRONMENT_ID == EnvironmentName.CHASER_V1_MAC or ENVIRONMENT_ID == EnvironmentName.CHASER_V1_WINDOWS:
         env = Chaser_v1(MY_PLATFORM)
     elif ENVIRONMENT_ID == EnvironmentName.BREAKOUT_DETERMINISTIC_V4:
         env = BreakoutDeterministic_v4()
     elif ENVIRONMENT_ID == EnvironmentName.PENDULUM_V0:
         env = Pendulum_v0()
-    elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING:
+    elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING_MAC or ENVIRONMENT_ID == EnvironmentName.DRONE_RACING_WINDOWS:
         env = Drone_Racing(MY_PLATFORM)
     else:
         env = None
