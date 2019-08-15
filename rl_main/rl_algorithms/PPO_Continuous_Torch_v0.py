@@ -96,8 +96,7 @@ class PPOContinuousActionAgent_v0:
             surr2 = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip) * advantage
             entropy = new_prob_action_lst * prob_action_lst + \
                       (1.0 - new_prob_action_lst.item()) * (-prob_action_lst)
-
-            loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
+            loss = -torch.min(surr1, surr2).mean() + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
 
             actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()

@@ -85,7 +85,9 @@ class PPODiscreteActionAgent_v0:
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
             pi = self.model.pi(state_lst, softmax_dim=1)
+            print("pi", pi)
             new_prob_action_lst = pi.gather(dim=1, index=action_lst)
+            print("prob", new_prob_action_lst)
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage

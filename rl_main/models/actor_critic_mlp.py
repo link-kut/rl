@@ -20,6 +20,8 @@ class ActorCriticMLP(nn.Module):
                 nn.Tanh(),
                 nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
                 nn.Tanh(),
+                nn.Linear(HIDDEN_3_SIZE, a_size),
+                nn.Tanh(),
             )
 
             self.critic_fc_layer = nn.Sequential(
@@ -40,6 +42,8 @@ class ActorCriticMLP(nn.Module):
                 nn.LeakyReLU(),
                 nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
                 nn.LeakyReLU(),
+                nn.Linear(HIDDEN_3_SIZE, a_size),
+                nn.LeakyReLU(),
             )
 
             self.critic_fc_layer = nn.Sequential(
@@ -52,9 +56,8 @@ class ActorCriticMLP(nn.Module):
                 nn.Linear(HIDDEN_3_SIZE, 1),
                 nn.LeakyReLU(),
             )
-
-        self.action_mean = nn.Linear(HIDDEN_3_SIZE, a_size)
-        self.action_log_std = nn.Parameter(torch.zeros(a_size))
+        action_std
+        self.action_var = torch.full((a_size,), action_std * action_std).to(device)
 
         self.avg_gradients = {}
         self.continuous = continuous
@@ -83,7 +86,7 @@ class ActorCriticMLP(nn.Module):
 
     def pi(self, state, softmax_dim=0):
         out, _ = self.forward(state)
-        out = self.action_mean(state)
+        out = self.action_mean(out)
         out = F.softmax(out, dim=softmax_dim)
         return out
 

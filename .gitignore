@@ -89,7 +89,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+unity_envs/
 # Spyder project settings
 .spyderproject
 .spyproject
