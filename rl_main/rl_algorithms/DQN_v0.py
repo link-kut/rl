@@ -56,7 +56,10 @@ class DQN_v0:
         self.target_model.load_state_dict(self.policy_model.state_dict())
         self.target_model.eval()
 
-        self.optimizer = optim.Adam(self.policy_model.parameters(), lr=self.learning_rate)
+        self.optimizer = rl_utils.get_optimizer(
+            parameters=self.policy_model.parameters(),
+            learning_rate=self.learning_rate
+        )
 
         self.memory = ReplayMemory(10000)
         self.steps_done = 0

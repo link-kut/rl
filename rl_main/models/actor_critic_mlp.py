@@ -84,11 +84,6 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["critic_fc_layer"][name] = torch.zeros(size=param.size())
 
-        # named_parameters = self.action_mean.named_parameters()
-        # self.avg_gradients["action_mean"] = {}
-        # for name, param in named_parameters:
-        #     self.avg_gradients["action_mean"][name] = torch.zeros(size=param.size())
-
     def pi(self, state, softmax_dim=0):
         action_mean = self.actor_fc_layer(state)
         out = F.softmax(action_mean, dim=softmax_dim)
@@ -177,11 +172,6 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             gradients["critic_fc_layer"][name] = param.grad
 
-        # named_parameters = self.action_mean.named_parameters()
-        # gradients["action_mean"] = {}
-        # for name, param in named_parameters:
-        #     gradients["action_mean"][name] = param.grad
-
         return gradients
 
     def set_gradients_to_current_parameters(self, gradients):
@@ -193,10 +183,6 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             param.grad = gradients["critic_fc_layer"][name]
 
-        # named_parameters = self.action_mean.named_parameters()
-        # for name, param in named_parameters:
-        #     param.grad = gradients["action_mean"][name]
-
     def accumulate_gradients(self, gradients):
         named_parameters = self.actor_fc_layer.named_parameters()
         for name, param in named_parameters:
@@ -206,10 +192,6 @@ class ActorCriticMLP(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["critic_fc_layer"][name] += gradients["critic_fc_layer"][name]
 
-        # named_parameters = self.action_mean.named_parameters()
-        # for name, param in named_parameters:
-        #     self.avg_gradients["action_mean"][name] += gradients["action_mean"][name]
-
     def get_average_gradients(self, num_workers):
         named_parameters = self.actor_fc_layer.named_parameters()
         for name, param in named_parameters:
@@ -218,10 +200,6 @@ class ActorCriticMLP(nn.Module):
         named_parameters = self.critic_fc_layer.named_parameters()
         for name, param in named_parameters:
             self.avg_gradients["critic_fc_layer"][name] /= num_workers
-
-        # named_parameters = self.action_mean.named_parameters()
-        # for name, param in named_parameters:
-        #     self.avg_gradients["action_mean"][name] /= num_workers
 
     def get_parameters(self):
         parameters = {}
@@ -235,11 +213,6 @@ class ActorCriticMLP(nn.Module):
         parameters['critic_fc_layer'] = {}
         for name, param in named_parameters:
             parameters["critic_fc_layer"][name] = param.data
-
-        # named_parameters = self.action_mean.named_parameters()
-        # parameters['action_mean'] = {}
-        # for name, param in named_parameters:
-        #     parameters["action_mean"][name] = param.data
 
         return parameters
 
@@ -257,10 +230,3 @@ class ActorCriticMLP(nn.Module):
                 param.data = param.data * soft_transfer_tau + parameters["critic_fc_layer"][name] * (1 - soft_transfer_tau)
             else:
                 param.data = parameters["critic_fc_layer"][name]
-
-        # named_parameters = self.action_mean.named_parameters()
-        # for name, param in named_parameters:
-        #     if soft_transfer:
-        #         param.data = param.data * soft_transfer_tau + parameters["action_mean"][name] * (1 - soft_transfer_tau)
-        #     else:
-        #         param.data = parameters["action_mean"][name]

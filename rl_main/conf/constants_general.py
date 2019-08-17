@@ -1,5 +1,7 @@
 import torch
 
+from rl_main.conf.names import OptimizerName
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # [GENERAL]
@@ -56,6 +58,7 @@ MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
 
 # [TRAINING]
 EPSILON_GREEDY_ACT = False
+OPTIMIZER = OptimizerName.ADAM
 
 ########################################################################################
 # COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #

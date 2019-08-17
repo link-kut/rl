@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import sys
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -8,7 +10,7 @@ from rl_main import rl_utils
 from rl_main.main_constants import device
 
 lmbda = 0.95
-eps_clip = 0.1
+eps_clip = 0.3
 K_epoch = 10
 c1 = 0.5
 c2 = 0.01
@@ -34,7 +36,10 @@ class PPODiscreteAction_v0:
 
         self.model = rl_utils.get_rl_model(self.env)
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = rl_utils.get_optimizer(
+            parameters=self.model.parameters(),
+            learning_rate=self.learning_rate
+        )
 
     def put_data(self, transition):
         self.trajectory.append(transition)
@@ -96,10 +101,9 @@ class PPODiscreteAction_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
-            pi = self.model.pi(state_lst, softmax_dim=1)
-            # print("pi", pi)
-            new_prob_action_lst = pi.gather(dim=1, index=action_lst)
-            # print("prob", new_prob_action_lst)
+            pi = self.model.pi(state_lst, softmax_dim=-1)
+            new_prob_action_lst = pi.gather(dim=-1, index=action_lst)
+
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
             surr1 = ratio * advantage
@@ -109,11 +113,50 @@ class PPODiscreteAction_v0:
 
             loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
 
+            # print("advantage: {0}".format(advantage[:3]))
+            # print("pi: {0}".format(pi[:3]))
+            # print("prob: {0}".format(new_prob_action_lst[:3]))
+            # print("prob_action_lst: {0}".format(prob_action_lst[:3]))
+            # print("new_prob_action_lst: {0}".format(new_prob_action_lst[:3]))
+            # print("ratio: {0}".format(ratio[:3]))
+            # print("surr1: {0}".format(surr1[:3]))
+            # print("surr2: {0}".format(surr2[:3]))
+            # print("entropy: {0}".format(entropy[:3]))
+            # print("self.model.v(state_lst): {0}".format(self.model.v(state_lst)[:3]))
+            # print("v_target: {0}".format(v_target[:3]))
+            # print("F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()): {0}".format(F.smooth_l1_loss(self.model.v(state_lst), v_target.detach())))
+            # print("loss: {0}".format(loss[:3]))
+
+            # params = self.model.get_parameters()
+            # for layer in params:
+            #     for name in params[layer]:
+            #         print(layer, name, "params[layer][name]", params[layer][name])
+            #         break
+            #     break
+            #
+            # print("GRADIENT!!!")
+
             self.optimizer.zero_grad()
             loss.mean().backward()
+
+            # grads = self.model.get_gradients_for_current_parameters()
+            # for layer in params:
+            #     for name in params[layer]:
+            #         print(layer, name, "grads[layer][name]", grads[layer][name])
+            #         break
+            #     break
+
             self.optimize_step()
 
+            # params = self.model.get_parameters()
+            # for layer in params:
+            #     for name in params[layer]:
+            #         print(layer, name, "params[layer][name]", params[layer][name])
+            #         break
+            #     break
+
             loss_sum += loss.mean().item()
+
 
         gradients = self.model.get_gradients_for_current_parameters()
         return gradients, loss_sum / K_epoch

@@ -10,7 +10,7 @@ PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
 from rl_main.main_constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
-    ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM
+    ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM, OPTIMIZER
 
 torch.manual_seed(0) # set random seed
 
@@ -66,6 +66,9 @@ def print_configuration():
 
     print("\n*** MODEL ***")
     print(" Deep Learning Model:" + DEEP_LEARNING_MODEL.value)
+
+    print("\n*** Optimizer ***")
+    print(" Optimizer:" + OPTIMIZER.value)
 
     print()
 

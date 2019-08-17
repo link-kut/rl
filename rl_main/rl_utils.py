@@ -1,6 +1,7 @@
 import json
 
 import paho.mqtt.client as mqtt
+from torch import optim
 
 from rl_main.main_constants import *
 
@@ -151,3 +152,14 @@ def get_rl_algorithm(env, worker_id, logger):
         rl_algorithm = None
 
     return rl_algorithm
+
+
+def get_optimizer(parameters, learning_rate):
+    if OPTIMIZER == OptimizerName.ADAM:
+        optimizer = optim.Adam(params=parameters, lr=learning_rate)
+    elif OPTIMIZER == OptimizerName.NESTEROV:
+        optimizer = optim.SGD(params=parameters, lr=learning_rate, nesterov=True, momentum=0.9, weight_decay=1e-4)
+    else:
+        optimizer = None
+
+    return optimizer

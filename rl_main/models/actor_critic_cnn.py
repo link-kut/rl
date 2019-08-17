@@ -8,6 +8,7 @@ from rl_main.main_constants import *
 from rl_main.utils import get_conv2d_size, get_pool2d_size
 import numpy as np
 
+
 class ActorCriticCNN(nn.Module):
     def __init__(self, input_width, input_height, input_channels, a_size, continuous, device):
         super(ActorCriticCNN, self).__init__()
@@ -52,10 +53,10 @@ class ActorCriticCNN(nn.Module):
         self.fc_log_std = nn.Parameter(torch.zeros(1, a_size))  # for
         self.fc_v = nn.Linear(64, 1)        # for v
 
-        for m in self.modules():
-            if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-                init.kaiming_normal_(m.weight.data)
-                m.bias.data.fill_(0)
+        # for m in self.modules():
+        #     if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
+        #         init.kaiming_normal_(m.weight.data)
+        #         m.bias.data.fill_(0)
 
         self.continuous = continuous
         self.device = device
@@ -125,6 +126,7 @@ class ActorCriticCNN(nn.Module):
             state = torch.from_numpy(state).float().to(self.device)
 
         prob = self.pi(state).cpu()
+
         m = Categorical(prob)
 
         action = m.sample().item()

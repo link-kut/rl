@@ -33,7 +33,10 @@ class PPOContinuousAction_v0:
 
         self.model = rl_utils.get_rl_model(self.env)
 
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = rl_utils.get_optimizer(
+            parameters=self.model.parameters(),
+            learning_rate=self.learning_rate
+        )
 
     def put_data(self, transition):
         self.trajectory.append(transition)

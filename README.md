@@ -58,3 +58,6 @@
 - cp Downloads/mjkey.txt ~/.mujoco/
 - pip install -U 'mujoco-py<2.1,>=2.0'
 
+### 참고 문헌
+- https://medium.com/aureliantactics/ppo-hyperparameters-and-ranges-6fc2d29bccbev
+- https://arxiv.org/pdf/1709.06009.pdf
