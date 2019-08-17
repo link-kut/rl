@@ -69,17 +69,25 @@ def on_worker_message(client, userdata, msg):
         pass
 
 
-worker_mqtt_client = mqtt.Client("rl_worker_{0}".format(worker_id))
-worker_mqtt_client.on_connect = on_worker_connect
-worker_mqtt_client.on_message = on_worker_message
-if MQTT_LOG:
-    worker_mqtt_client.on_log = on_worker_log
+if __name__ == "__main__":
+    worker_mqtt_client = mqtt.Client("rl_worker_{0}".format(worker_id))
+    worker_mqtt_client.on_connect = on_worker_connect
+    worker_mqtt_client.on_message = on_worker_message
+    if MQTT_LOG:
+        worker_mqtt_client.on_log = on_worker_log
 
-worker_mqtt_client.connect(MQTT_SERVER, MQTT_PORT)
-worker_mqtt_client.loop_start()
+    worker_mqtt_client.connect(MQTT_SERVER, MQTT_PORT)
+    worker_mqtt_client.loop_start()
 
-worker = Worker(logger, worker_id, worker_mqtt_client)
-worker.start_train()
+    stderr = sys.stderr
+    sys.stderr = sys.stdout
+    try:
+        worker = Worker(logger, worker_id, worker_mqtt_client)
+        worker.start_train()
 
-time.sleep(1)
-worker_mqtt_client.loop_stop()
+        time.sleep(1)
+        worker_mqtt_client.loop_stop()
+    except KeyboardInterrupt as error:
+        print("=== {0:>8} is aborted by keyboard interrupt".format('Worker {0}'.format(worker_id)))
+    finally:
+        sys.stderr = stderr

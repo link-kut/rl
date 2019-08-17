@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import pickle
+import sys
 import time
 import zlib
 
@@ -92,18 +93,27 @@ def on_chief_message(client, userdata, msg):
         chief.num_messages += 1
 
 
-chief_mqtt_client = mqtt.Client("dist_trans_chief")
+if __name__ == "__main__":
+    chief_mqtt_client = mqtt.Client("dist_trans_chief")
 
-chief_mqtt_client.on_connect = on_chief_connect
-chief_mqtt_client.on_message = on_chief_message
-if MQTT_LOG:
-    chief.on_log = on_chief_log
+    chief_mqtt_client.on_connect = on_chief_connect
+    chief_mqtt_client.on_message = on_chief_message
+    if MQTT_LOG:
+        chief.on_log = on_chief_log
 
-chief_mqtt_client.connect(MQTT_SERVER, MQTT_PORT)
-chief_mqtt_client.loop_start()
+    chief_mqtt_client.connect(MQTT_SERVER, MQTT_PORT)
+    chief_mqtt_client.loop_start()
 
-while True:
-    time.sleep(1)
-    if chief.NUM_DONE_WORKERS == NUM_WORKERS:
-        chief_mqtt_client.loop_stop()
-        break
+    while True:
+        stderr = sys.stderr
+        sys.stderr = sys.stdout
+
+        try:
+            time.sleep(1)
+            if chief.NUM_DONE_WORKERS == NUM_WORKERS:
+                chief_mqtt_client.loop_stop()
+                break
+        except KeyboardInterrupt as error:
+            print("=== {0:>8} is aborted by keyboard interrupt".format('Chief'))
+        finally:
+            sys.stderr = stderr

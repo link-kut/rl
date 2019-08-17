@@ -1,3 +1,4 @@
+import sys
 import time
 from multiprocessing import Process
 import rl_main.utils as utils
@@ -11,18 +12,26 @@ if __name__ == "__main__":
     utils.print_configuration(env)
     utils.ask_file_removal()
 
-    chief = Process(target=utils.run_chief, args=())
-    chief.start()
+    stderr = sys.stderr
+    sys.stderr = sys.stdout
 
-    time.sleep(1.5)
+    try:
+        chief = Process(target=utils.run_chief, args=())
+        chief.start()
 
-    workers = []
-    for worker_id in range(NUM_WORKERS):
-        worker = Process(target=utils.run_worker, args=(worker_id,))
-        workers.append(worker)
-        worker.start()
+        time.sleep(1.5)
 
-    for worker in workers:
-        worker.join()
+        workers = []
+        for worker_id in range(NUM_WORKERS):
+            worker = Process(target=utils.run_worker, args=(worker_id,))
+            workers.append(worker)
+            worker.start()
 
-    chief.join()
+        for worker in workers:
+            worker.join()
+
+        chief.join()
+    except KeyboardInterrupt as error:
+        print("=== {0:>8} is aborted by keyboard interrupt".format('Main'))
+    finally:
+        sys.stderr = stderr
