@@ -68,7 +68,7 @@ class CNN(nn.Module):
         state = self.conv_layer(state)
         state = state.view(batch_size, -1)
         state = self.fc_layer(state)
-        out = F.softmax(state, dim=0)
+        out = F.softmax(state, dim=-1)
         return out
 
     def act(self, state):
