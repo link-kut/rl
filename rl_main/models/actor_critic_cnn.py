@@ -87,7 +87,7 @@ class ActorCriticCNN(nn.Module):
     def forward(self, state):
         return self.pi(state)
 
-    def pi(self, state, softmax_dim=0):
+    def pi(self, state, softmax_dim=-1):
         if type(state) is np.ndarray:
             state = torch.from_numpy(state).float().to(device)
 
@@ -123,7 +123,9 @@ class ActorCriticCNN(nn.Module):
     def act(self, state):
         if type(state) is np.ndarray:
             state = torch.from_numpy(state).float().to(self.device)
+
         prob = self.pi(state).cpu()
+        print(prob)
         m = Categorical(prob)
 
         action = m.sample().item()
