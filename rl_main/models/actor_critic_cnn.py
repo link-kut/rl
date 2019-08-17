@@ -125,7 +125,6 @@ class ActorCriticCNN(nn.Module):
             state = torch.from_numpy(state).float().to(self.device)
 
         prob = self.pi(state).cpu()
-        print(prob)
         m = Categorical(prob)
 
         action = m.sample().item()
