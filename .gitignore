@@ -113,7 +113,7 @@ environments/unity/unity_envs/
 *.out
 *.gz
 
-constants_mine.py
+rl_main/main_constants.py
 /model_save_files/
 /temp/
 /src/

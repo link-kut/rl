@@ -67,6 +67,6 @@ class Chaser_v1(Environment):
 
 
 if __name__ == "__main__":
-    from rl_main.conf.constants_mine import MY_PLATFORM
+    from rl_main.main_constants import MY_PLATFORM
     env = Chaser_v1(MY_PLATFORM)
     print(env.observation_space)

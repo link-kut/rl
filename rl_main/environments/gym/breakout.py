@@ -1,8 +1,10 @@
 import gym
 import numpy as np
+import torch
 
 from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
+from rl_main.main_constants import device
 
 
 class BreakoutDeterministic_v4(Environment):

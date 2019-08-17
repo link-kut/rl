@@ -1,15 +1,15 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from torch.nn import init
 from torchsummary import summary
+from rl_main.main_constants import *
 
 from rl_main.utils import get_conv2d_size, get_pool2d_size
-
+import numpy as np
 
 class ActorCriticCNN(nn.Module):
-    def __init__(self, input_width, input_height, input_channels, continuous, a_size, device):
+    def __init__(self, input_width, input_height, input_channels, a_size, continuous, device):
         super(ActorCriticCNN, self).__init__()
 
         self.conv_layer = nn.Sequential(
@@ -88,6 +88,12 @@ class ActorCriticCNN(nn.Module):
         return self.pi(state)
 
     def pi(self, state, softmax_dim=0):
+        if type(state) is np.ndarray:
+            state = torch.from_numpy(state).float().to(device)
+
+        if len(state.size()) == 3:
+            state = state.unsqueeze(dim=0)
+
         batch_size = state.size(0)
         state = self.conv_layer(state)
         state = state.view(batch_size, -1)
@@ -111,11 +117,12 @@ class ActorCriticCNN(nn.Module):
         state = state.view(batch_size, -1)
         state = self.fc_layer(state)
         # state = self.fc_layer_for_continuous(state)
-        v = self.fc3_v(state)
+        v = self.fc_v(state)
         return v
 
     def act(self, state):
-        state = torch.from_numpy(state).float().to(self.device)
+        if type(state) is np.ndarray:
+            state = torch.from_numpy(state).float().to(self.device)
         prob = self.pi(state).cpu()
         m = Categorical(prob)
 

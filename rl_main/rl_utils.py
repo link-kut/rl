@@ -1,9 +1,9 @@
 import json
 
 import paho.mqtt.client as mqtt
-import torch
 
-from rl_main.conf.constants_mine import *
+from rl_main.main_constants import *
+
 from rl_main.environments.gym.breakout import BreakoutDeterministic_v4
 from rl_main.environments.gym.cartpole import CartPole_v0
 from rl_main.environments.gym.pendulum import Pendulum_v0
@@ -13,8 +13,9 @@ from rl_main.environments.unity.drone_racing import Drone_Racing
 from rl_main.models.actor_critic_cnn import ActorCriticCNN
 from rl_main.models.actor_critic_mlp import ActorCriticMLP
 from rl_main.models.cnn import CNN
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+from rl_main.rl_algorithms.DQN_v0 import DQN_v0
+from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousAction_v0
+from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteAction_v0
 
 
 def get_environment(owner="chief"):
@@ -99,6 +100,7 @@ def get_rl_model(env):
         model = ActorCriticCNN(
             input_height=env.cnn_input_height,
             input_width=env.cnn_input_width,
+            input_channels=env.cnn_input_channels,
             a_size=env.n_actions,
             continuous=env.continuous,
             device=device
@@ -115,3 +117,37 @@ def get_rl_model(env):
     else:
         model = None
     return model
+
+
+def get_rl_algorithm(env, worker_id, logger):
+    if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
+        rl_algorithm = PPODiscreteAction_v0(
+            env=env,
+            worker_id=worker_id,
+            gamma=GAMMA,
+            env_render=ENV_RENDER,
+            logger=logger,
+            verbose=VERBOSE
+        )
+    elif RL_ALGORITHM == RLAlgorithmName.DQN_V0:
+        rl_algorithm = DQN_v0(
+            env=env,
+            worker_id=worker_id,
+            gamma=GAMMA,
+            env_render=ENV_RENDER,
+            logger=logger,
+            verbose=VERBOSE
+        )
+    elif RL_ALGORITHM == RLAlgorithmName.PPO_CONTINUOUS_TORCH_V0:
+        rl_algorithm = PPOContinuousAction_v0(
+            env=env,
+            worker_id=worker_id,
+            gamma=GAMMA,
+            env_render=ENV_RENDER,
+            logger=logger,
+            verbose=VERBOSE
+        )
+    else:
+        rl_algorithm = None
+
+    return rl_algorithm

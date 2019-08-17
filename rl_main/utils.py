@@ -9,7 +9,7 @@ idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
-from rl_main.conf.constants_mine import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
+from rl_main.main_constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
     ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM
 
 torch.manual_seed(0) # set random seed
@@ -40,7 +40,7 @@ def get_pool2d_size(w, h, kernel_size, stride):
     return math.floor((w - kernel_size) / stride) + 1, math.floor((h - kernel_size) / stride) + 1
 
 
-def print_configuration(env):
+def print_configuration():
     print("*** MODE ***")
     if MODE_SYNCHRONIZATION:
         print(" MODE1: [SYNCHRONOUS_COMMUNICATION] vs. ASYNCHRONOUS_COMMUNICATION")
@@ -60,9 +60,6 @@ def print_configuration(env):
     print("\n*** MY_PLATFORM & ENVIRONMENT ***")
     print(" Platform:" + MY_PLATFORM.value)
     print(" Environment Name:" + ENVIRONMENT_ID.value)
-    print(" State Shape: {0}".format(env.state_shape))
-    print(" Action Shape: {0}".format(env.action_shape))
-    print(" Continuous Action: {0}".format(env.continuous))
 
     print("\n*** RL ALGORITHM ***")
     print(" RL Algorithm:" + RL_ALGORITHM.value)

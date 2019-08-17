@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from random import sample, random, randint
+from random import random, randint
 import math
 
-from rl_main.conf.constants_mine import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, EPSILON_GREEDY_ACT
+from rl_main.main_constants import HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, EPSILON_GREEDY_ACT
 
 EPS_START = 0.9     # e-greedy threshold start value
 EPS_END = 0.05      # e-greedy threshold end value

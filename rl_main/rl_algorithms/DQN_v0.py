@@ -2,14 +2,14 @@ import math
 import random
 from collections import namedtuple, deque
 
-import torch
 import torch.optim as optim
 import torch.nn.functional as F
-import rl_main.rl_utils as rl_utils
+
+from rl_main.main_constants import *
+
+from rl_main import rl_utils
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'adjusted_reward'))
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 BATCH_SIZE = 128
 GAMMA = 0.999
@@ -33,7 +33,7 @@ class ReplayMemory(object):
         return len(self.memory)
 
 
-class DQNAgent_v0:
+class DQN_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
@@ -65,7 +65,6 @@ class DQNAgent_v0:
 
     def on_episode(self, episode):
         state = self.env.reset()
-        state = torch.from_numpy(state).unsqueeze(dim=0).float().to(device)
 
         done = False
         score = 0.0
@@ -75,10 +74,8 @@ class DQNAgent_v0:
                 self.env.render()
 
             action = self.select_action(state)
-            next_state, reward, adjusted_reward, done, _ = self.env.step(action.item())
 
-            next_state = torch.from_numpy(next_state).unsqueeze(dim=0).float().to(device)
-            adjusted_reward = torch.tensor([adjusted_reward], device=device).float().to(device)
+            next_state, reward, adjusted_reward, done, _ = self.env.step(action.item())
 
             # Store the transition in memory
             self.memory.push(state, action, next_state, adjusted_reward)

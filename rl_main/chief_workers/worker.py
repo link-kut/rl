@@ -1,20 +1,13 @@
 # -*- coding:utf-8 -*-
 import glob
-import os
 import pickle
 import time
 import zlib
 from collections import deque
 
 import numpy as np
-import torch
 
-from rl_main.conf.constants_mine import *
-
-from rl_main.rl_algorithms.DQN_v0 import DQNAgent_v0
-from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousActionAgent_v0
-from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteActionAgent_v0
-
+from rl_main.main_constants import *
 from rl_main.utils import exp_moving_average
 import rl_main.rl_utils as rl_utils
 
@@ -26,35 +19,7 @@ class Worker:
         self.worker_id = worker_id
         self.worker_mqtt_client = worker_mqtt_client
 
-        if RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
-            self.agent = PPODiscreteActionAgent_v0(
-                env=env,
-                worker_id=worker_id,
-                gamma=GAMMA,
-                env_render=ENV_RENDER,
-                logger=logger,
-                verbose=VERBOSE
-            )
-        elif RL_ALGORITHM == RLAlgorithmName.DQN_V0:
-            self.agent = DQNAgent_v0(
-                env=env,
-                worker_id=worker_id,
-                gamma=GAMMA,
-                env_render=ENV_RENDER,
-                logger=logger,
-                verbose=VERBOSE
-            )
-        elif RL_ALGORITHM == RLAlgorithmName.PPO_CONTINUOUS_TORCH_V0:
-            self.agent = PPOContinuousActionAgent_v0(
-                env=env,
-                worker_id=worker_id,
-                gamma=GAMMA,
-                env_render=ENV_RENDER,
-                logger=logger,
-                verbose=VERBOSE
-            )
-        else:
-            self.agent = None
+        self.rl_algorithm = rl_utils.get_rl_algorithm(env=env, worker_id=worker_id, logger=logger)
 
         self.score = 0
 
@@ -73,11 +38,11 @@ class Worker:
         self.logger = logger
 
     def update_process(self, avg_gradients):
-        self.agent.model.set_gradients_to_current_parameters(avg_gradients)
-        self.agent.optimize_step()
+        self.rl_algorithm.model.set_gradients_to_current_parameters(avg_gradients)
+        self.rl_algorithm.optimize_step()
 
     def transfer_process(self, parameters):
-        self.agent.transfer_process(parameters, SOFT_TRANSFER, SOFT_TRANSFER_TAU)
+        self.rl_algorithm.transfer_process(parameters, SOFT_TRANSFER, SOFT_TRANSFER_TAU)
 
     def send_msg(self, topic, msg):
         log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'worker_id': {2} 'loss': {3}, 'score': {4} ".format(
@@ -105,7 +70,7 @@ class Worker:
 
     def start_train(self):
         for episode in range(MAX_EPISODES):
-            avg_gradients, loss, score = self.agent.on_episode(episode)
+            avg_gradients, loss, score = self.rl_algorithm.on_episode(episode)
             self.local_losses.append(loss)
             self.local_scores.append(score)
 
@@ -128,7 +93,7 @@ class Worker:
                     os.remove(f)
 
                 torch.save(
-                    self.agent.model.state_dict(),
+                    self.rl_algorithm.model.state_dict(),
                     os.path.join(
                         PROJECT_HOME, "model_save_files",
                         "{0}_{1}_{2}_{3}.{4}.pt".format(
@@ -151,7 +116,7 @@ class Worker:
                 print(log_msg)
 
                 if MODE_PARAMETERS_TRANSFER:
-                    parameters = self.agent.get_parameters()
+                    parameters = self.rl_algorithm.get_parameters()
                     episode_msg["parameters"] = parameters
 
                 self.send_msg(MQTT_TOPIC_SUCCESS_DONE, episode_msg)
@@ -177,16 +142,20 @@ class Worker:
                 ema_loss = exp_moving_average(self.local_losses, EMA_WINDOW)[-1]
                 ema_score = exp_moving_average(self.local_scores, EMA_WINDOW)[-1]
 
-                log_msg = "Worker {0}-Ep.{1:>2d}: Loss={2:6.4f} (EMA: {3:6.4f}, Mean: {4:6.4f}), Score={5:5.1f} (EMA: {6:>4.2f}, Mean: {7:>4.2f})".format(
+                log_msg = "Worker {0}-Ep.{1:>2d}: Loss={2:6.4f} (EMA: {3:6.4f}, Mean: {4:6.4f})".format(
                     self.worker_id,
                     episode,
                     loss,
                     ema_loss,
-                    mean_loss_over_recent_100_episodes,
+                    mean_loss_over_recent_100_episodes
+                )
+
+                log_msg += "Score={0:5.1f} (EMA: {1:>4.2f}, Mean: {2:>4.2f})".format(
                     score,
                     ema_score,
                     mean_score_over_recent_100_episodes
                 )
+
                 self.logger.info(log_msg)
                 if VERBOSE: print(log_msg)
 

@@ -4,17 +4,14 @@ import sys
 import time
 import zlib
 
-import torch
-
 from rl_main.chief_workers.chief import Chief
-from rl_main.conf.constants_mine import *
+from rl_main.main_constants import *
 
 import paho.mqtt.client as mqtt
 from rl_main.logger import get_logger
 import numpy as np
 
 logger = get_logger("chief")
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 chief = Chief(logger=logger)
 

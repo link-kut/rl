@@ -1,5 +1,9 @@
-import sys
+import sys, os
 from multiprocessing import Process
+
+idx = os.getcwd().index("{0}rl".format(os.sep))
+PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
+sys.path.append(PROJECT_HOME)
 
 import rl_main.utils as utils
 from rl_main.chief_workers.chief import env

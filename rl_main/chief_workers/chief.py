@@ -2,23 +2,17 @@
 import pickle
 import zlib
 
-import torch
-
-from rl_main.models.cnn import CNN
+from rl_main.main_constants import *
 from rl_main.utils import exp_moving_average
 import rl_main.rl_utils as rl_utils
-
-from rl_main.models.actor_critic_mlp import ActorCriticMLP
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
 from collections import deque
-from rl_main.conf.constants_mine import *
+
 
 env = rl_utils.get_environment()
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Chief:
@@ -43,25 +37,7 @@ class Chief:
 
         self.hidden_size = [HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE]
 
-        # [DEEP_LEARNING_MODELS]
-        if DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
-            self.model = ActorCriticMLP(
-                s_size=env.n_states,
-                a_size=env.n_actions,
-                continuous=env.continuous,
-                device=device
-            ).to(device)
-        elif DEEP_LEARNING_MODEL == ModelName.CNN:
-            self.model = CNN(
-                input_height=env.cnn_input_height,
-                input_width=env.cnn_input_width,
-                input_channels=env.cnn_input_channels,
-                a_size=env.n_actions,
-                continuous=env.continuous,
-                device=device
-            ).to(device)
-        else:
-            self.model = None
+        self.model = rl_utils.get_rl_model(env)
 
         for worker_id in range(NUM_WORKERS):
             self.scores[worker_id] = []

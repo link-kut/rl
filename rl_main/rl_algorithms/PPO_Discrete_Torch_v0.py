@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
-from rl_main.models.actor_critic_mlp import ActorCriticMLP
-from rl_main.models.cnn import CNN
-import rl_main.rl_utils as rl_utils
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+from rl_main import rl_utils
+from rl_main.main_constants import device
 
 lmbda = 0.95
 eps_clip = 0.1
@@ -17,7 +14,7 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPODiscreteActionAgent_v0:
+class PPODiscreteAction_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
@@ -48,10 +45,19 @@ class PPODiscreteActionAgent_v0:
         for transition in self.trajectory:
             s, a, r, s_prime, prob_a, done = transition
 
-            state_lst.append(s)
+            if type(s) is np.ndarray:
+                state_lst.append(s)
+            else:
+                state_lst.append(s.numpy())
+
             action_lst.append([a])
             reward_lst.append([r])
-            next_state_lst.append(s_prime)
+
+            if type(s) is np.ndarray:
+                next_state_lst.append(s_prime)
+            else:
+                next_state_lst.append(s_prime.numpy())
+
             prob_action_lst.append([prob_a])
 
             done_mask = 0 if done else 1
@@ -65,6 +71,12 @@ class PPODiscreteActionAgent_v0:
         prob_action_lst = torch.tensor(prob_action_lst).to(device)
 
         self.trajectory.clear()
+        # print("state_lst.size()", state_lst.size())
+        # print("action_lst.size()", action_lst.size())
+        # print("reward_lst.size()", reward_lst.size())
+        # print("next_state_lst.size()", next_state_lst.size())
+        # print("done_mask_lst.size()", done_mask_lst.size())
+        # print("prob_action_lst.size()", prob_action_lst.size())
         return state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst
 
     def train_net(self):
@@ -113,6 +125,7 @@ class PPODiscreteActionAgent_v0:
         # in CartPole-v0:
         # state = [theta, angular speed]
         state = self.env.reset()
+
         done = False
         score = 0.0
 

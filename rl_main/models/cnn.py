@@ -154,7 +154,6 @@ class CNN(nn.Module):
 
 
 def main():
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     cnn = CNN(
         input_height=CNN_INPUT_HEIGHT,
         input_width=CNN_INPUT_WIDTH,

@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
-
-import torch
 import torch.nn.functional as F
 import torch.optim as optim
-import rl_main.rl_utils as rl_utils
 
-from rl_main.conf.constants_mine import DEEP_LEARNING_MODEL, ModelName
-from rl_main.models.actor_critic_mlp import ActorCriticMLP
-from rl_main.models.actor_critic_cnn import ActorCriticCNN
-from rl_main.models.cnn import CNN
+from rl_main.main_constants import *
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+from rl_main import rl_utils
 
 lmbda = 0.95
 eps_clip = 0.1
@@ -19,7 +13,7 @@ c1 = 0.5
 c2 = 0.01
 
 
-class PPOContinuousActionAgent_v0:
+class PPOContinuousAction_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 

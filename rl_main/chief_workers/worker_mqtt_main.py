@@ -5,7 +5,7 @@ import zlib
 
 import paho.mqtt.client as mqtt
 
-from rl_main.conf.constants_mine import *
+from rl_main.main_constants import *
 
 import sys
 
