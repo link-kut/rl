@@ -22,6 +22,7 @@
 ### 4. mosquitto
 - 모스키토 설치
   - brew install mosquitto
+  - Linux: https://blog.neonkid.xyz/127
 
 - 모스키토 서비스 실행
   - /usr/local/sbin/mosquitto -c /usr/local/etc/mosquitto/mosquitto.conf
