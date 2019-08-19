@@ -31,9 +31,10 @@ class Pendulum_v0(Environment):
         return state
 
     def step(self, action):
-        next_state, reward, done, info = self.env.step([action])
+        # action = max(min(action, 2.0), -2.0)
+        next_state, reward, done, info = self.env.step(action)
 
-        adjusted_reward = reward / 100
+        adjusted_reward = reward / 10
 
         return next_state, reward, adjusted_reward, done, info
 

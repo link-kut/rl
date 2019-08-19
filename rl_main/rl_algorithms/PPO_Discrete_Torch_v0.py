@@ -101,7 +101,9 @@ class PPODiscreteAction_v0:
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
             pi = self.model.pi(state_lst, softmax_dim=-1)
+            # print("pi", pi)
             new_prob_action_lst = pi.gather(dim=-1, index=action_lst)
+            # print("new_prob_action_lst", new_prob_action_lst)
 
             ratio = torch.exp(torch.log(new_prob_action_lst) - torch.log(prob_action_lst))  # a/b == exp(log(a)-log(b))
 
@@ -135,8 +137,32 @@ class PPODiscreteAction_v0:
             #
             # print("GRADIENT!!!")
 
+
+            # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
+            # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
+            # for name, param in actor_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 1 - actor", name)
+            #     print(param.grad)
+            # for name, param in critic_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 2 - critic", name)
+            #     print(param.grad)
+
             self.optimizer.zero_grad()
             loss.mean().backward()
+            self.optimize_step()
+
+            # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
+            # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
+            # for name, param in actor_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 3 - actor", name)
+            #     print(param.grad)
+            # for name, param in critic_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 4 - critic", name)
+            #     print(param.grad)
+
+            # self.optimizer.zero_grad()
+            # loss.mean().backward()
+            # self.optimize_step()
 
             # grads = self.model.get_gradients_for_current_parameters()
             # for layer in params:
@@ -145,7 +171,7 @@ class PPODiscreteAction_v0:
             #         break
             #     break
 
-            self.optimize_step()
+
 
             # params = self.model.get_parameters()
             # for layer in params:
