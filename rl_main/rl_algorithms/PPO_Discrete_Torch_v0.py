@@ -6,11 +6,10 @@ import torch
 import torch.nn.functional as F
 
 from rl_main import rl_utils
-from rl_main.main_constants import device
+from rl_main.main_constants import device, PPO_K_EPOCH
 
 lmbda = 0.95
 eps_clip = 0.3
-K_epoch = 10
 c1 = 0.5
 c2 = 0.01
 
@@ -86,7 +85,7 @@ class PPODiscreteAction_v0:
     def train_net(self):
         state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst = self.get_trajectory_data()
         loss_sum = 0.0
-        for i in range(K_epoch):
+        for i in range(PPO_K_EPOCH):
             v_target = reward_lst + self.gamma * self.model.v(next_state_lst) * done_mask_lst
 
             delta = v_target - self.model.v(state_lst)
@@ -158,7 +157,7 @@ class PPODiscreteAction_v0:
 
 
         gradients = self.model.get_gradients_for_current_parameters()
-        return gradients, loss_sum / K_epoch
+        return gradients, loss_sum / PPO_K_EPOCH
 
     def optimize_step(self):
         self.optimizer.step()
