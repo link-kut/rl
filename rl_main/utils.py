@@ -66,7 +66,7 @@ def print_configuration():
     print("\n*** RL ALGORITHM ***")
     print(" RL Algorithm:" + RL_ALGORITHM.value)
     if RL_ALGORITHM == RLAlgorithmName.PPO_CONTINUOUS_TORCH_V0 or RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
-        print(" PPO_K_EPOCH:" + PPO_K_EPOCH)
+        print(" PPO_K_EPOCH: {0}".format(PPO_K_EPOCH))
 
     print("\n*** MODEL ***")
     print(" Deep Learning Model:" + DEEP_LEARNING_MODEL.value)
