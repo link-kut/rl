@@ -51,8 +51,8 @@ class DQN_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.policy_model = rl_utils.get_rl_model(self.env)
-        self.target_model = rl_utils.get_rl_model(self.env)
+        self.policy_model = rl_utils.get_rl_model(self.env).to(device)
+        self.target_model = rl_utils.get_rl_model(self.env).to(device)
         self.target_model.load_state_dict(self.policy_model.state_dict())
         self.target_model.eval()
 

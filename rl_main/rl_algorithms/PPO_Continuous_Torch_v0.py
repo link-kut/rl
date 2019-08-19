@@ -31,7 +31,7 @@ class PPOContinuousAction_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.model = rl_utils.get_rl_model(self.env)
+        self.model = rl_utils.get_rl_model(self.env).to(device)
 
         self.optimizer = rl_utils.get_optimizer(
             parameters=self.model.parameters(),
