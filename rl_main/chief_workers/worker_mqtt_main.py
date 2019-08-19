@@ -2,8 +2,13 @@
 import pickle
 import time
 import zlib
-
 import paho.mqtt.client as mqtt
+
+import sys, os
+
+idx = os.getcwd().index("{0}rl".format(os.sep))
+PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
+sys.path.append(PROJECT_HOME)
 
 from rl_main.main_constants import *
 
