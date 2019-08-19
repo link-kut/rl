@@ -22,6 +22,7 @@
 ### 4. mosquitto
 - 모스키토 설치
   - brew install mosquitto
+  - Linux: https://blog.neonkid.xyz/127
 
 - 모스키토 서비스 실행
   - /usr/local/sbin/mosquitto -c /usr/local/etc/mosquitto/mosquitto.conf
@@ -61,3 +62,6 @@
 ### 참고 문헌
 - https://medium.com/aureliantactics/ppo-hyperparameters-and-ranges-6fc2d29bccbev
 - https://arxiv.org/pdf/1709.06009.pdf
+- https://medium.com/@jonathan_hui/rl-proximal-policy-optimization-ppo-explained-77f014ec3f12
+- https://en.wikipedia.org/wiki/MM_algorithm
+- https://drive.google.com/file/d/0BxXI_RttTZAhMVhsNk5VSXU0U3c/view
