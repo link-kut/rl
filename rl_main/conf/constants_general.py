@@ -59,6 +59,7 @@ MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
 # [TRAINING]
 EPSILON_GREEDY_ACT = False
 OPTIMIZER = OptimizerName.ADAM
+PPO_K_EPOCH = 10
 
 ########################################################################################
 # COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
