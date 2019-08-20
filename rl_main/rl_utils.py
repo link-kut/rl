@@ -13,7 +13,6 @@ from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
 from rl_main.models.actor_critic_cnn import ActorCriticCNN
 from rl_main.models.actor_critic_mlp import ActorCriticMLP
-from rl_main.models.cnn import CNN
 from rl_main.rl_algorithms.DQN_v0 import DQN_v0
 from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousAction_v0
 from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteAction_v0
@@ -99,15 +98,6 @@ def get_rl_model(env):
         ).to(device)
     elif DEEP_LEARNING_MODEL == ModelName.ActorCriticCNN:
         model = ActorCriticCNN(
-            input_height=env.cnn_input_height,
-            input_width=env.cnn_input_width,
-            input_channels=env.cnn_input_channels,
-            a_size=env.n_actions,
-            continuous=env.continuous,
-            device=device
-        ).to(device)
-    elif DEEP_LEARNING_MODEL == ModelName.CNN:
-        model = CNN(
             input_height=env.cnn_input_height,
             input_width=env.cnn_input_width,
             input_channels=env.cnn_input_channels,

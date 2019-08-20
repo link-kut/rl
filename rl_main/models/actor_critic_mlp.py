@@ -15,52 +15,30 @@ EPS_DECAY = 200     # e-greedy threshold decay
 class ActorCriticMLP(nn.Module):
     def __init__(self, s_size, a_size, continuous, device):
         super(ActorCriticMLP, self).__init__()
+        self.s_size = s_size
+        self.a_size = a_size
         self.continuous = continuous
+        self.hidden_1_size = HIDDEN_1_SIZE
+        self.hidden_2_size = HIDDEN_2_SIZE
+        self.hidden_3_size = HIDDEN_3_SIZE
 
         if continuous:
-            self.actor_fc_layer = nn.Sequential(
-                nn.Linear(s_size, HIDDEN_1_SIZE),
-                nn.Tanh(),
-                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
-                nn.Tanh(),
-                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
-                nn.Tanh(),
-                nn.Linear(HIDDEN_3_SIZE, a_size),
-                nn.Tanh(),
-            )
-
-            self.critic_fc_layer = nn.Sequential(
-                nn.Linear(s_size, HIDDEN_1_SIZE),
-                nn.Tanh(),
-                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
-                nn.Tanh(),
-                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
-                nn.Tanh(),
-                nn.Linear(HIDDEN_3_SIZE, 1),
-                nn.Tanh(),
-            )
+            self.activation = nn.Tanh()
         else:
-            self.actor_fc_layer = nn.Sequential(
-                nn.Linear(s_size, HIDDEN_1_SIZE),
-                nn.LeakyReLU(),
-                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
-                nn.LeakyReLU(),
-                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
-                nn.LeakyReLU(),
-                nn.Linear(HIDDEN_3_SIZE, a_size),
-                nn.LeakyReLU(),
-            )
+            self.activation = nn.LeakyReLU()
 
-            self.critic_fc_layer = nn.Sequential(
-                nn.Linear(s_size, HIDDEN_1_SIZE),
-                nn.LeakyReLU(),
-                nn.Linear(HIDDEN_1_SIZE, HIDDEN_2_SIZE),
-                nn.LeakyReLU(),
-                nn.Linear(HIDDEN_2_SIZE, HIDDEN_3_SIZE),
-                nn.LeakyReLU(),
-                nn.Linear(HIDDEN_3_SIZE, 1),
-                nn.LeakyReLU(),
-            )
+        self.actor_fc_layer = nn.Sequential(
+            nn.Linear(s_size, self.hidden_1_size), self.activation,
+            nn.Linear(self.hidden_1_size, self.hidden_2_size), self.activation,
+            nn.Linear(self.hidden_2_size, self.hidden_3_size), self.activation,
+        )
+
+        self.critic_fc_layer = nn.Sequential(
+            nn.Linear(s_size, self.hidden_1_size), self.activation,
+            nn.Linear(self.hidden_1_size, self.hidden_2_size), self.activation,
+            nn.Linear(self.hidden_2_size, self.hidden_3_size), self.activation,
+        )
+
 
         self.action_std = 0.5
         self.action_var = torch.full((a_size,), self.action_std * self.action_std).to(device)
@@ -72,6 +50,7 @@ class ActorCriticMLP(nn.Module):
         self.reset_average_gradients()
 
         self.steps_done = 0
+        self.train()
     
     def reset_average_gradients(self):
         named_parameters = self.actor_fc_layer.named_parameters()
@@ -114,7 +93,7 @@ class ActorCriticMLP(nn.Module):
                 m = Categorical(prob)
                 action = m.sample().item()
             else:
-                action = randint(0, 7)
+                action = randint(0, self.a_size - 1)
                 print(action)
         else:
             m = Categorical(prob)

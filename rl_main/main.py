@@ -12,8 +12,14 @@ import rl_main.utils as utils
 
 
 if __name__ == "__main__":
+    torch.manual_seed(SEED)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SEED)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+
     utils.make_output_folders()
-    utils.print_configuration()
     utils.ask_file_removal()
 
     stderr = sys.stderr

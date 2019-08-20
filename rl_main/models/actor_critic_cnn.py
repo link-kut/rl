@@ -1,40 +1,43 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from torch.nn import init
 from torchsummary import summary
 from rl_main.main_constants import *
 
-from rl_main.utils import get_conv2d_size, get_pool2d_size
 import numpy as np
 
 
 class ActorCriticCNN(nn.Module):
     def __init__(self, input_width, input_height, input_channels, a_size, continuous, device):
         super(ActorCriticCNN, self).__init__()
+        self.input_width = input_width
+        self.input_height = input_height
+        self.input_channels = input_channels
+        self.a_size = a_size
 
         self.conv_layer = nn.Sequential(
             nn.Conv2d(in_channels=input_channels, out_channels=8, kernel_size=2),
             nn.BatchNorm2d(8),
             nn.LeakyReLU(),
-            nn.Conv2d(in_channels=8, out_channels=16, kernel_size=2),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(in_channels=8, out_channels=4, kernel_size=2),
+            nn.BatchNorm2d(4),
             nn.LeakyReLU(),
             nn.MaxPool2d(kernel_size=2, stride=1),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=2),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(in_channels=16, out_channels=3, kernel_size=2),
+            nn.BatchNorm2d(3),
             nn.LeakyReLU(),
             nn.MaxPool2d(kernel_size=2, stride=1)
         )
 
-        w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding_size=0, stride=1)
-        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
+        from rl_main.utils import get_conv2d_size, get_pool2d_size
+        w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding=0, stride=1)
+        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding=0, stride=1)
         w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
-        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
+        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding=0, stride=1)
         w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
 
         self.fc_layer = nn.Sequential(
-            nn.Linear(w * h * 32, 128),
+            nn.Linear(w * h * 3, 128),
             nn.LeakyReLU(),
             nn.Dropout2d(0.25),
             nn.Linear(128, 64),
@@ -63,6 +66,7 @@ class ActorCriticCNN(nn.Module):
 
         self.avg_gradients = {}
         self.reset_average_gradients()
+        self.train()
 
     def reset_average_gradients(self):
         named_parameters = self.conv_layer.named_parameters()
