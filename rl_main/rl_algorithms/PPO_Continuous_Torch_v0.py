@@ -57,8 +57,8 @@ class PPOContinuousAction_v0:
             done_mask = 0 if done else 1
             done_mask_lst.append([done_mask])
 
-        # state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
-        # action_lst = torch.tensor(action_lst).to(device)
+        state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
+        action_lst = torch.tensor(action_lst).to(device)
         reward_lst = torch.tensor(reward_lst).to(device)
         next_state_lst = torch.tensor(next_state_lst, dtype=torch.float).to(device)
         done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float).to(device)
@@ -84,15 +84,18 @@ class PPOContinuousAction_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
 
-            logprobs, state_values, dist_entropy = self.model.evaluate(state_lst, prob_action_lst)
+            new_prob_action_lst, dist_entropy = self.model.evaluate(state_lst)
 
             # Finding the ratio (pi_theta / pi_theta__old):
-            ratio = torch.exp(logprobs - prob_action_lst.detach())
+            ratio = torch.exp(new_prob_action_lst - prob_action_lst)
 
             # Finding Surrogate Loss:
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - eps_clip, 1 + eps_clip) * advantage
-            loss = -torch.min(surr1, surr2) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * dist_entropy
+            print("al", -torch.sum(torch.min(surr1, surr2)))
+            print("cl", c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()))
+            print('ent', c2 * dist_entropy)
+            loss = -torch.sum(torch.min(surr1, surr2)) + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * dist_entropy
 
             # pi, new_prob_action_lst = self.model.continuous_act(state_lst)
             # print(new_prob_action_lst)
@@ -105,29 +108,27 @@ class PPOContinuousAction_v0:
             #           (1.0 - new_prob_action_lst.item()) * (-prob_action_lst)
             # loss = -torch.min(surr1, surr2).mean() + c1 * F.smooth_l1_loss(self.model.v(state_lst), v_target.detach()) - c2 * entropy
 
-            actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
-            critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
-            for name, param in actor_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 1 - actor", name)
-                print(param.grad)
-            for name, param in critic_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 2 - critic", name)
-                print(param.grad)
+            # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
+            # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
+            # for name, param in actor_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 1 - actor", name)
+            #     print(param.grad)
+            # for name, param in critic_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 2 - critic", name)
+            #     print(param.grad)
 
             self.optimizer.zero_grad()
             loss.mean().backward()
             self.optimize_step()
 
-            actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
-            critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
-            for name, param in actor_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 3 - actor", name)
-                print(param.grad)
-            for name, param in critic_fc_named_parameters:
-                print("!!!!!!!!!!!!!! - 4 - critic", name)
-                print(param.grad)
-
-
+            # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
+            # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
+            # for name, param in actor_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 3 - actor", name)
+            #     print(param.grad)
+            # for name, param in critic_fc_named_parameters:
+            #     print("!!!!!!!!!!!!!! - 4 - critic", name)
+            #     print(param.grad)
 
             loss_sum += loss.mean().item()
 

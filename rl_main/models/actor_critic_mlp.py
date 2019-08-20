@@ -39,9 +39,7 @@ class ActorCriticMLP(nn.Module):
             nn.Linear(self.hidden_2_size, self.hidden_3_size), self.activation,
         )
 
-
-        self.action_std = 0.5
-        self.action_var = torch.full((a_size,), self.action_std * self.action_std).to(device)
+        self.action_log_std = nn.Parameter(torch.zeros(a_size))
 
         self.avg_gradients = {}
         self.continuous = continuous
@@ -50,8 +48,10 @@ class ActorCriticMLP(nn.Module):
         self.reset_average_gradients()
 
         self.steps_done = 0
+
         self.train()
     
+
     def reset_average_gradients(self):
         named_parameters = self.actor_fc_layer.named_parameters()
         self.avg_gradients["actor_fc_layer"] = {}
@@ -67,19 +67,6 @@ class ActorCriticMLP(nn.Module):
         action_mean = self.actor_fc_layer(state)
         out = F.softmax(action_mean, dim=softmax_dim)
         return out
-
-    # def __get_dist(self, state):
-    #     state = state.clone().detach().requires_grad_(True)
-    #     # state = torch.from_numpy(state).float().to(self.device)
-    #     out, _ = self.forward(state)
-    #     out = torch.tanh(self.action_mean(out))
-    #     out_log_std = self.action_log_std.expand_as(out)
-    #
-    #     return torch.distributions.Normal(out, out_log_std.exp())
-
-    def v(self, state):
-        v = self.critic_fc_layer(state)
-        return v
 
     def act(self, state):
         state = torch.from_numpy(state).float().to(self.device)
@@ -102,41 +89,43 @@ class ActorCriticMLP(nn.Module):
 
         return action, prob.squeeze(0)[action].item()
 
-    def continuous_act(self, state):
+    def v(self, state):
+        v = self.critic_fc_layer(state)
+        return v
+
+    def __get_dist(self, state):
         state = torch.tensor(state, dtype=torch.float)
         action_mean = self.actor_fc_layer(state)
-        cov_mat = torch.diag(self.action_var)
+        action_log_std = self.action_log_std.expand_as(action_mean)
 
-        dist = torch.distributions.MultivariateNormal(action_mean, cov_mat)
+        return torch.distributions.Normal(action_mean, action_log_std.exp())
+
+    def continuous_act(self, state):
+        dist = self.__get_dist(state)
+
+        if EPSILON_GREEDY_ACT:
+            eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * self.steps_done / EPS_DECAY)
+            self.steps_done += 1
+
+            if random() > eps_threshold:
+                action = dist.sample()
+            else:
+                action = torch.randn(1)
+        else:
+            action = dist.sample()
+
+        action_log_probs = dist.log_prob(action).sum(-1, keepdim=True)
+
+        return action, action_log_probs
+
+    def evaluate(self, state):
+        dist = self.__get_dist(state)
         action = dist.sample()
-        action_logprob = dist.log_prob(action)
 
-        return action, action_logprob
+        action_log_probs = dist.log_prob(action).sum(-1, keepdim=True)
+        dist_entropy = dist.entropy().sum(-1).mean()
 
-    def evaluate(self, state, action):
-        state = torch.tensor(state, dtype=torch.float)
-        action_mean = torch.squeeze(self.actor_fc_layer(state))
-
-        action_var = self.action_var.expand_as(action_mean)
-        cov_mat = torch.diag_embed(action_var)
-
-        dist = torch.distributions.MultivariateNormal(action_mean, cov_mat)
-
-        action_logprobs = dist.log_prob(torch.squeeze(action))
-        dist_entropy = dist.entropy()
-        state_value = self.critic_fc_layer(state)
-
-        return action_logprobs, torch.squeeze(state_value), dist_entropy
-
-    # def continuous_act(self, state):
-    #     state = torch.tensor(state, dtype=torch.float)
-    #     # state = torch.from_numpy(state).float().to(self.device)
-    #     dist = self.__get_dist(state)
-    #     action = sample(dist.sample().tolist(), k=1)[0]
-    #     _action = torch.tensor(action, dtype=torch.float)
-    #     action_log_probs = sample(dist.log_prob(_action).sum(-1, keepdim=True).tolist(), k=1)[0]
-    #
-    #     return action, action_log_probs
+        return action_log_probs, dist_entropy
 
     def get_gradients_for_current_parameters(self):
         gradients = {}
