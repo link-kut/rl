@@ -4,11 +4,11 @@ import numpy as np
 # MQTT Topic for RIP
 from rl_main.environments.environment import Environment
 
-MQTT_PUB_TO_SERVO_POWER = 'motor_power'
-MQTT_PUB_RESET = 'reset'
-MQTT_SUB_FROM_SERVO = 'servo_info'
-MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
-MQTT_SUB_RESET_COMPLETE = 'reset_complete'
+MQTT_PUB_TO_SERVO_POWER = 'motor_power_2'
+MQTT_PUB_RESET = 'reset_2'
+MQTT_SUB_FROM_SERVO = 'servo_info_2'
+MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info_2'
+MQTT_SUB_RESET_COMPLETE = 'reset_complete_2'
 
 STATE_SIZE = 4
 
@@ -69,8 +69,8 @@ class EnvironmentRIP(Environment):
 
     def set_state(self, motor_radian, motor_velocity, pendulum_radian, pendulum_velocity):
         self.is_state_changed = True
-        # self.state = [pendulum_radian, pendulum_velocity, motor_radian, motor_velocity]
-        self.state = [pendulum_radian, pendulum_velocity]
+        self.state = [pendulum_radian, pendulum_velocity, motor_radian, motor_velocity]
+        # self.state = [pendulum_radian, pendulum_velocity]
 
         self.current_pendulum_radian = pendulum_radian
         self.current_pendulum_velocity = pendulum_velocity
@@ -92,7 +92,7 @@ class EnvironmentRIP(Environment):
         self.__pub(MQTT_PUB_TO_SERVO_POWER, "0|wait|{0}".format(PUB_ID))
 
     def get_n_states(self):
-        n_states = 2
+        n_states = 4
         return n_states
 
     def get_n_actions(self):
