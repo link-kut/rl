@@ -164,7 +164,7 @@ class Worker:
 
                 self.send_msg(MQTT_TOPIC_EPISODE_DETAIL, episode_msg)
 
-            while True:
-                if episode == self.episode_chief:
-                    break
-                time.sleep(0.01)
+            # while True:
+            #     if episode == self.episode_chief:
+            #         break
+            #     time.sleep(0.01)

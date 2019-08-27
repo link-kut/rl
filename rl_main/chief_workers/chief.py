@@ -12,12 +12,11 @@ from matplotlib import gridspec
 from collections import deque
 
 
-env = rl_utils.get_environment()
-
-
 class Chief:
-    def __init__(self, logger):
+    def __init__(self, logger, env, rl_model):
         self.logger = logger
+        self.env = env
+
         self.messages_received_from_workers = {}
 
         self.NUM_DONE_WORKERS = 0
@@ -37,7 +36,7 @@ class Chief:
 
         self.hidden_size = [HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE]
 
-        self.model = rl_utils.get_rl_model(env)
+        self.model = rl_model
 
         for worker_id in range(NUM_WORKERS):
             self.scores[worker_id] = []
@@ -46,7 +45,7 @@ class Chief:
             self.success_done_episode[worker_id] = []
             self.success_done_score[worker_id] = []
 
-            self.score_over_recent_100_episodes[worker_id] = deque(maxlen=env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+            self.score_over_recent_100_episodes[worker_id] = deque(maxlen=self.env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
     def update_loss_score(self, msg_payload):
         worker_id = msg_payload['worker_id']
