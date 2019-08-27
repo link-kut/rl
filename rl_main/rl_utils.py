@@ -19,9 +19,9 @@ from rl_main.rl_algorithms.PPO_Continuous_Torch_v0 import PPOContinuousAction_v0
 from rl_main.rl_algorithms.PPO_Discrete_Torch_v0 import PPODiscreteAction_v0
 
 
-def get_environment(owner="chief"):
+def get_environment(owner="cheif"):
     if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
-        client = mqtt.Client(client_id="env_sub_2", transport="TCP")
+        client = mqtt.Client(client_id="env_sub", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
 
         def __on_connect(client, userdata, flags, rc):
@@ -63,16 +63,16 @@ def get_environment(owner="chief"):
                 pub_id = servo_info[4]
                 env.set_state(motor_radian, motor_velocity, pendulum_radian, pendulum_velocity)
 
+        if owner == "worker":
+            client.on_connect = __on_connect
+            client.on_message =  __on_message
+            client.on_log = __on_log
 
-        client.on_connect = __on_connect
-        client.on_message =  __on_message
-        client.on_log = __on_log
+            # client.username_pw_set(username="link", password="0123")
+            client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
 
-        # client.username_pw_set(username="link", password="0123")
-        client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
-
-        print("***** Sub thread started!!! *****", flush=False)
-        client.loop_start()
+            print("***** Sub thread started!!! *****", flush=False)
+            client.loop_start()
 
     elif ENVIRONMENT_ID == EnvironmentName.CARTPOLE_V0:
         env = CartPole_v0()
