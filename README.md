@@ -5,7 +5,9 @@
 - pip install --upgrade pip
 - pip install -r requirements.txt
 - pytorch 설치
-  - https://pytorch.org/ 홈페이지 참고
+  - https://pytorch.org/ 참고
+- baselines 설치
+  - https://github.com/openai/baselines 참고
 
 ### 2. OpenAI Gym 설치
 

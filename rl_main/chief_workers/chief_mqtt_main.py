@@ -5,6 +5,8 @@ import time
 import zlib
 import sys, os
 
+from rl_main import utils, rl_utils
+
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
@@ -18,7 +20,12 @@ import numpy as np
 
 logger = get_logger("chief")
 
-chief = Chief(logger=logger)
+env = rl_utils.get_environment()
+rl_model = rl_utils.get_rl_model(env)
+
+utils.print_configuration(env, rl_model)
+
+chief = Chief(logger=logger, env=env, rl_model=rl_model)
 
 
 def on_chief_connect(client, userdata, flags, rc):

@@ -5,10 +5,11 @@ from rl_main.conf.names import OptimizerName
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # [GENERAL]
+SEED = 1
 MY_PLATFORM = None
 PYTHON_PATH = None
 EMA_WINDOW = 10
-VERBOSE = False
+VERBOSE = True
 MODEL_SAVE = True
 
 # [MQTT]
@@ -45,6 +46,10 @@ SOFT_TARGET_UPDATE_TAU = 0.3
 HIDDEN_1_SIZE = 128
 HIDDEN_2_SIZE = 128
 HIDDEN_3_SIZE = 128
+# HIDDEN_SIZE_LIST = [128, 128, 128, 256]
+
+# [CNN_DEEP_LEARNING_MODEL]
+CNN_HIDDEN_SIZE = 128
 
 # [OPTIMIZATION]
 MAX_EPISODES = 1000
@@ -54,12 +59,16 @@ GAMMA = 0.98 # discount factor
 MODE_SYNCHRONIZATION = True
 MODE_GRADIENTS_UPDATE = True         # Distributed
 MODE_PARAMETERS_TRANSFER = True     # Transfer
-MODE_DEEP_LEARNING_MODEL = "MLP"    # "CNN" or "MLP"
+MODE_DEEP_LEARNING_MODEL = "MLP"    # "MLP", "CNN"
 
 # [TRAINING]
 EPSILON_GREEDY_ACT = False
 OPTIMIZER = OptimizerName.ADAM
 PPO_K_EPOCH = 10
+PPO_GAE_LAMBDA = 0.95
+PPO_EPSILON_CLIP = 0.2
+PPO_VALUE_LOSS_WEIGHT = 0.5
+PPO_ENTROPY_WEIGHT = 0.01
 
 ########################################################################################
 # COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
@@ -77,7 +86,7 @@ PPO_K_EPOCH = 10
 # ENVIRONMENT_ID = EnvironmentName.BREAKOUT_DETERMINISTIC_V4
 #
 # # [2. DEEP_LEARNING_MODELS]
-# DEEP_LEARNING_MODEL = ModelName.CNN
+# DEEP_LEARNING_MODEL = ModelName.Actor_Critic_CNN
 #
 # # [3. ALGORITHMS]
 # RL_ALGORITHM = RLAlgorithmName.DQN_V0

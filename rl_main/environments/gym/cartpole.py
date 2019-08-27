@@ -10,6 +10,9 @@ class CartPole_v0(Environment):
         super(CartPole_v0, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
+
+        self.action_meaning = self.get_action_meanings()
+
         self.continuous = False
         self.WIN_AND_LEARN_FINISH_SCORE = 195
         self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 100
@@ -31,11 +34,16 @@ class CartPole_v0(Environment):
         #action_shape = self.env.action_space.n
         return ()
 
+    def get_action_meanings(self):
+        action_meanings = ["LEFT", "RIGHT"]
+        return action_meanings
+
     def reset(self):
         state = self.env.reset()
         return state[2:]
 
     def step(self, action):
+        action = int(action.item())
         next_state, reward, done, info = self.env.step(action)
 
         next_state = next_state[2:]

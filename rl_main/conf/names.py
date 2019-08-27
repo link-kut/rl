@@ -22,15 +22,12 @@ class EnvironmentName(enum.Enum):
 
 
 class ModelName(enum.Enum):
-    ActorCriticMLP = "Actor_Critic_MLP"
-    CNN = "CNN"
-    ActorCriticCNN = "Actor_Critic_CNN"
+    ActorCriticModel = "Actor_Critic_Model"\
 
 
 class RLAlgorithmName(enum.Enum):
     DQN_V0 = "DQN_v0"
-    PPO_DISCRETE_TORCH_V0 = "PPO_Discrete_Torch_v0"
-    PPO_CONTINUOUS_TORCH_V0 = "PPO_Continuous_Torch_v0"
+    PPO_V0 = "PPO_v0"
 
 class OptimizerName(enum.Enum):
     NESTEROV = "nesterov"
