@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from rl_main import rl_utils
 from rl_main.conf.names import RLAlgorithmName, ModelName
 
 idx = os.getcwd().index("{0}rl".format(os.sep))
@@ -15,7 +14,7 @@ sys.path.append(PROJECT_HOME)
 
 from rl_main.main_constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
     ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM, OPTIMIZER, PPO_K_EPOCH, \
-    HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE
+    HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, MODE_DEEP_LEARNING_MODEL
 
 torch.manual_seed(0) # set random seed
 
@@ -69,12 +68,12 @@ def print_configuration(env, rl_model):
 
     print("\n*** RL ALGORITHM ***")
     print(" RL Algorithm:" + RL_ALGORITHM.value)
-    if RL_ALGORITHM == RLAlgorithmName.PPO_CONTINUOUS_TORCH_V0 or RL_ALGORITHM == RLAlgorithmName.PPO_DISCRETE_TORCH_V0:
+    if RL_ALGORITHM == RLAlgorithmName.PPO_V0:
         print(" PPO_K_EPOCH: {0}".format(PPO_K_EPOCH))
 
     print("\n*** MODEL ***")
     print(" Deep Learning Model:" + DEEP_LEARNING_MODEL.value)
-    if DEEP_LEARNING_MODEL == ModelName.ActorCriticCNN:
+    if MODE_DEEP_LEARNING_MODEL == "CNN":
         print(" input_width: {0}, input_height: {1}, input_channels: {2}, a_size: {3}, continuous: {4}".format(
             rl_model.input_width,
             rl_model.input_height,
@@ -82,7 +81,7 @@ def print_configuration(env, rl_model):
             rl_model.a_size,
             rl_model.continuous
         ))
-    elif DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
+    elif DEEP_LEARNING_MODEL == "MLP":
         print(" s_size: {0}, hidden_1: {1}, hidden_2: {2}, hidden_3: {3}, a_size: {4}, continuous: {5}".format(
             rl_model.s_size,
             rl_model.hidden_1_size,
@@ -153,9 +152,15 @@ def run_worker(worker_id):
         sys.stderr.flush()
 
 
-class AddBias(nn.Module):
+def util_init(module, weight_init, bias_init, gain=1):
+    weight_init(module.weight.data, gain=gain)
+    bias_init(module.bias.data)
+    return module
+
+
+class AddBiases(nn.Module):
     def __init__(self, bias):
-        super(AddBias, self).__init__()
+        super(AddBiases, self).__init__()
         self._bias = nn.Parameter(bias.unsqueeze(1))
 
     def forward(self, x):
@@ -165,9 +170,3 @@ class AddBias(nn.Module):
             bias = self._bias.t().view(1, -1, 1, 1)
 
         return x + bias
-
-
-def init(module, weight_init, bias_init, gain=1):
-    weight_init(module.weight.data, gain=gain)
-    bias_init(module.bias.data)
-    return module

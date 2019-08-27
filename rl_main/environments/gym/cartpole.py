@@ -43,6 +43,7 @@ class CartPole_v0(Environment):
         return state[2:]
 
     def step(self, action):
+        action = int(action.item())
         next_state, reward, done, info = self.env.step(action)
 
         next_state = next_state[2:]

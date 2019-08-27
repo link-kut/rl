@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
+from rl_main.utils import AddBiases, util_init
 
-from rl_main.utils import AddBias, init
 
 """
 Modify standard PyTorch distributions so they are compatible with this code.
@@ -34,11 +34,11 @@ FixedNormal.entropy = lambda self: normal_entropy(self).sum(-1)
 FixedNormal.mode = lambda self: self.mean
 
 
-class Categorical(nn.Module):
+class DistCategorical(nn.Module):
     def __init__(self, num_inputs, num_outputs):
-        super(Categorical, self).__init__()
+        super(DistCategorical, self).__init__()
 
-        init_ = lambda m: init(
+        init_ = lambda m: util_init(
             m,
             nn.init.orthogonal_,
             lambda x: nn.init.constant_(x, 0),
@@ -52,17 +52,17 @@ class Categorical(nn.Module):
         return FixedCategorical(logits=x)
 
 
-class DiagGaussian(nn.Module):
+class DistDiagGaussian(nn.Module):
     def __init__(self, num_inputs, num_outputs):
-        super(DiagGaussian, self).__init__()
+        super(DistDiagGaussian, self).__init__()
 
-        init_ = lambda m: init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
+        init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
 
-        self.fc_mean = init_(nn.Linear(num_inputs, num_outputs))
-        self.logstd = AddBias(torch.zeros(num_outputs))
+        self.linear = init_(nn.Linear(num_inputs, num_outputs))
+        self.logstd = AddBiases(torch.zeros(num_outputs))
 
     def forward(self, x):
-        action_mean = self.fc_mean(x)
+        action_mean = self.linear(x)
 
         #  An ugly hack for my KFAC implementation.
         zeros = torch.zeros(action_mean.size())
@@ -71,28 +71,3 @@ class DiagGaussian(nn.Module):
 
         action_logstd = self.logstd(zeros)
         return FixedNormal(action_mean, action_logstd.exp())
-
-
-if __name__ == "__main__":
-    torch.manual_seed(1)
-
-    dist = Categorical(num_inputs=4, num_outputs=2)
-    m = dist(torch.tensor([0.1, 0.2, 0.3, 0.4]))
-    action = m.sample()
-    action_log_probs = m.log_probs(action)
-    print("Categorical --> m: {0}".format(m, action.item(), action_log_probs))
-    print("Action: {0}".format(action))
-    print("Action Log Probs: {0}".format(action_log_probs))
-
-    print()
-
-    dist = DiagGaussian(num_inputs=4, num_outputs=1)
-    m = dist(torch.tensor([0.1, 0.2, 0.3, 0.4]))
-    action = m.sample()
-    action_log_probs = m.log_probs(action)
-    print("DiagGaussian --> m: {0}".format(m))
-    print("Action: {0}".format(action))
-    print("Action Log Probs: {0}".format(action_log_probs))
-
-    print()
-
