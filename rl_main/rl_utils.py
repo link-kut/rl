@@ -92,8 +92,8 @@ def get_environment(owner="chief"):
 def get_rl_model(env):
     if DEEP_LEARNING_MODEL == ModelName.ActorCriticModel:
         model = Policy(
-            s_size=env.n_states,
-            a_size=env.n_actions,
+            s_size=env.state_shape,
+            a_size=env.action_shape,
             continuous=env.continuous,
             device=device
         ).to(device)

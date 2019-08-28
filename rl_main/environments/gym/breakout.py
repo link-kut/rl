@@ -4,7 +4,7 @@ import numpy as np
 
 from rl_main.conf.names import EnvironmentName, ModelName
 from rl_main.environments.environment import Environment
-from rl_main.main_constants import DEEP_LEARNING_MODEL
+from rl_main.main_constants import MODE_DEEP_LEARNING_MODEL
 
 
 class BreakoutDeterministic_v4(Environment):
@@ -40,9 +40,9 @@ class BreakoutDeterministic_v4(Environment):
 
     def preprocess(self, img):
         gray_frame = self.to_grayscale(self.downsample(img))
-        if DEEP_LEARNING_MODEL == ModelName.ActorCriticCNN:
+        if MODE_DEEP_LEARNING_MODEL == "CNN":
             state = np.expand_dims(gray_frame, axis=0)
-        elif DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
+        elif MODE_DEEP_LEARNING_MODEL == "MLP":
             state = gray_frame.flatten()
         else:
             state = None
@@ -64,8 +64,8 @@ class BreakoutDeterministic_v4(Environment):
         return state_shape
 
     def get_action_shape(self):
-        action_shape = self.env.action_space.n - 1
-        return action_shape,
+        action_shape = [self.env.action_space.n - 1, ]
+        return action_shape
 
     def reset(self):
         self.env.reset()

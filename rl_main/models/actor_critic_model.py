@@ -29,26 +29,31 @@ class Policy(nn.Module):
 
         if MODE_DEEP_LEARNING_MODEL == "CNN":
             self.base = CNNBase(
-                input_channels=s_size[0],
+                input_channels=s_size[2],
                 input_width=s_size[1],
-                input_height=s_size[2],
+                input_height=s_size[0],
                 continuous=continuous
             )
+            self.input_height = s_size[0]
+            self.input_width = s_size[1]
+            self.input_channels = s_size[2]
         elif MODE_DEEP_LEARNING_MODEL == "MLP":
             self.base = MLPBase(
-                num_inputs=s_size,
+                num_inputs=s_size[0],
                 continuous=continuous
             )
         else:
             raise NotImplementedError
 
+        self.s_size = s_size
+        self.a_size = a_size[0]
         self.continuous = continuous
 
         if self.continuous:
-            num_outputs = a_size
+            num_outputs = self.a_size
             self.dist = DistDiagGaussian(self.base.output_size, num_outputs)
         else:
-            num_outputs = a_size
+            num_outputs = self.a_size
             self.dist = DistCategorical(self.base.output_size, num_outputs)
 
     def forward(self, inputs):
@@ -265,11 +270,10 @@ class CNNBase(nn.Module):
 
         self.train()
 
-    def forward(self, inputs, masks):
-        inputs = inputs / 255.0
+    def forward(self, inputs):
         hidden_actor = self.actor(inputs)
 
-        inputs_flatten = torch.flatten(inputs)
+        inputs_flatten = torch.flatten(inputs, start_dim=1)
         hidden_critic = self.critic(inputs_flatten)
 
         return self.critic_linear(hidden_critic), hidden_actor
