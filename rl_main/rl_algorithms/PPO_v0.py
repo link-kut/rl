@@ -102,7 +102,6 @@ class PPO_v0:
 
 
             v_target = reward_lst + self.gamma * self.model.get_value(next_state_lst) * done_mask_lst
-
             delta = v_target - self.model.get_value(state_lst)
             delta = delta.cpu().detach().numpy()
 
@@ -120,8 +119,7 @@ class PPO_v0:
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - PPO_EPSILON_CLIP, 1 + PPO_EPSILON_CLIP) * advantage
 
-            loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
-                torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
+            loss = -torch.min(surr1, surr2) + F.smooth_l1_loss(v_target.detach(), self.model.get_value(state_lst)) - dist_entropy
 
             # print("state_lst_mean: {0}".format(state_lst.mean()))
             # print("next_state_lst_mean: {0}".format(next_state_lst.mean()))
@@ -159,7 +157,7 @@ class PPO_v0:
             #     print(param.grad)
 
             self.optimizer.zero_grad()
-            loss.backward()
+            loss.mean().backward()
             self.optimizer.step()
 
             # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()

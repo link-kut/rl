@@ -197,13 +197,13 @@ class MLPBase(nn.Module):
         self.actor = nn.Sequential(
             init_(nn.Linear(num_inputs, self.hidden_1_size)), activation,
             init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), activation,
-            init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), activation,
+            # init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), activation,
         )
 
         self.critic = nn.Sequential(
             init_(nn.Linear(num_inputs, self.hidden_1_size)), activation,
             init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), activation,
-            init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), activation,
+            # init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), activation,
         )
 
         self.critic_linear = init_(nn.Linear(self.hidden_3_size, 1))
