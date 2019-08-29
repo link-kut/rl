@@ -100,10 +100,12 @@ class EnvironmentRIP(Environment):
         return n_actions
 
     def get_state_shape(self):
-        return None
+        state_shape = (2,)
+        return state_shape
 
     def get_action_shape(self):
-        return None
+        action_shape = (3,)
+        return action_shape
 
     def reset(self):
         self.steps = 0
