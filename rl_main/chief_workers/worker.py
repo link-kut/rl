@@ -39,7 +39,7 @@ class Worker:
 
     def update_process(self, avg_gradients):
         self.rl_algorithm.model.set_gradients_to_current_parameters(avg_gradients)
-        self.rl_algorithm.optimize_step()
+        self.rl_algorithm.optimizer.step()
 
     def transfer_process(self, parameters):
         self.rl_algorithm.transfer_process(parameters, SOFT_TRANSFER, SOFT_TRANSFER_TAU)
@@ -164,7 +164,7 @@ class Worker:
 
                 self.send_msg(MQTT_TOPIC_EPISODE_DETAIL, episode_msg)
 
-            # while True:
-            #     if episode == self.episode_chief:
-            #         break
-            #     time.sleep(0.01)
+            while True:
+                if episode == self.episode_chief:
+                    break
+                time.sleep(0.01)

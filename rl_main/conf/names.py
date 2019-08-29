@@ -22,7 +22,7 @@ class EnvironmentName(enum.Enum):
 
 
 class ModelName(enum.Enum):
-    ActorCriticModel = "Actor_Critic_Model"\
+    ActorCriticModel = "Actor_Critic_Model"
 
 
 class RLAlgorithmName(enum.Enum):

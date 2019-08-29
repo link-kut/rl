@@ -63,7 +63,7 @@ def get_environment(owner="cheif"):
         if owner == "worker":
             client.on_connect = __on_connect
             client.on_message =  __on_message
-            client.on_log = __on_log
+            # client.on_log = __on_log
 
             # client.username_pw_set(username="link", password="0123")
             client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
@@ -84,16 +84,14 @@ def get_environment(owner="cheif"):
     else:
         env = None
 
-    print("!!!!!")
-
     return env
 
 
 def get_rl_model(env):
     if DEEP_LEARNING_MODEL == ModelName.ActorCriticModel:
         model = Policy(
-            s_size=env.n_states,
-            a_size=env.n_actions,
+            s_size=env.state_shape,
+            a_size=env.action_shape,
             continuous=env.continuous,
             device=device
         ).to(device)

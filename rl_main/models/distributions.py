@@ -35,17 +35,10 @@ FixedNormal.mode = lambda self: self.mean
 
 
 class DistCategorical(nn.Module):
-    def __init__(self, num_inputs, num_outputs):
+    def __init__(self, actor_linear):
         super(DistCategorical, self).__init__()
 
-        init_ = lambda m: util_init(
-            m,
-            nn.init.orthogonal_,
-            lambda x: nn.init.constant_(x, 0),
-            gain=0.01
-        )
-
-        self.linear = init_(nn.Linear(num_inputs, num_outputs))
+        self.linear = actor_linear
 
     def forward(self, x):
         x = self.linear(x)
@@ -53,12 +46,10 @@ class DistCategorical(nn.Module):
 
 
 class DistDiagGaussian(nn.Module):
-    def __init__(self, num_inputs, num_outputs):
+    def __init__(self, actor_linear, num_outputs):
         super(DistDiagGaussian, self).__init__()
 
-        init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
-
-        self.linear = init_(nn.Linear(num_inputs, num_outputs))
+        self.linear = actor_linear
         self.logstd = AddBiases(torch.zeros(num_outputs))
 
     def forward(self, x):
