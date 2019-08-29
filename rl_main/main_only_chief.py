@@ -6,12 +6,11 @@ PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
 import rl_main.utils as utils
-from rl_main.chief_workers.chief import env
+# from rl_main.chief_workers.chief import env
 
 
 if __name__ == "__main__":
     utils.make_output_folders()
-    utils.print_configuration()
     utils.ask_file_removal()
 
     stderr = sys.stderr
