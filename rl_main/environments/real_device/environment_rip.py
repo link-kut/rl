@@ -132,7 +132,7 @@ class EnvironmentRIP(Environment):
         return np.asarray(self.state)
 
     def step(self, action):
-        motor_power = balance_motor_power_list[action]
+        motor_power = balance_motor_power_list[int(action)]
 
         self.__pub(MQTT_PUB_TO_SERVO_POWER, "{0}|{1}|{2}".format(motor_power, "balance", PUB_ID))
         pendulum_radian = self.current_pendulum_radian

@@ -22,7 +22,7 @@ class PPO_v0:
         self.trajectory = []
 
         # learning rate
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.001
 
         self.env_render = env_render
         self.logger = logger

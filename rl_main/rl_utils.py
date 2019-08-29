@@ -63,7 +63,7 @@ def get_environment(owner="chief"):
         if owner == "worker":
             client.on_connect = __on_connect
             client.on_message =  __on_message
-            client.on_log = __on_log
+            # client.on_log = __on_log
 
             # client.username_pw_set(username="link", password="0123")
             client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
@@ -83,8 +83,6 @@ def get_environment(owner="chief"):
         env = Drone_Racing(MY_PLATFORM)
     else:
         env = None
-
-    print("!!!!!")
 
     return env
 
