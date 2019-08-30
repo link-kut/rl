@@ -56,7 +56,7 @@ def on_chief_message(client, userdata, msg):
 
     if MODE_SYNCHRONIZATION:
         if msg_payload['episode'] not in chief.messages_received_from_workers:
-            chief.messages_received_from_workers[msg_payload['episode']] = {}    # {0: {0: (topic, msg_payload)}}
+            chief.messages_received_from_workers[msg_payload['episode']] = {}
 
         chief.messages_received_from_workers[msg_payload['episode']][msg_payload["worker_id"]] = (msg.topic, msg_payload)
 

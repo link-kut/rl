@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -46,21 +47,21 @@ class PPO_v0:
         for transition in self.trajectory:
             s, a, r, s_prime, prob_a, done = transition
 
-            # if type(s) is np.ndarray:
-            #     state_lst.append(s)
-            # else:
-            #     state_lst.append(s.numpy())
-            state_lst.append(s)
-            action_lst.append(a)
+            if type(s) is np.ndarray:
+                state_lst.append(s)
+            else:
+                state_lst.append(s.numpy())
+
+            action_lst.append([a])
             reward_lst.append([r])
 
+            if type(s) is np.ndarray:
+                next_state_lst.append(s_prime)
+            else:
+                next_state_lst.append(s_prime.numpy())
 
-            # if type(s) is np.ndarray:
-            #     next_state_lst.append(s_prime)
-            # else:
-            #     next_state_lst.append(s_prime.numpy())
-            next_state_lst.append(s_prime)
-            prob_action_lst.append(prob_a[0])
+            prob_action_lst.append([prob_a])
+
             done_mask = 0 if done else 1
             done_mask_lst.append([done_mask])
 
@@ -91,8 +92,7 @@ class PPO_v0:
             # print("WORKER: {0} - PPO_K_EPOCH: {1}/{2} - state_lst: {3}".format(self.worker_id, i+1, PPO_K_EPOCH, state_lst.size()))
 
             # discount_r_lst = []
-            # n_s = next_state_lst[-1].clone().detach()
-            # v_ = self.model.get_value(n_s)
+            # v_ = self.model.get_value(next_state_lst[-1])
             # for r in reward_lst.tolist()[::-1]:
             #     v_ = self.gamma * v_ + r[0]
             #     discount_r_lst.append([v_])
@@ -100,8 +100,8 @@ class PPO_v0:
             # discount_r = torch.tensor(discount_r_lst, dtype=torch.float).to(device)
             # advantage = discount_r - self.model.get_value(state_lst)
 
-
             v_target = reward_lst + self.gamma * self.model.get_value(next_state_lst) * done_mask_lst
+
             delta = v_target - self.model.get_value(state_lst)
             delta = delta.cpu().detach().numpy()
 
@@ -112,6 +112,7 @@ class PPO_v0:
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
+            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float))
 
             _, new_prob_action_lst, dist_entropy = self.model.evaluate_actions(state_lst, action_lst)
 
@@ -119,8 +120,12 @@ class PPO_v0:
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - PPO_EPSILON_CLIP, 1 + PPO_EPSILON_CLIP) * advantage
 
+            # loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
+            #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
+
             loss = -torch.min(surr1, surr2) \
-                   + PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_value(state_lst), target=v_target.detach()) \
+                   + PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_value(state_lst),
+                                                              target=v_target.detach()) \
                    - PPO_ENTROPY_WEIGHT * dist_entropy
 
             # print("state_lst_mean: {0}".format(state_lst.mean()))
@@ -147,8 +152,8 @@ class PPO_v0:
             #     break
             #
             # print("GRADIENT!!!")
-            #
-            #
+
+
             # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
             # for name, param in actor_fc_named_parameters:
@@ -212,9 +217,11 @@ class PPO_v0:
             action, prob = self.model.act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
+
             state = next_state
             score += reward
         gradients, loss = self.train_net()
+        # print("score:", score, "  loss:", loss)
 
         return gradients, loss, score
 
