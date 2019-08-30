@@ -18,7 +18,7 @@ from rl_main.rl_algorithms.PPO_v0 import PPO_v0
 
 def get_environment(owner="cheif"):
     if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
-        client = mqtt.Client(client_id="env_sub", transport="TCP")
+        client = mqtt.Client(client_id="env_sub_2", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
 
         def __on_connect(client, userdata, flags, rc):
