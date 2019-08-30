@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from rl_main.utils import AddBiases, util_init
 
 
@@ -35,25 +36,34 @@ FixedNormal.mode = lambda self: self.mean
 
 
 class DistCategorical(nn.Module):
-    def __init__(self, actor_linear):
+    def __init__(self, num_inputs, num_outputs):
         super(DistCategorical, self).__init__()
 
-        self.linear = actor_linear
+        init_ = lambda m: util_init(
+            m,
+            nn.init.orthogonal_,
+            lambda x: nn.init.constant_(x, 0),
+            gain=0.01
+        )
+
+        self.linear = init_(nn.Linear(num_inputs, num_outputs))
 
     def forward(self, x):
-        x = self.linear(x)
+        x = F.leaky_relu(self.linear(x))
         return FixedCategorical(logits=x)
 
 
 class DistDiagGaussian(nn.Module):
-    def __init__(self, actor_linear, num_outputs):
+    def __init__(self, num_inputs, num_outputs):
         super(DistDiagGaussian, self).__init__()
 
-        self.linear = actor_linear
+        init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
+
+        self.linear = init_(nn.Linear(num_inputs, num_outputs))
         self.logstd = AddBiases(torch.zeros(num_outputs))
 
     def forward(self, x):
-        action_mean = self.linear(x)
+        action_mean = F.tanh(self.linear(x))
 
         #  An ugly hack for my KFAC implementation.
         zeros = torch.zeros(action_mean.size())

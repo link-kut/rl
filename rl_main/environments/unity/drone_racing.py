@@ -48,7 +48,7 @@ class Drone_Racing(Environment):
 
     def step(self, action):
         action_list = [0] * 8
-        action_list[int(action)] = 1
+        action_list[action] = 1
         next_state, reward, done, info = self.env.step(action_list)
 
         adjusted_reward = reward

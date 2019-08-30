@@ -172,6 +172,7 @@ class Chief:
                 self.episode_chief,
                 len(self.model.avg_gradients)
             )
+
             self.model.get_average_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS)
 
             grad_update_msg = {

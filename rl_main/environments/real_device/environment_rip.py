@@ -4,11 +4,11 @@ import numpy as np
 # MQTT Topic for RIP
 from rl_main.environments.environment import Environment
 
-MQTT_PUB_TO_SERVO_POWER = 'motor_power_2'
-MQTT_PUB_RESET = 'reset_2'
-MQTT_SUB_FROM_SERVO = 'servo_info_2'
-MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info_2'
-MQTT_SUB_RESET_COMPLETE = 'reset_complete_2'
+MQTT_PUB_TO_SERVO_POWER = 'motor_power'
+MQTT_PUB_RESET = 'reset'
+MQTT_SUB_FROM_SERVO = 'servo_info'
+MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info'
+MQTT_SUB_RESET_COMPLETE = 'reset_complete'
 
 STATE_SIZE = 4
 
@@ -100,12 +100,10 @@ class EnvironmentRIP(Environment):
         return n_actions
 
     def get_state_shape(self):
-        state_shape = (2,)
-        return state_shape
+        return None
 
     def get_action_shape(self):
-        action_shape = (3,)
-        return action_shape
+        return None
 
     def reset(self):
         self.steps = 0
@@ -134,7 +132,7 @@ class EnvironmentRIP(Environment):
         return np.asarray(self.state)
 
     def step(self, action):
-        motor_power = balance_motor_power_list[int(action)]
+        motor_power = balance_motor_power_list[action]
 
         self.__pub(MQTT_PUB_TO_SERVO_POWER, "{0}|{1}|{2}".format(motor_power, "balance", PUB_ID))
         pendulum_radian = self.current_pendulum_radian

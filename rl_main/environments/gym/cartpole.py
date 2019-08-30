@@ -31,7 +31,7 @@ class CartPole_v0(Environment):
         return tuple(state_shape)
 
     def get_action_shape(self):
-        action_shape = (2,)
+        action_shape = (self.env.action_space.n, )
         return action_shape
 
     def get_action_meanings(self):
