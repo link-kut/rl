@@ -16,9 +16,9 @@ from rl_main.rl_algorithms.DQN_v0 import DQN_v0
 from rl_main.rl_algorithms.PPO_v0 import PPO_v0
 
 
-def get_environment(owner="chief"):
+def get_environment(owner="cheif"):
     if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
-        client = mqtt.Client(client_id="env_sub_2", transport="TCP")
+        client = mqtt.Client(client_id="env_sub", transport="TCP")
         env = EnvironmentRIP(mqtt_client=client)
 
         def __on_connect(client, userdata, flags, rc):
@@ -63,7 +63,7 @@ def get_environment(owner="chief"):
         if owner == "worker":
             client.on_connect = __on_connect
             client.on_message =  __on_message
-            client.on_log = __on_log
+            # client.on_log = __on_log
 
             # client.username_pw_set(username="link", password="0123")
             client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
@@ -83,8 +83,6 @@ def get_environment(owner="chief"):
         env = Drone_Racing(MY_PLATFORM)
     else:
         env = None
-
-    print("!!!!!")
 
     return env
 
