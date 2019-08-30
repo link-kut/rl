@@ -51,9 +51,11 @@ class Policy(nn.Module):
             raise NotImplementedError
 
         if self.continuous:
-            self.dist = DistDiagGaussian(actor_linear=self.base.actor_linear, num_outputs=a_size)
+            num_outputs = self.a_size
+            self.dist = DistDiagGaussian(self.base.output_size, num_outputs)
         else:
-            self.dist = DistCategorical(actor_linear=self.base.actor_linear)
+            num_outputs = self.a_size
+            self.dist = DistCategorical(self.base.output_size, num_outputs)
 
         self.avg_gradients = {}
         self.continuous = continuous
@@ -102,6 +104,11 @@ class Policy(nn.Module):
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] = torch.zeros(size=param.size())
 
+        named_parameters = self.dist.named_parameters()
+        self.avg_gradients["actor_linear"] = {}
+        for name, param in named_parameters:
+            self.avg_gradients["actor_linear"][name] = torch.zeros(size=param.size())
+
     def get_gradients_for_current_parameters(self):
         gradients = {}
 
@@ -111,6 +118,11 @@ class Policy(nn.Module):
             for name, param in named_parameters:
                 gradients[layer_name][name] = param.grad
 
+        named_parameters = self.dist.named_parameters()
+        gradients["actor_linear"] = {}
+        for name, param in named_parameters:
+            gradients["actor_linear"][name] = param.grad
+
         return gradients
 
     def set_gradients_to_current_parameters(self, gradients):
@@ -119,17 +131,27 @@ class Policy(nn.Module):
             for name, param in named_parameters:
                 param.grad = gradients[layer_name][name]
 
+        named_parameters = self.dist.named_parameters()
+        for name, param in named_parameters:
+            param.grad = gradients["actor_linear"][name]
+
     def accumulate_gradients(self, gradients):
         for layer_name, layer in self.base.layers_info.items():
             named_parameters = layer.named_parameters()
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] += gradients[layer_name][name]
+        named_parameters = self.dist.named_parameters()
+        for name, param in named_parameters:
+            self.avg_gradients["actor_linear"][name] += gradients["actor_linear"][name]
 
     def get_average_gradients(self, num_workers):
         for layer_name, layer in self.base.layers_info.items():
             named_parameters = layer.named_parameters()
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] /= num_workers
+        named_parameters = self.dist.named_parameters()
+        for name, param in named_parameters:
+            self.avg_gradients["actor_linear"][name] /= num_workers
 
     def get_parameters(self):
         parameters = {}
@@ -139,6 +161,11 @@ class Policy(nn.Module):
             parameters[layer_name] = {}
             for name, param in named_parameters:
                 parameters[layer_name][name] = param.data
+
+        named_parameters = self.dist.named_parameters()
+        parameters["actor_linear"] = {}
+        for name, param in named_parameters:
+            parameters["actor_linear"][name] = param.data
 
         return parameters
 
@@ -150,6 +177,12 @@ class Policy(nn.Module):
                     param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
                 else:
                     param.data = parameters[layer_name][name]
+        named_parameters = self.dist.named_parameters()
+        for name, param in named_parameters:
+            if soft_transfer:
+                param.data = param.data * soft_transfer_tau + parameters["actor_linear"][name] * (1 - soft_transfer_tau)
+            else:
+                param.data = parameters["actor_linear"][name]
 
 
 class MLPBase(nn.Module):
@@ -161,41 +194,35 @@ class MLPBase(nn.Module):
         self.hidden_3_size = HIDDEN_3_SIZE
         self.continuous = continuous
 
-        init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0), np.sqrt(2))
+        # init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0), np.sqrt(2))
 
         if self.continuous:
             activation = nn.Tanh()
-            actor_init_ = lambda m: util_init(
-                m,
-                nn.init.orthogonal_,
-                lambda x: nn.init.constant_(x, 0)
-            )
         else:
             activation = nn.LeakyReLU()
-            actor_init_ = lambda m: util_init(
-                m,
-                nn.init.orthogonal_,
-                lambda x: nn.init.constant_(x, 0),
-                gain=0.01
-            )
 
         self.actor = nn.Sequential(
-            init_(nn.Linear(num_inputs, self.hidden_1_size)), activation,
-            init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), activation,
+            # init_(nn.Linear(num_inputs, self.hidden_1_size)), activation,
+            # init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), activation,
             # init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), activation,
+            nn.Linear(num_inputs, self.hidden_1_size), activation,
+            nn.Linear(self.hidden_1_size, self.hidden_2_size), activation,
+            nn.Linear(self.hidden_2_size, self.hidden_3_size), activation,
         )
 
         self.critic = nn.Sequential(
-            init_(nn.Linear(num_inputs, self.hidden_1_size)), activation,
-            init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), activation,
+            # init_(nn.Linear(num_inputs, self.hidden_1_size)), activation,
+            # init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), activation,
             # init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), activation,
+            nn.Linear(num_inputs, self.hidden_1_size), activation,
+            nn.Linear(self.hidden_1_size, self.hidden_2_size), activation,
+            nn.Linear(self.hidden_2_size, self.hidden_3_size), activation,
         )
 
-        self.critic_linear = init_(nn.Linear(self.hidden_3_size, 1))
+        # self.critic_linear = init_(nn.Linear(self.hidden_3_size, 1))
+        self.critic_linear = nn.Linear(self.hidden_3_size, 1)
 
-        self.actor_linear = actor_init_(nn.Linear(self.hidden_3_size, a_size))
-
-        self.layers_info = {'actor':self.actor, 'critic':self.critic, 'critic_linear':self.critic_linear, 'actor_linear': self.actor_linear}
+        self.layers_info = {'actor':self.actor, 'critic':self.critic, 'critic_linear':self.critic_linear}
 
         self.train()
 
@@ -224,19 +251,8 @@ class CNNBase(nn.Module):
 
         if self.continuous:
             activation = nn.Tanh()
-            actor_init_ = lambda m: util_init(
-                m,
-                nn.init.orthogonal_,
-                lambda x: nn.init.constant_(x, 0)
-            )
         else:
             activation = nn.LeakyReLU()
-            actor_init_ = lambda m: util_init(
-                m,
-                nn.init.orthogonal_,
-                lambda x: nn.init.constant_(x, 0),
-                gain=0.01
-            )
 
         from rl_main.utils import get_conv2d_size, get_pool2d_size
         w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding=0, stride=1)
@@ -269,9 +285,7 @@ class CNNBase(nn.Module):
 
         self.critic_linear = init_(nn.Linear(self.hidden_3_size, 1))
 
-        self.actor_linear = actor_init_(nn.Linear(self.cnn_hidden_size, a_size))
-
-        self.layers_info = {'actor': self.actor, 'critic': self.critic, 'critic_linear': self.critic_linear, 'actor_linear': self.actor_linear}
+        self.layers_info = {'actor': self.actor, 'critic': self.critic, 'critic_linear': self.critic_linear}
 
         self.train()
 

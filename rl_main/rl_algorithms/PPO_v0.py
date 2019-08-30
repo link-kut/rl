@@ -22,7 +22,7 @@ class PPO_v0:
         self.trajectory = []
 
         # learning rate
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0001
 
         self.env_render = env_render
         self.logger = logger
@@ -119,7 +119,9 @@ class PPO_v0:
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1 - PPO_EPSILON_CLIP, 1 + PPO_EPSILON_CLIP) * advantage
 
-            loss = -torch.min(surr1, surr2) + F.smooth_l1_loss(v_target.detach(), self.model.get_value(state_lst)) - dist_entropy
+            loss = -torch.min(surr1, surr2) \
+                   + PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_value(state_lst), target=v_target.detach()) \
+                   - PPO_ENTROPY_WEIGHT * dist_entropy
 
             # print("state_lst_mean: {0}".format(state_lst.mean()))
             # print("next_state_lst_mean: {0}".format(next_state_lst.mean()))
@@ -145,8 +147,8 @@ class PPO_v0:
             #     break
             #
             # print("GRADIENT!!!")
-
-
+            #
+            #
             # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
             # for name, param in actor_fc_named_parameters:
@@ -207,14 +209,12 @@ class PPO_v0:
             if self.env_render:
                 self.env.render()
 
-            action, prob = self.model.act([state])
+            action, prob = self.model.act(state)
             next_state, reward, adjusted_reward, done, info = self.env.step(action)
             self.put_data((state, action, adjusted_reward, next_state, prob, done))
-
             state = next_state
             score += reward
         gradients, loss = self.train_net()
-        # print("score:", score, "  loss:", loss)
 
         return gradients, loss, score
 
