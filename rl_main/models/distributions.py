@@ -63,7 +63,7 @@ class DistDiagGaussian(nn.Module):
         self.logstd = AddBiases(torch.zeros(num_outputs))
 
     def forward(self, x):
-        action_mean = F.tanh(self.linear(x))
+        action_mean = torch.tanh(self.linear(x))
 
         #  An ugly hack for my KFAC implementation.
         zeros = torch.zeros(action_mean.size())

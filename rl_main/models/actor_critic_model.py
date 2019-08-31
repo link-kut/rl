@@ -28,10 +28,14 @@ class Policy(nn.Module):
         super(Policy, self).__init__()
 
         if MODE_DEEP_LEARNING_MODEL == "CNN":
+            self.input_channels = s_size[0]
+            self.input_height = s_size[1]
+            self.input_width = s_size[2]
+
             self.base = CNNBase(
-                input_channels=s_size[0],
-                input_width=s_size[1],
-                input_height=s_size[2],
+                input_channels=self.input_channels,
+                input_height=self.input_height,
+                input_width=self.input_width,
                 continuous=continuous
             )
         elif MODE_DEEP_LEARNING_MODEL == "MLP":
@@ -44,15 +48,14 @@ class Policy(nn.Module):
 
         self.continuous = continuous
 
+        self.a_size = a_size
+
         if self.continuous:
-            num_outputs = a_size
-            self.dist = DistDiagGaussian(self.base.output_size, num_outputs)
+            self.dist = DistDiagGaussian(self.base.output_size, self.a_size)
         else:
-            num_outputs = a_size
-            self.dist = DistCategorical(self.base.output_size, num_outputs)
+            self.dist = DistCategorical(self.base.output_size, self.a_size)
 
         self.avg_gradients = {}
-        self.continuous = continuous
         self.device = device
 
         self.reset_average_gradients()
@@ -227,60 +230,60 @@ class MLPBase(nn.Module):
 
 
 class CNNBase(nn.Module):
-    def __init__(self, input_channels, input_width, input_height, continuous):
+    def __init__(self, input_channels, input_height, input_width, continuous):
         super(CNNBase, self).__init__()
         self.cnn_hidden_size = CNN_HIDDEN_SIZE
 
-        self.hidden_1_size = HIDDEN_1_SIZE
-        self.hidden_2_size = HIDDEN_2_SIZE
-        self.hidden_3_size = HIDDEN_3_SIZE
         self.continuous = continuous
 
-        init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init. constant_(x, 0), nn.init.calculate_gain('relu'))
-
         from rl_main.utils import get_conv2d_size, get_pool2d_size
-        w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding=0, stride=1)
-        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding=0, stride=1)
-        w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
-        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding=0, stride=1)
-        w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
+        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=2, padding=0, stride=1)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=2, padding=0, stride=1)
+        h, w = get_pool2d_size(h=h, w=w, kernel_size=2, stride=1)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=2, padding=0, stride=1)
+        h, w = get_pool2d_size(h=h, w=w, kernel_size=2, stride=1)
+
+        if self.continuous:
+            init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0),
+                                        nn.init.calculate_gain('tanh'))
+            activation = nn.Tanh()
+        else:
+            init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0),
+                                        nn.init.calculate_gain('leaky_relu'))
+            activation = nn.LeakyReLU()
 
         self.actor = nn.Sequential(
             init_(nn.Conv2d(in_channels=input_channels, out_channels=8, kernel_size=2, padding=0, stride=1)),
-            nn.BatchNorm2d(num_features=8), nn.LeakyReLU(),
+            nn.BatchNorm2d(num_features=8), activation,
             init_(nn.Conv2d(in_channels=8, out_channels=4, kernel_size=2, padding=0, stride=1)),
-            nn.BatchNorm2d(num_features=4), nn.LeakyReLU(),
+            nn.BatchNorm2d(num_features=4), activation,
             nn.MaxPool2d(kernel_size=2, stride=1),
             init_(nn.Conv2d(in_channels=4, out_channels=3, kernel_size=2, padding=0, stride=1)),
-            nn.BatchNorm2d(num_features=3), nn.LeakyReLU(),
+            nn.BatchNorm2d(num_features=3), activation,
             nn.MaxPool2d(kernel_size=2, stride=1),
             Flatten(),
-            init_(nn.Linear(3 * w * h, self.cnn_hidden_size)),
-            nn.LeakyReLU()
+            init_(nn.Linear(3 * h * w, self.cnn_hidden_size)),
+            activation
         )
 
         init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
 
-        self.critic = nn.Sequential(
-            init_(nn.Linear(input_width * input_height * input_channels, self.hidden_1_size)), nn.Tanh(),
-            init_(nn.Linear(self.hidden_1_size, self.hidden_2_size)), nn.Tanh(),
-            init_(nn.Linear(self.hidden_2_size, self.hidden_3_size)), nn.Tanh(),
-        )
+        self.critic = init_(nn.Linear(self.cnn_hidden_size, 1))
 
-        self.critic_linear = init_(nn.Linear(self.hidden_3_size, 1))
-
-        self.layers_info = {'actor': self.actor, 'critic': self.critic, 'critic_linear': self.critic_linear}
+        self.layers_info = {'actor': self.actor, 'critic': self.critic}
 
         self.train()
 
-    def forward(self, inputs, masks):
+    def forward(self, inputs):
         inputs = inputs / 255.0
+        if len(inputs.size()) == 3:
+            inputs = inputs.unsqueeze(0)
+
         hidden_actor = self.actor(inputs)
 
-        inputs_flatten = torch.flatten(inputs)
-        hidden_critic = self.critic(inputs_flatten)
+        hidden_critic = self.critic(hidden_actor)
 
-        return self.critic_linear(hidden_critic), hidden_actor
+        return hidden_critic, hidden_actor
 
     @property
     def output_size(self):

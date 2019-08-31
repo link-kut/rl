@@ -26,6 +26,11 @@ class Pendulum_v0(Environment):
         action_shape = (1,)
         return action_shape
 
+    @property
+    def action_meanings(self):
+        action_meanings = ["Joint effort"]
+        return action_meanings
+
     def reset(self):
         state = self.env.reset()
         return state

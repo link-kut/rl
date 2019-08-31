@@ -36,12 +36,12 @@ def exp_moving_average(values, window):
     return a
 
 
-def get_conv2d_size(w, h, kernel_size, padding, stride):
-    return math.floor((w - kernel_size + 2 * padding) / stride) + 1, math.floor((h - kernel_size + 2 * padding) / stride) + 1
+def get_conv2d_size(h, w, kernel_size, padding, stride):
+    return math.floor((h - kernel_size + 2 * padding) / stride + 1), math.floor((w - kernel_size + 2 * padding) / stride + 1)
 
 
-def get_pool2d_size(w, h, kernel_size, stride):
-    return math.floor((w - kernel_size) / stride) + 1, math.floor((h - kernel_size) / stride) + 1
+def get_pool2d_size(h, w, kernel_size, stride):
+    return math.floor((h - kernel_size) / stride + 1), math.floor((w - kernel_size) / stride + 1)
 
 
 def print_configuration(env, rl_model):
@@ -64,7 +64,7 @@ def print_configuration(env, rl_model):
     print("\n*** MY_PLATFORM & ENVIRONMENT ***")
     print(" Platform:" + MY_PLATFORM.value)
     print(" Environment Name:" + ENVIRONMENT_ID.value)
-    print(" Action Space: {0} - {1}".format(env.get_n_actions(), env.action_meaning))
+    print(" Action Space: {0} - {1}".format(env.get_n_actions(), env.action_meanings))
 
     print("\n*** RL ALGORITHM ***")
     print(" RL Algorithm:" + RL_ALGORITHM.value)

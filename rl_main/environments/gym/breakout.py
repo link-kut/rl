@@ -4,7 +4,7 @@ import numpy as np
 
 from rl_main.conf.names import EnvironmentName, ModelName
 from rl_main.environments.environment import Environment
-from rl_main.main_constants import DEEP_LEARNING_MODEL
+from rl_main.main_constants import DEEP_LEARNING_MODEL, MODE_DEEP_LEARNING_MODEL
 
 
 class BreakoutDeterministic_v4(Environment):
@@ -13,8 +13,6 @@ class BreakoutDeterministic_v4(Environment):
         super(BreakoutDeterministic_v4, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
-
-        self.action_meaning = self.get_action_meanings()
 
         self.cnn_input_height = self.state_shape[0]
         self.cnn_input_width = self.state_shape[1]
@@ -29,7 +27,6 @@ class BreakoutDeterministic_v4(Environment):
         gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
         return gray
 
-
     @staticmethod
     def downsample(img):
         return img[::2, ::2]
@@ -40,21 +37,29 @@ class BreakoutDeterministic_v4(Environment):
 
     def preprocess(self, img):
         gray_frame = self.to_grayscale(self.downsample(img))
-        if DEEP_LEARNING_MODEL == ModelName.ActorCriticCNN:
+
+        if MODE_DEEP_LEARNING_MODEL == "CNN":
             state = np.expand_dims(gray_frame, axis=0)
-        elif DEEP_LEARNING_MODEL == ModelName.ActorCriticMLP:
+        elif MODE_DEEP_LEARNING_MODEL == "MLP":
             state = gray_frame.flatten()
         else:
             state = None
+
         return state
 
     def get_n_states(self):
-        return 8400
+        if MODE_DEEP_LEARNING_MODEL == "CNN":
+            return 1, 105, 80                   # input_channels, input_height, input_width
+        elif MODE_DEEP_LEARNING_MODEL == "MLP":
+            return 8400
+        else:
+            return None
 
     def get_n_actions(self):
         return self.env.action_space.n - 1
 
-    def get_action_meanings(self):
+    @property
+    def action_meanings(self):
         action_meanings = self.env.get_action_meanings()
         action_meanings.remove('FIRE')
         return action_meanings

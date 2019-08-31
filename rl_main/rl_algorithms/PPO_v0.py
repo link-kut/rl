@@ -203,8 +203,6 @@ class PPO_v0:
         return gradients, loss_sum / PPO_K_EPOCH
 
     def on_episode(self, episode):
-        # in CartPole-v0:
-        # state = [theta, angular speed]
         state = self.env.reset()
 
         done = False
