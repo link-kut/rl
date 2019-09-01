@@ -66,7 +66,8 @@ class Policy(nn.Module):
         raise NotImplementedError
 
     def act(self, inputs, deterministic=False):
-        inputs = torch.tensor(inputs, dtype=torch.float)
+        if not (type(inputs) is torch.Tensor):
+            inputs = torch.tensor(inputs, dtype=torch.float)
 
         _, actor_features = self.base(inputs)
         dist = self.dist(actor_features)
@@ -75,24 +76,33 @@ class Policy(nn.Module):
             action = dist.mode()
         else:
             action = dist.sample()
-        action = torch.tensor([action.item()], dtype=torch.float)
+
+        if self.continuous:
+            action = torch.tensor([action.item()], dtype=torch.float)
+        else:
+            action = torch.tensor([action.item()], dtype=torch.long)
 
         action_log_probs = dist.log_probs(action)
 
         return action, action_log_probs
 
-    def get_value(self, inputs):
-        value, _ = self.base(inputs)
-        return value
+    def get_critic_value(self, inputs):
+        critic_value, _ = self.base(inputs)
+        return critic_value
 
-    def evaluate_actions(self, inputs, actions):
-        value, actor_features = self.base(inputs)
+    def evaluate_for_other_actions(self, inputs, actions):
+        critic_value, actor_features = self.base(inputs)
         dist = self.dist(actor_features)
 
         action_log_probs = dist.log_probs(actions)
         dist_entropy = dist.entropy().mean()
 
-        return value, action_log_probs, dist_entropy
+        return critic_value, action_log_probs, dist_entropy
+
+    def evaluate(self, inputs):
+        critic_value, actor_features = self.base(inputs)
+        dist = self.dist(actor_features)
+        return critic_value, dist.probs
 
     def reset_average_gradients(self):
         for layer_name, layer in self.base.layers_info.items():
@@ -268,7 +278,9 @@ class CNNBase(nn.Module):
 
         init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
 
-        self.critic = init_(nn.Linear(self.cnn_hidden_size, 1))
+        self.critic = nn.Sequential(
+            init_(nn.Linear(self.cnn_hidden_size, 1))
+        )
 
         self.layers_info = {'actor': self.actor, 'critic': self.critic}
 
@@ -280,7 +292,6 @@ class CNNBase(nn.Module):
             inputs = inputs.unsqueeze(0)
 
         hidden_actor = self.actor(inputs)
-
         hidden_critic = self.critic(hidden_actor)
 
         return hidden_critic, hidden_actor

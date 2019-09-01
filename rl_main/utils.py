@@ -158,6 +158,10 @@ def util_init(module, weight_init, bias_init, gain=1):
     return module
 
 
+def print_torch(torch_value_name, torch_value):
+    print("{0}:{1} --> size:{2}".format(torch_value_name, torch_value, torch_value.size()))
+
+
 class AddBiases(nn.Module):
     def __init__(self, bias):
         super(AddBiases, self).__init__()

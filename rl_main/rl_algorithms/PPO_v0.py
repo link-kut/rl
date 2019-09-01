@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 
 from rl_main import rl_utils
-from rl_main.main_constants import device, PPO_K_EPOCH, PPO_GAE_LAMBDA, PPO_EPSILON_CLIP, \
+from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
     PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT
 
 
@@ -92,29 +92,29 @@ class PPO_v0:
             # print("WORKER: {0} - PPO_K_EPOCH: {1}/{2} - state_lst: {3}".format(self.worker_id, i+1, PPO_K_EPOCH, state_lst.size()))
 
             # discount_r_lst = []
-            # v_ = self.model.get_value(next_state_lst[-1])
+            # v_ = self.model.get_critic_value(next_state_lst[-1])
             # for r in reward_lst.tolist()[::-1]:
             #     v_ = self.gamma * v_ + r[0]
             #     discount_r_lst.append([v_])
             # discount_r_lst.reverse()
             # discount_r = torch.tensor(discount_r_lst, dtype=torch.float).to(device)
-            # advantage = discount_r - self.model.get_value(state_lst)
+            # advantage = discount_r - self.model.get_critic_value(state_lst)
 
-            v_target = reward_lst + self.gamma * self.model.get_value(next_state_lst) * done_mask_lst
+            v_target = reward_lst + self.gamma * self.model.get_critic_value(next_state_lst) * done_mask_lst
 
-            delta = v_target - self.model.get_value(state_lst)
+            delta = v_target - self.model.get_critic_value(state_lst)
             delta = delta.cpu().detach().numpy()
 
             advantage_lst = []
             advantage = 0.0
             for delta_t in delta[::-1]:
-                advantage = self.gamma * PPO_GAE_LAMBDA * advantage + delta_t[0]
+                advantage = self.gamma * GAE_LAMBDA * advantage + delta_t[0]
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
             advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float))
 
-            _, new_prob_action_lst, dist_entropy = self.model.evaluate_actions(state_lst, action_lst)
+            _, new_prob_action_lst, dist_entropy = self.model.evaluate_for_other_actions(state_lst, action_lst)
 
             ratio = torch.exp(new_prob_action_lst - prob_action_lst)  # a/b == exp(log(a)-log(b))
             surr1 = ratio * advantage
@@ -124,7 +124,7 @@ class PPO_v0:
             #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
             loss = -torch.min(surr1, surr2) \
-                   + PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_value(state_lst),
+                   + PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
                                                               target=v_target.detach()) \
                    - PPO_ENTROPY_WEIGHT * dist_entropy
 
@@ -198,7 +198,6 @@ class PPO_v0:
 
             loss_sum += loss.mean().item()
 
-
         gradients = self.model.get_gradients_for_current_parameters()
         return gradients, loss_sum / PPO_K_EPOCH
 
@@ -218,8 +217,8 @@ class PPO_v0:
 
             state = next_state
             score += reward
+
         gradients, loss = self.train_net()
-        # print("score:", score, "  loss:", loss)
 
         return gradients, loss, score
 
