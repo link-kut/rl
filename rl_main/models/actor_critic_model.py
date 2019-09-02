@@ -43,6 +43,11 @@ class Policy(nn.Module):
                 num_inputs=s_size,
                 continuous=continuous
             )
+            self.s_size = s_size
+            self.hidden_1_size = self.base.hidden_1_size
+            self.hidden_2_size = self.base.hidden_2_size
+            self.hidden_3_size = self.base.hidden_3_size
+
         else:
             raise NotImplementedError
 

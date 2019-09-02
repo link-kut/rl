@@ -67,12 +67,12 @@ def print_configuration(env, rl_model):
     print(" Action Space: {0} - {1}".format(env.get_n_actions(), env.action_meanings))
 
     print("\n*** RL ALGORITHM ***")
-    print(" RL Algorithm:" + RL_ALGORITHM.value)
+    print(" RL Algorithm: {0}".format(RL_ALGORITHM.value))
     if RL_ALGORITHM == RLAlgorithmName.PPO_V0:
         print(" PPO_K_EPOCH: {0}".format(PPO_K_EPOCH))
 
     print("\n*** MODEL ***")
-    print(" Deep Learning Model:" + DEEP_LEARNING_MODEL.value)
+    print(" Deep Learning Model: {0}".format(DEEP_LEARNING_MODEL.value))
     if MODE_DEEP_LEARNING_MODEL == "CNN":
         print(" input_width: {0}, input_height: {1}, input_channels: {2}, a_size: {3}, continuous: {4}".format(
             rl_model.input_width,
@@ -81,7 +81,7 @@ def print_configuration(env, rl_model):
             rl_model.a_size,
             rl_model.continuous
         ))
-    elif DEEP_LEARNING_MODEL == "MLP":
+    elif MODE_DEEP_LEARNING_MODEL == "MLP":
         print(" s_size: {0}, hidden_1: {1}, hidden_2: {2}, hidden_3: {3}, a_size: {4}, continuous: {5}".format(
             rl_model.s_size,
             rl_model.hidden_1_size,
@@ -90,6 +90,8 @@ def print_configuration(env, rl_model):
             rl_model.a_size,
             rl_model.continuous
         ))
+    else:
+        pass
 
     print("\n*** Optimizer ***")
     print(" Optimizer:" + OPTIMIZER.value)
