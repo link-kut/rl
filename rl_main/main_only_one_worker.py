@@ -5,15 +5,10 @@ idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
-
 import rl_main.utils as utils
 
-from rl_main.chief_workers.worker import env
-from rl_main.main_constants import NUM_WORKERS
-
-
 if __name__ == "__main__":
-    utils.print_configuration(env)
+    utils.make_output_folders()
     utils.ask_file_removal()
 
     stderr = sys.stderr
