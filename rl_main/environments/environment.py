@@ -7,7 +7,6 @@ class Environment:
         self.action_shape = self.get_action_shape()
 
         self.action_space = None
-        self.action_meaning = None
 
         self.cnn_input_height = None
         self.cnn_input_width = None
@@ -28,6 +27,10 @@ class Environment:
         pass
 
     def get_action_shape(self):
+        pass
+
+    @property
+    def action_meaning(self):
         pass
 
     def reset(self):

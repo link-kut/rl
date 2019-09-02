@@ -91,7 +91,7 @@ def on_chief_message(client, userdata, msg):
 
             chief.save_graph()
 
-            print("episode_chief:{0:3d} - {1}".format(chief.episode_chief, worker_score_str))
+            print("episode_chief:{0:3d} - {1}\n".format(chief.episode_chief, worker_score_str))
             chief.episode_chief += 1
     else:
         chief. process_message(msg.topic, msg_payload)

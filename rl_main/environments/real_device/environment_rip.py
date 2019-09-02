@@ -105,6 +105,11 @@ class EnvironmentRIP(Environment):
     def get_action_shape(self):
         return None
 
+    @property
+    def action_meanings(self):
+        action_meanings = ["LEFT", "STOP", "RIGHT"]
+        return action_meanings
+
     def reset(self):
         self.steps = 0
         self.pendulum_radians = []

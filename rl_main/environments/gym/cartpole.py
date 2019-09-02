@@ -11,8 +11,6 @@ class CartPole_v0(Environment):
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
 
-        self.action_meaning = self.get_action_meanings()
-
         self.continuous = False
         self.WIN_AND_LEARN_FINISH_SCORE = 195
         self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 100
@@ -34,7 +32,8 @@ class CartPole_v0(Environment):
         action_shape = (self.env.action_space.n, )
         return action_shape
 
-    def get_action_meanings(self):
+    @property
+    def action_meanings(self):
         action_meanings = ["LEFT", "RIGHT"]
         return action_meanings
 
