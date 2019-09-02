@@ -8,11 +8,12 @@ import torch.nn.functional as F
 from rl_main.main_constants import *
 
 from rl_main import rl_utils
+from rl_main.utils import print_torch
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'adjusted_reward'))
 
 BATCH_SIZE = 128
-GAMMA = 0.999
+
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
@@ -23,8 +24,11 @@ class ReplayMemory(object):
     def __init__(self, capacity):
         self.memory = deque(maxlen=capacity)
 
-    def push(self, *args):
-        self.memory.append(Transition(*args))
+    def push(self, state, action, next_state, adjusted_reward):
+        state = torch.tensor(state, dtype=torch.float).to(device)
+        next_state = torch.tensor(next_state, dtype=torch.float).to(device)
+        adjusted_reward = torch.tensor([[adjusted_reward]]).to(device)
+        self.memory.append(Transition(state, action, next_state, adjusted_reward))
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
@@ -53,6 +57,7 @@ class DQN_v0:
 
         self.policy_model = rl_utils.get_rl_model(self.env).to(device)
         self.target_model = rl_utils.get_rl_model(self.env).to(device)
+
         self.target_model.load_state_dict(self.policy_model.state_dict())
         self.target_model.eval()
 
@@ -76,9 +81,9 @@ class DQN_v0:
             if self.env_render:
                 self.env.render()
 
-            action = self.select_action(state)
+            action = self.select_epsilon_greedy_action(state)
 
-            next_state, reward, adjusted_reward, done, _ = self.env.step(action.item())
+            next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
             # Store the transition in memory
             self.memory.push(state, action, next_state, adjusted_reward)
@@ -87,19 +92,16 @@ class DQN_v0:
             state = next_state
             score += reward
 
-            if done:
-                break
-
         gradients, loss = self.train_net()
 
         # Update the target network, copying all weights and biases in DQN
         if episode % TARGET_UPDATE_PERIOD == 0:
             self.target_model.load_state_dict(self.policy_model.state_dict())
 
-        return gradients, loss.item(), score
+        return gradients, loss, score
 
     # epsilon greedy policy
-    def select_action(self, state):
+    def select_epsilon_greedy_action(self, state):
         sample = random.random()
         epsilon_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * self.steps_done / EPS_DECAY)
         self.steps_done += 1
@@ -108,7 +110,8 @@ class DQN_v0:
                 # t.max(1) will return largest column value of each row.
                 # second column on max result is index of where max element was
                 # found, so we pick action with the larger expected reward.
-                return self.policy_model(state).max(1)[1].view(1, 1)
+                action, _ = self.policy_model.act(state)
+                return action.unsqueeze(0)
         else:
             return torch.tensor([[random.randrange(self.env.n_actions)]], device=device, dtype=torch.long)
 
@@ -130,48 +133,81 @@ class DQN_v0:
             dtype=torch.bool
         )
 
-        non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
-        state_batch = torch.cat(batch.state)
+        non_final_next_state_batch = torch.cat([s for s in batch.next_state if s is not None]).unsqueeze(dim=1)
+        state_batch = torch.cat(batch.state).unsqueeze(dim=1)
         action_batch = torch.cat(batch.action)
         reward_batch = torch.cat(batch.adjusted_reward)
+
+        # print("non_final_next_state_batch.size():", non_final_next_state_batch.size())
+        # print("state_batch.size():", state_batch.size())
+        # print("action_batch.size():", action_batch.size())
+        # print("reward_batch.size()", reward_batch.size())
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to policy_net
-        state_action_values = self.policy_model(state_batch).gather(1, action_batch)
+        critic_values, actor_values = self.policy_model.evaluate(state_batch)
+        q_values = actor_values.gather(1, action_batch)
+        # print_torch("critic_values", critic_values)
+        # print_torch("q_values", q_values)
 
         # Compute V(s_{t+1}) for all next states.
         # Expected values of actions for non_final_next_states are computed based
         # on the "older" target_net; selecting their best reward with max(1)[0].
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
-        next_state_values = torch.zeros(BATCH_SIZE, device=device)
-        next_state_values[non_final_mask] = self.target_model(non_final_next_states).max(1)[0].detach()
+        next_critic_value, next_action_probs = self.target_model.evaluate(non_final_next_state_batch)
+        next_state_values = torch.zeros([BATCH_SIZE, 1], device=device)
+        next_state_values[non_final_mask] = next_action_probs.max(dim=1)[0].unsqueeze(dim=1).detach()
 
-        # Compute the expected Q values
-        expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+        # print_torch("next_state_values", next_state_values)
+        # print_torch("reward_batch", reward_batch)
+
+        # Compute the target Q values
+        target_q_values = (next_state_values * self.gamma) + reward_batch
+        # print_torch("target_q_values", target_q_values)
+
+        # Compute the target critic values (advantage)
+        critic_target_values = torch.zeros([BATCH_SIZE, 1], device=device)
+        critic_target_values[non_final_mask] = next_critic_value.detach()
+        target_critic_values = (critic_target_values * self.gamma) + reward_batch
+        # print_torch("critic_target_values", critic_target_values)
+
+        delta = target_critic_values - critic_values
+        # print_torch("delta", delta)
+        # print_torch("delta_0", delta[0])
+
+        advantage_batch = torch.zeros([BATCH_SIZE, 1], device=device)
+        advantage = 0.0
+        reverse_index_list = list(range(delta.size()[0]))[::-1]
+        for idx_t in reverse_index_list:
+            advantage = self.gamma * GAE_LAMBDA * advantage + delta[idx_t]
+            advantage_batch[idx_t] = advantage
+        advantage_batch = (advantage_batch - advantage_batch.mean()) / torch.max(advantage_batch.std(), torch.tensor(1e-6, dtype=torch.float))
+        # print_torch("advantage_batch", advantage_batch)
+
+        advantage_loss = advantage_batch.pow(2).mean()
+        # print("advantage_loss.requires_grad:", advantage_loss.requires_grad)
+        # print_torch("advantage_loss", advantage_loss)
 
         # Compute Huber loss
-        loss = F.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+        loss = F.smooth_l1_loss(q_values, target_q_values) + advantage_loss
+        # print(loss.requires_grad)
+        # print_torch("loss", loss)
 
         # Optimize the model
         self.optimizer.zero_grad()
         loss.backward()
-        for param in self.policy_model.parameters():
+        for name, param in self.policy_model.named_parameters():
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
         gradients = self.policy_model.get_gradients_for_current_parameters()
 
-        return gradients, loss
+        return gradients, loss.item()
 
     def get_parameters(self):
         return self.policy_model.get_parameters()
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
         self.policy_model.transfer_process(parameters, soft_transfer, soft_transfer_tau)
-
-    def optimize_step(self):
-        for param in self.policy_model.parameters():
-            param.grad.data.clamp_(-1, 1)
-        self.optimizer.step()

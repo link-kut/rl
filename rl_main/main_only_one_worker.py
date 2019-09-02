@@ -15,14 +15,14 @@ if __name__ == "__main__":
     sys.stderr = sys.stdout
 
     try:
-        workers = []
-        for worker_id in range(NUM_WORKERS):
-            worker = Process(target=utils.run_worker, args=(worker_id,))
-            workers.append(worker)
-            worker.start()
+        # workers = []
+        # for worker_id in range(NUM_WORKERS):
+        worker = Process(target=utils.run_worker, args=(0,))
+            # workers.append(worker)
+        worker.start()
 
-        for worker in workers:
-            worker.join()
+        # for worker in workers:
+        worker.join()
     except KeyboardInterrupt as error:
         print("=== {0:>8} is aborted by keyboard interrupt".format('Main-Worker'))
     finally:

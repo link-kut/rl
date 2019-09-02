@@ -150,7 +150,7 @@ class Worker:
                     mean_loss_over_recent_100_episodes
                 )
 
-                log_msg += "Score={0:5.1f} (EMA: {1:>4.2f}, Mean: {2:>4.2f})".format(
+                log_msg += " Score={0:5.1f} (EMA: {1:>4.2f}, Mean: {2:>4.2f})".format(
                     score,
                     ema_score,
                     mean_score_over_recent_100_episodes

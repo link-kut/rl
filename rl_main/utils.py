@@ -36,12 +36,12 @@ def exp_moving_average(values, window):
     return a
 
 
-def get_conv2d_size(w, h, kernel_size, padding, stride):
-    return math.floor((w - kernel_size + 2 * padding) / stride) + 1, math.floor((h - kernel_size + 2 * padding) / stride) + 1
+def get_conv2d_size(h, w, kernel_size, padding, stride):
+    return math.floor((h - kernel_size + 2 * padding) / stride + 1), math.floor((w - kernel_size + 2 * padding) / stride + 1)
 
 
-def get_pool2d_size(w, h, kernel_size, stride):
-    return math.floor((w - kernel_size) / stride) + 1, math.floor((h - kernel_size) / stride) + 1
+def get_pool2d_size(h, w, kernel_size, stride):
+    return math.floor((h - kernel_size) / stride + 1), math.floor((w - kernel_size) / stride + 1)
 
 
 def print_configuration(env, rl_model):
@@ -64,15 +64,15 @@ def print_configuration(env, rl_model):
     print("\n*** MY_PLATFORM & ENVIRONMENT ***")
     print(" Platform:" + MY_PLATFORM.value)
     print(" Environment Name:" + ENVIRONMENT_ID.value)
-    print(" Action Space: {0} - {1}".format(env.get_n_actions(), env.action_meaning))
+    print(" Action Space: {0} - {1}".format(env.get_n_actions(), env.action_meanings))
 
     print("\n*** RL ALGORITHM ***")
-    print(" RL Algorithm:" + RL_ALGORITHM.value)
+    print(" RL Algorithm: {0}".format(RL_ALGORITHM.value))
     if RL_ALGORITHM == RLAlgorithmName.PPO_V0:
         print(" PPO_K_EPOCH: {0}".format(PPO_K_EPOCH))
 
     print("\n*** MODEL ***")
-    print(" Deep Learning Model:" + DEEP_LEARNING_MODEL.value)
+    print(" Deep Learning Model: {0}".format(DEEP_LEARNING_MODEL.value))
     if MODE_DEEP_LEARNING_MODEL == "CNN":
         print(" input_width: {0}, input_height: {1}, input_channels: {2}, a_size: {3}, continuous: {4}".format(
             rl_model.input_width,
@@ -81,7 +81,7 @@ def print_configuration(env, rl_model):
             rl_model.a_size,
             rl_model.continuous
         ))
-    elif DEEP_LEARNING_MODEL == "MLP":
+    elif MODE_DEEP_LEARNING_MODEL == "MLP":
         print(" s_size: {0}, hidden_1: {1}, hidden_2: {2}, hidden_3: {3}, a_size: {4}, continuous: {5}".format(
             rl_model.s_size,
             rl_model.hidden_1_size,
@@ -90,6 +90,8 @@ def print_configuration(env, rl_model):
             rl_model.a_size,
             rl_model.continuous
         ))
+    else:
+        pass
 
     print("\n*** Optimizer ***")
     print(" Optimizer:" + OPTIMIZER.value)
@@ -156,6 +158,10 @@ def util_init(module, weight_init, bias_init, gain=1):
     weight_init(module.weight.data, gain=gain)
     bias_init(module.bias.data)
     return module
+
+
+def print_torch(torch_value_name, torch_value):
+    print("{0}:{1} --> size:{2}".format(torch_value_name, torch_value, torch_value.size()))
 
 
 class AddBiases(nn.Module):
