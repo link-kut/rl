@@ -30,7 +30,7 @@ class PPO_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.model = rl_utils.get_rl_model(self.env).to(device)
+        self.model = rl_utils.get_rl_model(self.env)
 
         self.optimizer = rl_utils.get_optimizer(
             parameters=self.model.parameters(),
@@ -122,8 +122,8 @@ class PPO_v0:
                 advantage = self.gamma * GAE_LAMBDA * done_mask_lst[i] * advantage + delta_t[0]
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
-            advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
-            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float).to(device)).to(device)
+            advantage = torch.tensor(advantage_lst, device=device, dtype=torch.float)
+            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, device=device, dtype=torch.float)).to(device)
 
             critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
                                                               target=v_target.detach())
