@@ -11,7 +11,7 @@ from rl_main.main_constants import *
 import rl_main.utils as utils
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '2, 3'
+os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES_NUMBER_LIST
 
 if __name__ == "__main__":
     torch.manual_seed(SEED)

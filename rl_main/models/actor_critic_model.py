@@ -72,7 +72,7 @@ class Policy(nn.Module):
 
     def act(self, inputs, deterministic=False):
         if not (type(inputs) is torch.Tensor):
-            inputs = torch.tensor(inputs, dtype=torch.float).to(device)
+            inputs = torch.tensor(inputs, dtype=torch.float).to(self.device)
 
         _, actor_features = self.base(inputs)
         dist = self.dist(actor_features)
@@ -83,9 +83,9 @@ class Policy(nn.Module):
             action = dist.sample()
 
         if self.continuous:
-            action = torch.tensor([action.item()], dtype=torch.float).to(device)
+            action = torch.tensor([action.item()], device=device, dtype=torch.float)
         else:
-            action = torch.tensor([action.item()], dtype=torch.long).to(device)
+            action = torch.tensor([action.item()], device=device, dtype=torch.long)
 
         action_log_probs = dist.log_probs(action)
 
@@ -111,21 +111,21 @@ class Policy(nn.Module):
 
     def reset_average_gradients(self):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             self.avg_gradients[layer_name] = {}
             for name, param in named_parameters:
-                self.avg_gradients[layer_name][name] = torch.zeros(size=param.size()).to(device)
+                self.avg_gradients[layer_name][name] = torch.zeros(size=param.size()).to(self.device)
 
         named_parameters = self.dist.named_parameters()
         self.avg_gradients["actor_linear"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["actor_linear"][name] = torch.zeros(size=param.size()).to(device)
+            self.avg_gradients["actor_linear"][name] = torch.zeros(size=param.size()).to(self.device)
 
     def get_gradients_for_current_parameters(self):
         gradients = {}
 
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             gradients[layer_name] = {}
             for name, param in named_parameters:
                 gradients[layer_name][name] = param.grad
@@ -139,7 +139,7 @@ class Policy(nn.Module):
 
     def set_gradients_to_current_parameters(self, gradients):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 param.grad = gradients[layer_name][name]
 
@@ -149,7 +149,7 @@ class Policy(nn.Module):
 
     def accumulate_gradients(self, gradients):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] += gradients[layer_name][name]
 
@@ -159,7 +159,7 @@ class Policy(nn.Module):
 
     def get_average_gradients(self, num_workers):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] /= num_workers
         named_parameters = self.dist.named_parameters()
@@ -170,7 +170,7 @@ class Policy(nn.Module):
         parameters = {}
 
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             parameters[layer_name] = {}
             for name, param in named_parameters:
                 parameters[layer_name][name] = param.data
@@ -184,7 +184,7 @@ class Policy(nn.Module):
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.to(device).named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 if soft_transfer:
                     param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)

@@ -62,7 +62,9 @@
 - pip install -U 'mujoco-py<2.1,>=2.0'
 
 ### 9. Linux에 NFS 설치하고 MAC에서 원격 파일 시스템으로 MOUNT하기
-- 참고: https://vitux.com/install-nfs-server-and-client-on-ubuntu/
+- 참고
+  - https://vitux.com/install-nfs-server-and-client-on-ubuntu/
+  - https://jusungpark.tistory.com/36
 - 1) Linux에서의 설정
   - sudo apt-get update
   - sudo apt install nfs-kernel-server
@@ -79,6 +81,10 @@
   - sudo mount -t nfs -o resvport,rw,nfc 192.168.0.43:/home/{account_name}/git ~/linux_nfs_git
       - *Your LINUX IP: 192.168.0.43*
       
+### 10. Pytorch CUDA 사용 확인 
+- python -c 'import torch; print(torch.rand(2,3).cuda())'
+- nvidia-smi
+
 ### 참고 문헌
 - https://medium.com/aureliantactics/ppo-hyperparameters-and-ranges-6fc2d29bccbev
 - https://arxiv.org/pdf/1709.06009.pdf
