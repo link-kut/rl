@@ -170,17 +170,26 @@ class EnvironmentRIP(Environment):
         return next_state, self.reward, adjusted_reward, done, info
 
     def __isDone(self):
+        info = {}
+
+        def insert_to_info(s):
+            info["result"] = s
+
         if self.steps >= 5000:
-            return True, "*** Success!!! ***"
+            insert_to_info("*** Success ***")
+            return True, info
         elif self.is_motor_limit:
             self.reward = 0
-            return True, "*** Limit position ***"
+            insert_to_info("*** Limit position ***")
+            return True, info
         elif abs(self.pendulum_radians[-1]) > 3.14 / 24:
             self.is_fail = True
             self.reward = 0
-            return True, "*** Fail!!! ***"
+            insert_to_info("*** Success ***")
+            return True, info
         else:
-            return False, ""
+            insert_to_info("")
+            return False, info
 
     def close(self):
         self.pub.publish(topic=MQTT_PUB_TO_SERVO_POWER, payload=str(0))
