@@ -72,7 +72,7 @@ class Policy(nn.Module):
 
     def act(self, inputs, deterministic=False):
         if not (type(inputs) is torch.Tensor):
-            inputs = torch.tensor(inputs, dtype=torch.float)
+            inputs = torch.tensor(inputs, dtype=torch.float).to(device)
 
         _, actor_features = self.base(inputs)
         dist = self.dist(actor_features)

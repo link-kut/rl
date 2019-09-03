@@ -62,7 +62,9 @@
 - pip install -U 'mujoco-py<2.1,>=2.0'
 
 ### 9. Linux에 NFS 설치하고 MAC에서 원격 파일 시스템으로 MOUNT하기
-- 참고: https://vitux.com/install-nfs-server-and-client-on-ubuntu/
+- 참고
+  - https://vitux.com/install-nfs-server-and-client-on-ubuntu/
+  - https://jusungpark.tistory.com/36
 - 1) Linux에서의 설정
   - sudo apt-get update
   - sudo apt install nfs-kernel-server
