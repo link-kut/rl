@@ -83,9 +83,9 @@ class Policy(nn.Module):
             action = dist.sample()
 
         if self.continuous:
-            action = torch.tensor([action.item()], dtype=torch.float)
+            action = torch.tensor([action.item()], device=device, dtype=torch.float)
         else:
-            action = torch.tensor([action.item()], dtype=torch.long)
+            action = torch.tensor([action.item()], device=device, dtype=torch.long)
 
         action_log_probs = dist.log_probs(action)
 
