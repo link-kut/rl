@@ -5,12 +5,11 @@ import time
 import zlib
 import sys, os
 
-from rl_main import utils, rl_utils
-
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
+from rl_main import utils, rl_utils
 from rl_main.chief_workers.chief import Chief
 from rl_main.main_constants import *
 

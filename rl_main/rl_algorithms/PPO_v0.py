@@ -251,7 +251,7 @@ class PPO_v0:
 
         avrg_score = score / number_of_reset_call
         gradients, loss = self.train_net()
-        print("episode", episode, action)
+        #print("episode", episode, action)
         return gradients, loss, avrg_score
 
     def get_parameters(self):
