@@ -81,6 +81,10 @@
   - sudo mount -t nfs -o resvport,rw,nfc 192.168.0.43:/home/{account_name}/git ~/linux_nfs_git
       - *Your LINUX IP: 192.168.0.43*
       
+### 10. Pytorch CUDA 사용 확인 
+- python -c 'import torch; print(torch.rand(2,3).cuda())'
+- nvidia-smi
+
 ### 참고 문헌
 - https://medium.com/aureliantactics/ppo-hyperparameters-and-ranges-6fc2d29bccbev
 - https://arxiv.org/pdf/1709.06009.pdf

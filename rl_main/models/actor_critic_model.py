@@ -37,12 +37,12 @@ class Policy(nn.Module):
                 input_height=self.input_height,
                 input_width=self.input_width,
                 continuous=continuous
-            )
+            ).to(device)
         elif MODE_DEEP_LEARNING_MODEL == "MLP":
             self.base = MLPBase(
                 num_inputs=s_size,
                 continuous=continuous
-            )
+            ).to(device)
             self.s_size = s_size
             self.hidden_1_size = self.base.hidden_1_size
             self.hidden_2_size = self.base.hidden_2_size
@@ -56,9 +56,9 @@ class Policy(nn.Module):
         self.a_size = a_size
 
         if self.continuous:
-            self.dist = DistDiagGaussian(self.base.output_size, self.a_size)
+            self.dist = DistDiagGaussian(self.base.output_size, self.a_size).to(device)
         else:
-            self.dist = DistCategorical(self.base.output_size, self.a_size)
+            self.dist = DistCategorical(self.base.output_size, self.a_size).to(device)
 
         self.avg_gradients = {}
         self.device = device
