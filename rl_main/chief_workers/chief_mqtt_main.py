@@ -5,12 +5,11 @@ import time
 import zlib
 import sys, os
 
-from rl_main import utils, rl_utils
-
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
+from rl_main import utils, rl_utils
 from rl_main.chief_workers.chief import Chief
 from rl_main.main_constants import *
 
@@ -44,7 +43,6 @@ def on_chief_log(mqttc, obj, level, string):
 def on_chief_message(client, userdata, msg):
     msg_payload = zlib.decompress(msg.payload)
     msg_payload = pickle.loads(msg_payload)
-
     log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'worker_id': {2}, 'loss': {3}, 'score': {4}".format(
         msg.topic,
         msg_payload['episode'],
@@ -59,7 +57,6 @@ def on_chief_message(client, userdata, msg):
             chief.messages_received_from_workers[msg_payload['episode']] = {}
 
         chief.messages_received_from_workers[msg_payload['episode']][msg_payload["worker_id"]] = (msg.topic, msg_payload)
-
         if len(chief.messages_received_from_workers[chief.episode_chief]) == NUM_WORKERS - chief.NUM_DONE_WORKERS:
             is_include_topic_success_done = False
             parameters_transferred = None
@@ -67,7 +64,6 @@ def on_chief_message(client, userdata, msg):
             for worker_id in range(NUM_WORKERS):
                 if worker_id in chief.messages_received_from_workers[chief.episode_chief]:
                     topic, msg_payload = chief.messages_received_from_workers[chief.episode_chief][worker_id]
-
                     chief.process_message(topic=topic, msg_payload=msg_payload)
 
                     worker_score_str += "W{0}[{1:5.1f}/{2:5.1f}] ".format(
@@ -79,7 +75,6 @@ def on_chief_message(client, userdata, msg):
                     if topic == MQTT_TOPIC_SUCCESS_DONE:
                         parameters_transferred = msg_payload["parameters"]
                         is_include_topic_success_done = True
-
             if is_include_topic_success_done:
                 transfer_msg = chief.send_transfer_ack(parameters_transferred)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)

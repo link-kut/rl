@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from rl_main import rl_utils
 from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
-    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, MAX_TRAJECTORY, BATCH_SIZE
+    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE
 
 
 class PPO_v0:
@@ -30,7 +30,7 @@ class PPO_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.model = rl_utils.get_rl_model(self.env).to(device)
+        self.model = rl_utils.get_rl_model(self.env)
 
         self.optimizer = rl_utils.get_optimizer(
             parameters=self.model.parameters(),
@@ -45,8 +45,8 @@ class PPO_v0:
 
         state_lst, action_lst, reward_lst, next_state_lst, prob_action_lst, done_mask_lst = [], [], [], [], [], []
         if sampling:
-            sampling_index = random.randrange(0, len(self.trajectory)-BATCH_SIZE+1)
-            trajectory = self.trajectory[sampling_index:sampling_index+BATCH_SIZE]
+            sampling_index = random.randrange(0, len(self.trajectory)-TRAJECTORY_BATCH_SIZE+1)
+            trajectory = self.trajectory[sampling_index:sampling_index+TRAJECTORY_BATCH_SIZE]
         else:
             trajectory = self.trajectory
 
@@ -122,8 +122,8 @@ class PPO_v0:
                 advantage = self.gamma * GAE_LAMBDA * done_mask_lst[i] * advantage + delta_t[0]
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
-            advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
-            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float))
+            advantage = torch.tensor(advantage_lst, device=device, dtype=torch.float)
+            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, device=device, dtype=torch.float)).to(device)
 
             critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
                                                               target=v_target.detach())
@@ -140,7 +140,7 @@ class PPO_v0:
             # loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
             #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
-            actor_loss = - torch.min(surr1, surr2) \
+            actor_loss = - torch.min(surr1, surr2).to(device) \
                          - PPO_ENTROPY_WEIGHT * dist_entropy
             self.optimizer.zero_grad()
             actor_loss.mean().backward()
@@ -229,7 +229,7 @@ class PPO_v0:
         number_of_reset_call = 0.0
 
         if TRAJECTORY_SAMPLING:
-            max_trajectory_len = MAX_TRAJECTORY
+            max_trajectory_len = TRAJECTORY_LIMIT_SIZE
         else:
             max_trajectory_len = 0
 
@@ -244,14 +244,20 @@ class PPO_v0:
                 action, prob = self.model.act(state)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
-                self.put_data((state, action, adjusted_reward, next_state, prob, done))
+                if "skipping" in info.keys():
+                    if info["skipping"]:
+                        pass
+                    else:
+                        self.put_data((state, action, adjusted_reward, next_state, prob, done))
+                else:
+                    self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
                 state = next_state
                 score += reward
 
         avrg_score = score / number_of_reset_call
         gradients, loss = self.train_net()
-        print("episode", episode, action)
+        #print("episode", episode, action)
         return gradients, loss, avrg_score
 
     def get_parameters(self):

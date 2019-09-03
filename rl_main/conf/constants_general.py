@@ -32,7 +32,7 @@ MQTT_SUB_MOTOR_LIMIT = 'motor_limit_info_2'
 MQTT_SUB_RESET_COMPLETE = 'reset_complete_2'
 
 # [WORKER]
-NUM_WORKERS = 2
+NUM_WORKERS = 1
 
 # [TRANSFER]
 SOFT_TRANSFER = False
@@ -52,7 +52,7 @@ HIDDEN_3_SIZE = 128
 CNN_HIDDEN_SIZE = 128
 
 # [OPTIMIZATION]
-MAX_EPISODES = 1000
+MAX_EPISODES = 2000
 GAMMA = 0.98 # discount factor
 
 # [MODE]
@@ -69,27 +69,17 @@ EPSILON_GREEDY_ACT = False
 OPTIMIZER = OptimizerName.ADAM
 PPO_K_EPOCH = 25
 GAE_LAMBDA = 0.95
+
+# [TRAJECTORY_SAMPLING]
+TRAJECTORY_SAMPLING = True
+TRAJECTORY_LIMIT_SIZE = 200
+TRAJECTORY_BATCH_SIZE = 64
+
+# [PPO]
+PPO_K_EPOCH = 10
 PPO_EPSILON_CLIP = 0.2
 PPO_VALUE_LOSS_WEIGHT = 0.5
 PPO_ENTROPY_WEIGHT = 0.01
 
-########################################################################################
-# COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
-########################################################################################
-# ENV_RENDER = None
-#
-# PYTHON_PATH_MINE = "~/anaconda3/envs/rl/bin/python"
-# MQTT_SERVER_MINE = "localhost"
-#
-# ENV_RENDER_MINE = False
-# WIN_AND_LEARN_FINISH_SCORE_MINE = 195
-# WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE = 100
-#
-# # [1. ENVIRONMENTS]
-# ENVIRONMENT_ID = EnvironmentName.BREAKOUT_DETERMINISTIC_V4
-#
-# # [2. DEEP_LEARNING_MODELS]
-# DEEP_LEARNING_MODEL = ModelName.Actor_Critic_CNN
-#
-# # [3. ALGORITHMS]
-# RL_ALGORITHM = RLAlgorithmName.DQN_V0
+# [CUDA]
+CUDA_VISIBLE_DEVICES_NUMBER_LIST = '2, 3'
