@@ -69,8 +69,8 @@ class EnvironmentRIP(Environment):
 
     def set_state(self, motor_radian, motor_velocity, pendulum_radian, pendulum_velocity):
         self.is_state_changed = True
-        # self.state = [pendulum_radian, pendulum_velocity, motor_radian, motor_velocity]
-        self.state = [pendulum_radian, pendulum_velocity]
+        self.state = [pendulum_radian, pendulum_velocity, motor_radian, motor_velocity]
+        # self.state = [pendulum_radian, pendulum_velocity]
 
         self.current_pendulum_radian = pendulum_radian
         self.current_pendulum_velocity = pendulum_velocity
@@ -92,7 +92,7 @@ class EnvironmentRIP(Environment):
         self.__pub(MQTT_PUB_TO_SERVO_POWER, "0|wait|{0}".format(PUB_ID))
 
     def get_n_states(self):
-        n_states = 2
+        n_states = 4
         return n_states
 
     def get_n_actions(self):
@@ -100,10 +100,17 @@ class EnvironmentRIP(Environment):
         return n_actions
 
     def get_state_shape(self):
-        return None
+        state_shape = (2,)
+        return state_shape
 
     def get_action_shape(self):
-        return None
+        action_shape = (3,)
+        return action_shape
+
+    @property
+    def action_meanings(self):
+        action_meanings = ["LEFT", "STOP", "RIGHT"]
+        return action_meanings
 
     def reset(self):
         self.steps = 0

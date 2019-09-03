@@ -110,7 +110,7 @@ if __name__ == "__main__":
     if MQTT_LOG:
         chief.on_log = on_chief_log
 
-    chief_mqtt_client.connect(MQTT_SERVER, MQTT_PORT)
+    chief_mqtt_client.connect(MQTT_SERVER, MQTT_PORT, keepalive=3600)
     chief_mqtt_client.loop_start()
 
     while True:
