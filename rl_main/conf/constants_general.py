@@ -77,23 +77,5 @@ PPO_EPSILON_CLIP = 0.2
 PPO_VALUE_LOSS_WEIGHT = 0.5
 PPO_ENTROPY_WEIGHT = 0.01
 
-########################################################################################
-# COPY THE FOLLOWINGS INTO "constants_mine.py" and ALTER ACCORDING TO YOUR APPLICATION #
-########################################################################################
-# ENV_RENDER = None
-#
-# PYTHON_PATH_MINE = "~/anaconda3/envs/rl/bin/python"
-# MQTT_SERVER_MINE = "localhost"
-#
-# ENV_RENDER_MINE = False
-# WIN_AND_LEARN_FINISH_SCORE_MINE = 195
-# WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES_MINE = 100
-#
-# # [1. ENVIRONMENTS]
-# ENVIRONMENT_ID = EnvironmentName.BREAKOUT_DETERMINISTIC_V4
-#
-# # [2. DEEP_LEARNING_MODELS]
-# DEEP_LEARNING_MODEL = ModelName.Actor_Critic_CNN
-#
-# # [3. ALGORITHMS]
-# RL_ALGORITHM = RLAlgorithmName.DQN_V0
+# [CUDA]
+CUDA_VISIBLE_DEVICES_NUMBER_LIST = '2, 3'
