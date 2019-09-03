@@ -60,13 +60,13 @@ class DistDiagGaussian(nn.Module):
         init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
 
         self.linear = init_(nn.Linear(num_inputs, num_outputs))
-        self.logstd = AddBiases(torch.zeros(num_outputs))
+        self.logstd = AddBiases(torch.zeros(num_outputs).to(device))
 
     def forward(self, x):
-        action_mean = torch.tanh(self.linear(x))
+        action_mean = tanh(self.linear(x))
 
         #  An ugly hack for my KFAC implementation.
-        zeros = torch.zeros(action_mean.size())
+        zeros = zeros(action_mean.size())
         if x.is_cuda:
             zeros = zeros.cuda()
 

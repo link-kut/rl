@@ -113,7 +113,7 @@ class DQN_v0:
                 action, _ = self.policy_model.act(state)
                 return action.unsqueeze(0)
         else:
-            return torch.tensor([[random.randrange(self.env.n_actions)]], device=device, dtype=torch.long)
+            return torch.tensor([[random.randrange(self.env.n_actions)]], device=device, dtype=torch.long).to(device)
 
     def train_net(self):
         if len(self.memory) < BATCH_SIZE:
