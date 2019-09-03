@@ -66,7 +66,6 @@ class Policy(nn.Module):
         self.reset_average_gradients()
 
         self.steps_done = 0
-        print(self.device)
 
     def forward(self, inputs):
         raise NotImplementedError
