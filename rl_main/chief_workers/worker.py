@@ -13,6 +13,8 @@ import rl_main.rl_utils as rl_utils
 
 env = rl_utils.get_environment(owner="worker")
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("worker.py --> {0}".format(device))
 
 class Worker:
     def __init__(self, logger, worker_id, worker_mqtt_client):

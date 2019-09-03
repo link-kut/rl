@@ -11,6 +11,8 @@ from matplotlib import gridspec
 
 from collections import deque
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("chief.py --> {0}".format(device))
 
 class Chief:
     def __init__(self, logger, env, rl_model):
