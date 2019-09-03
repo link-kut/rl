@@ -123,7 +123,7 @@ class PPO_v0:
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
-            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float))
+            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float).to(device)).to(device)
 
             critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
                                                               target=v_target.detach())
@@ -140,7 +140,7 @@ class PPO_v0:
             # loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
             #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
-            actor_loss = - torch.min(surr1, surr2) \
+            actor_loss = - torch.min(surr1, surr2).to(device) \
                          - PPO_ENTROPY_WEIGHT * dist_entropy
             self.optimizer.zero_grad()
             actor_loss.mean().backward()
