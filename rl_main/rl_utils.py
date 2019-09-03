@@ -15,6 +15,8 @@ from rl_main.models.actor_critic_model import Policy
 from rl_main.rl_algorithms.DQN_v0 import DQN_v0
 from rl_main.rl_algorithms.PPO_v0 import PPO_v0
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def get_environment(owner="chief"):
     if ENVIRONMENT_ID == EnvironmentName.QUANSER_SERVO_2:
