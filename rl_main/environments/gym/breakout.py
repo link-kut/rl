@@ -21,6 +21,9 @@ class BreakoutDeterministic_v4(Environment):
 
         self.last_ball_lives = -1
 
+        self.skipping_state_fq = 3
+        self.skipping_state_index = 0
+
     @staticmethod
     def to_grayscale(img):
         r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
@@ -93,8 +96,16 @@ class BreakoutDeterministic_v4(Environment):
             env_action = 1
             self.last_ball_lives = info['ale.lives']
             next_state, reward, done, info = self.env.step(env_action)
+            reward -= 1.0
+
+        info["skipping"] = True
+        if self.skipping_state_index == self.skipping_state_fq:
+            self.skipping_state_index = 0
+            info["skipping"] = False
 
         adjusted_reward = self.transform_reward(reward)
+
+        self.skipping_state_index += 1
 
         return self.preprocess(next_state), reward, adjusted_reward, done, info
 

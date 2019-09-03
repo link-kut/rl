@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from rl_main import rl_utils
 from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
-    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, MAX_TRAJECTORY, BATCH_SIZE
+    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE
 
 
 class PPO_v0:
@@ -45,8 +45,8 @@ class PPO_v0:
 
         state_lst, action_lst, reward_lst, next_state_lst, prob_action_lst, done_mask_lst = [], [], [], [], [], []
         if sampling:
-            sampling_index = random.randrange(0, len(self.trajectory)-BATCH_SIZE+1)
-            trajectory = self.trajectory[sampling_index:sampling_index+BATCH_SIZE]
+            sampling_index = random.randrange(0, len(self.trajectory)-TRAJECTORY_BATCH_SIZE+1)
+            trajectory = self.trajectory[sampling_index:sampling_index+TRAJECTORY_BATCH_SIZE]
         else:
             trajectory = self.trajectory
 
@@ -229,7 +229,7 @@ class PPO_v0:
         number_of_reset_call = 0.0
 
         if TRAJECTORY_SAMPLING:
-            max_trajectory_len = MAX_TRAJECTORY
+            max_trajectory_len = TRAJECTORY_LIMIT_SIZE
         else:
             max_trajectory_len = 0
 
@@ -244,7 +244,13 @@ class PPO_v0:
                 action, prob = self.model.act(state)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
-                self.put_data((state, action, adjusted_reward, next_state, prob, done))
+                if "skipping" in info.keys():
+                    if info["skipping"]:
+                        pass
+                    else:
+                        self.put_data((state, action, adjusted_reward, next_state, prob, done))
+                else:
+                    self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
                 state = next_state
                 score += reward
