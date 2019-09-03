@@ -14,7 +14,7 @@ sys.path.append(PROJECT_HOME)
 
 from rl_main.main_constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
     ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM, OPTIMIZER, PPO_K_EPOCH, \
-    HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, MODE_DEEP_LEARNING_MODEL
+    HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, MODE_DEEP_LEARNING_MODEL, device
 
 torch.manual_seed(0) # set random seed
 
@@ -98,8 +98,8 @@ def print_configuration(env, rl_model):
 
     print()
 
-
 def ask_file_removal():
+    print("CPU/GPU Devices:{0}".format(device))
     response = input("DELETE All Graphs, Logs, and Model Files? [y/n]: ")
 
     if response == "Y" or response == "y":
