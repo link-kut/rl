@@ -42,6 +42,11 @@ class Drone_Racing(Environment):
     def get_action_shape(self):
         return self.env.action_space
 
+    @property
+    def action_meanings(self):
+        action_meanings = ["FORWARD", "BACKWARD", "LEFT", "RIGHT", "UP", "DOWN", "L_ROTATE", "R_ROTATE"]
+        return action_meanings
+
     def reset(self):
         state = self.env.reset()
         return state
