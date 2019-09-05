@@ -30,6 +30,9 @@ class Drone_Racing(Environment):
 
         self.continuous = False
 
+        self.skipping_state_fq = 3
+        self.skipping_state_index = 0
+
     def get_n_states(self):
         return self.env.observation_space.shape[0]
 
@@ -53,10 +56,21 @@ class Drone_Racing(Environment):
 
     def step(self, action):
         action_list = [0] * 9
-        action_list[action] = 1
-        next_state, reward, done, info = self.env.step(action_list)
 
+        if self.is_skip_phase():
+            action_list[8] = 1  # hover action
+        else:
+            action_list[action] = 1
+
+        next_state, reward, done, info = self.env.step(action_list)
         adjusted_reward = reward
+
+        info["skipping"] = True
+        if not self.is_skip_phase():
+            self.skipping_state_index = 0
+            info["skipping"] = False
+
+        self.skipping_state_index += 1
 
         return next_state, reward, adjusted_reward, done, info
 
@@ -65,6 +79,9 @@ class Drone_Racing(Environment):
 
     def close(self):
         self.env.close()
+
+    def is_skip_phase(self):
+        return self.skipping_state_index != self.skipping_state_fq
 
 
 if __name__ == "__main__":
