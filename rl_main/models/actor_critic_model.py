@@ -42,6 +42,11 @@ class Policy(nn.Module):
                 num_inputs=s_size,
                 continuous=continuous
             )
+            self.s_size = s_size
+            self.hidden_1_size = self.base.hidden_1_size
+            self.hidden_2_size = self.base.hidden_2_size
+            self.hidden_3_size = self.base.hidden_3_size
+
         else:
             raise NotImplementedError
 
@@ -66,7 +71,7 @@ class Policy(nn.Module):
 
     def act(self, inputs, deterministic=False):
         if not (type(inputs) is torch.Tensor):
-            inputs = torch.tensor(inputs, dtype=torch.float)
+            inputs = torch.tensor(inputs, dtype=torch.float).to(self.device)
 
         _, actor_features = self.base(inputs)
         dist = self.dist(actor_features)
@@ -77,9 +82,9 @@ class Policy(nn.Module):
             action = dist.sample()
 
         if self.continuous:
-            action = torch.tensor([action.item()], dtype=torch.float)
+            action = torch.tensor([action.item()], device=device, dtype=torch.float)
         else:
-            action = torch.tensor([action.item()], dtype=torch.long)
+            action = torch.tensor([action.item()], device=device, dtype=torch.long)
 
         action_log_probs = dist.log_probs(action)
 
@@ -105,21 +110,21 @@ class Policy(nn.Module):
 
     def reset_average_gradients(self):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             self.avg_gradients[layer_name] = {}
             for name, param in named_parameters:
-                self.avg_gradients[layer_name][name] = torch.zeros(size=param.size())
+                self.avg_gradients[layer_name][name] = torch.zeros(size=param.size()).to(self.device)
 
         named_parameters = self.dist.named_parameters()
         self.avg_gradients["actor_linear"] = {}
         for name, param in named_parameters:
-            self.avg_gradients["actor_linear"][name] = torch.zeros(size=param.size())
+            self.avg_gradients["actor_linear"][name] = torch.zeros(size=param.size()).to(self.device)
 
     def get_gradients_for_current_parameters(self):
         gradients = {}
 
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             gradients[layer_name] = {}
             for name, param in named_parameters:
                 gradients[layer_name][name] = param.grad
@@ -133,7 +138,7 @@ class Policy(nn.Module):
 
     def set_gradients_to_current_parameters(self, gradients):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 param.grad = gradients[layer_name][name]
 
@@ -143,7 +148,7 @@ class Policy(nn.Module):
 
     def accumulate_gradients(self, gradients):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] += gradients[layer_name][name]
 
@@ -153,7 +158,7 @@ class Policy(nn.Module):
 
     def get_average_gradients(self, num_workers):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 self.avg_gradients[layer_name][name] /= num_workers
         named_parameters = self.dist.named_parameters()
@@ -164,7 +169,7 @@ class Policy(nn.Module):
         parameters = {}
 
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             parameters[layer_name] = {}
             for name, param in named_parameters:
                 parameters[layer_name][name] = param.data
@@ -178,7 +183,7 @@ class Policy(nn.Module):
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
         for layer_name, layer in self.base.layers_info.items():
-            named_parameters = layer.named_parameters()
+            named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 if soft_transfer:
                     param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
@@ -246,8 +251,8 @@ class CNNBase(nn.Module):
         self.continuous = continuous
 
         from rl_main.utils import get_conv2d_size, get_pool2d_size
-        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=2, padding=0, stride=1)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=2, padding=0, stride=1)
+        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=1)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=1)
         h, w = get_pool2d_size(h=h, w=w, kernel_size=2, stride=1)
         h, w = get_conv2d_size(h=h, w=w, kernel_size=2, padding=0, stride=1)
         h, w = get_pool2d_size(h=h, w=w, kernel_size=2, stride=1)
@@ -262,9 +267,9 @@ class CNNBase(nn.Module):
             activation = nn.LeakyReLU()
 
         self.actor = nn.Sequential(
-            init_(nn.Conv2d(in_channels=input_channels, out_channels=8, kernel_size=2, padding=0, stride=1)),
+            init_(nn.Conv2d(in_channels=input_channels, out_channels=8, kernel_size=8, padding=0, stride=1)),
             nn.BatchNorm2d(num_features=8), activation,
-            init_(nn.Conv2d(in_channels=8, out_channels=4, kernel_size=2, padding=0, stride=1)),
+            init_(nn.Conv2d(in_channels=8, out_channels=4, kernel_size=4, padding=0, stride=1)),
             nn.BatchNorm2d(num_features=4), activation,
             nn.MaxPool2d(kernel_size=2, stride=1),
             init_(nn.Conv2d(in_channels=4, out_channels=3, kernel_size=2, padding=0, stride=1)),

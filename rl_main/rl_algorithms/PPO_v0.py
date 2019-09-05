@@ -3,12 +3,13 @@ import sys
 
 
 import numpy as np
+import random
 import torch
 import torch.nn.functional as F
 
 from rl_main import rl_utils
 from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
-    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT
+    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE
 
 
 class PPO_v0:
@@ -23,13 +24,13 @@ class PPO_v0:
         self.trajectory = []
 
         # learning rate
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.001
 
         self.env_render = env_render
         self.logger = logger
         self.verbose = verbose
 
-        self.model = rl_utils.get_rl_model(self.env).to(device)
+        self.model = rl_utils.get_rl_model(self.env)
 
         self.optimizer = rl_utils.get_optimizer(
             parameters=self.model.parameters(),
@@ -39,12 +40,17 @@ class PPO_v0:
     def put_data(self, transition):
         self.trajectory.append(transition)
 
-    def get_trajectory_data(self):
+    def get_trajectory_data(self, sampling=False):
         # print("Before - Trajectory Size: {0}".format(len(self.trajectory)))
 
         state_lst, action_lst, reward_lst, next_state_lst, prob_action_lst, done_mask_lst = [], [], [], [], [], []
+        if sampling:
+            sampling_index = random.randrange(0, len(self.trajectory)-TRAJECTORY_BATCH_SIZE+1)
+            trajectory = self.trajectory[sampling_index:sampling_index+TRAJECTORY_BATCH_SIZE]
+        else:
+            trajectory = self.trajectory
 
-        for transition in self.trajectory:
+        for transition in trajectory:
             s, a, r, s_prime, prob_a, done = transition
 
             if type(s) is np.ndarray:
@@ -72,7 +78,7 @@ class PPO_v0:
         done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float).to(device)
         prob_action_lst = torch.tensor(prob_action_lst).to(device)
 
-        self.trajectory.clear()
+
 
         # print("After - Trajectory Size: {0}".format(len(self.trajectory)))
 
@@ -85,10 +91,15 @@ class PPO_v0:
         return state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst
 
     def train_net(self):
+
         state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst = self.get_trajectory_data()
+
         loss_sum = 0.0
         for i in range(PPO_K_EPOCH):
-
+            if TRAJECTORY_SAMPLING:
+                state_lst, action_lst, reward_lst, next_state_lst, done_mask_lst, prob_action_lst = self.get_trajectory_data(sampling=True)
+            else:
+                pass
             # print("WORKER: {0} - PPO_K_EPOCH: {1}/{2} - state_lst: {3}".format(self.worker_id, i+1, PPO_K_EPOCH, state_lst.size()))
 
             # discount_r_lst = []
@@ -107,12 +118,18 @@ class PPO_v0:
 
             advantage_lst = []
             advantage = 0.0
-            for delta_t in delta[::-1]:
-                advantage = self.gamma * GAE_LAMBDA * advantage + delta_t[0]
+            for i, delta_t in enumerate(delta[::-1]):
+                advantage = self.gamma * GAE_LAMBDA * done_mask_lst[i] * advantage + delta_t[0]
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
-            advantage = torch.tensor(advantage_lst, dtype=torch.float).to(device)
-            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, dtype=torch.float))
+            advantage = torch.tensor(advantage_lst, device=device, dtype=torch.float)
+            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, device=device, dtype=torch.float)).to(device)
+
+            critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
+                                                              target=v_target.detach())
+            self.optimizer.zero_grad()
+            critic_loss.mean().backward()
+            self.optimizer.step()
 
             _, new_prob_action_lst, dist_entropy = self.model.evaluate_for_other_actions(state_lst, action_lst)
 
@@ -123,10 +140,13 @@ class PPO_v0:
             # loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
             #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
-            loss = -torch.min(surr1, surr2) \
-                   + PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
-                                                              target=v_target.detach()) \
-                   - PPO_ENTROPY_WEIGHT * dist_entropy
+            actor_loss = - torch.min(surr1, surr2).to(device) \
+                         - PPO_ENTROPY_WEIGHT * dist_entropy
+            self.optimizer.zero_grad()
+            actor_loss.mean().backward()
+            self.optimizer.step()
+
+            loss = critic_loss + actor_loss
 
             # print("state_lst_mean: {0}".format(state_lst.mean()))
             # print("next_state_lst_mean: {0}".format(next_state_lst.mean()))
@@ -163,9 +183,9 @@ class PPO_v0:
             #     print("!!!!!!!!!!!!!! - 2 - critic", name)
             #     print(param.grad)
 
-            self.optimizer.zero_grad()
-            loss.mean().backward()
-            self.optimizer.step()
+            # self.optimizer.zero_grad()
+            # loss.mean().backward()
+            # self.optimizer.step()
 
             # actor_fc_named_parameters = self.model.actor_fc_layer.named_parameters()
             # critic_fc_named_parameters = self.model.critic_fc_layer.named_parameters()
@@ -198,29 +218,47 @@ class PPO_v0:
 
             loss_sum += loss.mean().item()
 
+        self.trajectory.clear()
+
         gradients = self.model.get_gradients_for_current_parameters()
         return gradients, loss_sum / PPO_K_EPOCH
 
     def on_episode(self, episode):
-        state = self.env.reset()
 
-        done = False
         score = 0.0
+        number_of_reset_call = 0.0
 
-        while not done:
-            if self.env_render:
-                self.env.render()
+        if TRAJECTORY_SAMPLING:
+            max_trajectory_len = TRAJECTORY_LIMIT_SIZE
+        else:
+            max_trajectory_len = 0
 
-            action, prob = self.model.act(state)
-            next_state, reward, adjusted_reward, done, info = self.env.step(action)
-            self.put_data((state, action, adjusted_reward, next_state, prob, done))
+        while not len(self.trajectory) >= max_trajectory_len:
+            done = False
+            state = self.env.reset()
+            number_of_reset_call += 1.0
+            while not done:
+                if self.env_render:
+                    self.env.render()
 
-            state = next_state
-            score += reward
+                action, prob = self.model.act(state)
 
+                next_state, reward, adjusted_reward, done, info = self.env.step(action)
+                if "skipping" in info.keys():
+                    if info["skipping"]:
+                        pass
+                    else:
+                        self.put_data((state, action, adjusted_reward, next_state, prob, done))
+                else:
+                    self.put_data((state, action, adjusted_reward, next_state, prob, done))
+
+                state = next_state
+                score += reward
+
+        avrg_score = score / number_of_reset_call
         gradients, loss = self.train_net()
-
-        return gradients, loss, score
+        #print("episode", episode, action)
+        return gradients, loss, avrg_score
 
     def get_parameters(self):
         return self.model.get_parameters()

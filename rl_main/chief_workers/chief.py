@@ -51,7 +51,6 @@ class Chief:
         worker_id = msg_payload['worker_id']
         loss = msg_payload['loss']
         score = msg_payload['score']
-
         self.losses[worker_id].append(loss)
         self.scores[worker_id].append(score)
         self.score_over_recent_100_episodes[worker_id].append(score)

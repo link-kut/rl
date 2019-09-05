@@ -17,7 +17,7 @@ if __name__ == "__main__":
     try:
         # workers = []
         # for worker_id in range(NUM_WORKERS):
-        worker = Process(target=utils.run_worker, args=(0,))
+        worker = Process(target=utils.run_worker, args=(1,))
             # workers.append(worker)
         worker.start()
 

@@ -66,7 +66,7 @@ def get_environment(owner="chief"):
             # client.on_log = __on_log
 
             # client.username_pw_set(username="link", password="0123")
-            client.connect(MQTT_SERVER_FOR_RIP, 1883, 60)
+            client.connect(MQTT_SERVER_FOR_RIP, 1883, 3600)
 
             print("***** Sub thread started!!! *****", flush=False)
             client.loop_start()
