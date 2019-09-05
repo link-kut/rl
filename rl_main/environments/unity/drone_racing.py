@@ -44,7 +44,7 @@ class Drone_Racing(Environment):
 
     @property
     def action_meanings(self):
-        action_meanings = ["FORWARD", "BACKWARD", "LEFT", "RIGHT", "UP", "DOWN", "L_ROTATE", "R_ROTATE"]
+        action_meanings = ["FORWARD", "BACKWARD", "RIGHT", "LEFT", "UP", "DOWN", "R_ROTATE", "L_ROTATE", "HOVER"]
         return action_meanings
 
     def reset(self):
@@ -52,7 +52,7 @@ class Drone_Racing(Environment):
         return state
 
     def step(self, action):
-        action_list = [0] * 8
+        action_list = [0] * 9
         action_list[action] = 1
         next_state, reward, done, info = self.env.step(action_list)
 
@@ -84,8 +84,8 @@ if __name__ == "__main__":
     idx = 0
     while not is_done:
         # Perform a random action, returns the new frame, reward and whether the game is over
-        action_space = [0] * 8
-        action_space[randint(0, 7)] = 1
+        action_space = [0] * 9
+        action_space[randint(0, 8)] = 1
         frame, reward, adjusted_reward, is_done, _ = env.step(action_space)
 
         state = frame - last_frame
