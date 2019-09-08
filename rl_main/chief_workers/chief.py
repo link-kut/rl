@@ -8,6 +8,7 @@ import rl_main.rl_utils as rl_utils
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import csv
 
 from collections import deque
 
@@ -112,6 +113,13 @@ class Chief:
 
         plt.savefig(os.path.join(PROJECT_HOME, "graphs", "loss_score.png"))
         plt.close('all')
+
+    def save_results(self, worker_id, loss, score, ema_score):
+        save_dir = PROJECT_HOME + "save_results/outputs.csv"
+        f = open(save_dir, 'a', encoding='utf-8', newline='')
+        wr = csv.writer(f)
+        wr.writerow([self.episode_chief, worker_id, loss, score, ema_score])
+        f.close()
 
     def process_message(self, topic, msg_payload):
         self.update_loss_score(msg_payload)

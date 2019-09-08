@@ -122,6 +122,10 @@ def ask_file_removal():
         for f in files:
             os.remove(f)
 
+        files = glob.glob(os.path.join(PROJECT_HOME, "save_results", "*"))
+        for f in files:
+            os.remove(f)
+
 
 def make_output_folders():
     if not os.path.exists(os.path.join(PROJECT_HOME, "graphs")):
@@ -135,6 +139,9 @@ def make_output_folders():
 
     if not os.path.exists(os.path.join(PROJECT_HOME, "model_save_files")):
         os.makedirs(os.path.join(PROJECT_HOME, "model_save_files"))
+
+    if not os.path.exists(os.path.join(PROJECT_HOME, "save_results")):
+        os.makedirs(os.path.join(PROJECT_HOME, "save_results"))
 
 
 def run_chief():
