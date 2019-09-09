@@ -8,6 +8,7 @@ import rl_main.rl_utils as rl_utils
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import csv
 
 from collections import deque
 
@@ -24,6 +25,7 @@ class Chief:
         self.losses = {}
 
         self.score_over_recent_100_episodes = {}
+        self.loss_over_recent_100_episodes = {}
 
         self.success_done_episode = {}
         self.success_done_score = {}
@@ -46,6 +48,7 @@ class Chief:
             self.success_done_score[worker_id] = []
 
             self.score_over_recent_100_episodes[worker_id] = deque(maxlen=self.env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+            self.loss_over_recent_100_episodes[worker_id] = deque(maxlen=self.env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
     def update_loss_score(self, msg_payload):
         worker_id = msg_payload['worker_id']
@@ -53,6 +56,7 @@ class Chief:
         score = msg_payload['score']
         self.losses[worker_id].append(loss)
         self.scores[worker_id].append(score)
+        self.loss_over_recent_100_episodes[worker_id].append(loss)
         self.score_over_recent_100_episodes[worker_id].append(score)
 
     def save_graph(self):
@@ -112,6 +116,13 @@ class Chief:
 
         plt.savefig(os.path.join(PROJECT_HOME, "graphs", "loss_score.png"))
         plt.close('all')
+
+    def save_results(self, worker_id, loss, ema_loss, score, ema_score):
+        save_dir = PROJECT_HOME + "save_results/outputs.csv"
+        f = open(save_dir, 'a', encoding='utf-8', newline='')
+        wr = csv.writer(f)
+        wr.writerow([self.episode_chief, worker_id, loss, ema_loss, score, ema_score])
+        f.close()
 
     def process_message(self, topic, msg_payload):
         self.update_loss_score(msg_payload)

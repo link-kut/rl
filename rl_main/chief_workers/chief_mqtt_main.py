@@ -72,6 +72,12 @@ def on_chief_message(client, userdata, msg):
                         np.mean(chief.score_over_recent_100_episodes[worker_id])
                     )
 
+                    chief.save_results(worker_id,
+                        chief.messages_received_from_workers[chief.episode_chief][worker_id][1]['loss'],
+                        np.mean(chief.loss_over_recent_100_episodes[worker_id]),
+                        chief.messages_received_from_workers[chief.episode_chief][worker_id][1]['score'],
+                        np.mean(chief.score_over_recent_100_episodes[worker_id]))
+
                     if topic == MQTT_TOPIC_SUCCESS_DONE:
                         parameters_transferred = msg_payload["parameters"]
                         is_include_topic_success_done = True
