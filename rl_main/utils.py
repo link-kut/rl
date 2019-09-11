@@ -122,6 +122,10 @@ def ask_file_removal():
         for f in files:
             os.remove(f)
 
+        files = glob.glob(os.path.join(PROJECT_HOME, "save_results", "*"))
+        for f in files:
+            os.remove(f)
+
 
 def make_output_folders():
     if not os.path.exists(os.path.join(PROJECT_HOME, "graphs")):
@@ -135,6 +139,9 @@ def make_output_folders():
 
     if not os.path.exists(os.path.join(PROJECT_HOME, "model_save_files")):
         os.makedirs(os.path.join(PROJECT_HOME, "model_save_files"))
+
+    if not os.path.exists(os.path.join(PROJECT_HOME, "save_results")):
+        os.makedirs(os.path.join(PROJECT_HOME, "save_results"))
 
 
 def run_chief():
@@ -163,8 +170,13 @@ def util_init(module, weight_init, bias_init, gain=1):
     return module
 
 
-def print_torch(torch_value_name, torch_value):
-    print("{0}:{1} --> size:{2}".format(torch_value_name, torch_value, torch_value.size()))
+def print_torch(torch_tensor_name, torch_tensor):
+    print("{0}:{1} --> size:{2} --> require_grad:{3}".format(
+        torch_tensor_name,
+        torch_tensor,
+        torch_tensor.size(),
+        torch_tensor.requires_grad
+    ))
 
 
 class AddBiases(nn.Module):

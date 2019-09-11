@@ -81,7 +81,7 @@ if __name__ == "__main__":
     if MQTT_LOG:
         worker_mqtt_client.on_log = on_worker_log
 
-    worker_mqtt_client.connect(MQTT_SERVER, MQTT_PORT)
+    worker_mqtt_client.connect(MQTT_SERVER, MQTT_PORT, keepalive=3600)
     worker_mqtt_client.loop_start()
 
     stderr = sys.stderr

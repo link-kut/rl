@@ -10,8 +10,7 @@ import torch.nn.functional as F
 # from torch.distributions import Categorical
 from random import random, randint
 import math
-from rl_main.utils import AddBiases, util_init
-
+from rl_main.utils import AddBiases, util_init, print_torch
 
 EPS_START = 0.9     # e-greedy threshold start value
 EPS_END = 0.05      # e-greedy threshold end value
