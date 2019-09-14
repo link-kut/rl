@@ -246,16 +246,15 @@ class MLPBase(nn.Module):
 class CNNBase(nn.Module):
     def __init__(self, input_channels, input_height, input_width, continuous):
         super(CNNBase, self).__init__()
-        self.cnn_hidden_size = CNN_HIDDEN_SIZE
+        self.cnn_critic_hidden_1_size = CNN_CRITIC_HIDDEN_1_SIZE
+        self.cnn_critic_hidden_2_size = CNN_CRITIC_HIDDEN_2_SIZE
 
         self.continuous = continuous
 
         from rl_main.utils import get_conv2d_size, get_pool2d_size
-        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=1)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=1)
-        h, w = get_pool2d_size(h=h, w=w, kernel_size=2, stride=1)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=2, padding=0, stride=1)
-        h, w = get_pool2d_size(h=h, w=w, kernel_size=2, stride=1)
+        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=4)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=2)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=0, stride=1)
 
         if self.continuous:
             init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0),
@@ -267,23 +266,31 @@ class CNNBase(nn.Module):
             activation = nn.LeakyReLU()
 
         self.actor = nn.Sequential(
-            init_(nn.Conv2d(in_channels=input_channels, out_channels=8, kernel_size=8, padding=0, stride=1)),
-            nn.BatchNorm2d(num_features=8), activation,
-            init_(nn.Conv2d(in_channels=8, out_channels=4, kernel_size=4, padding=0, stride=1)),
-            nn.BatchNorm2d(num_features=4), activation,
-            nn.MaxPool2d(kernel_size=2, stride=1),
-            init_(nn.Conv2d(in_channels=4, out_channels=3, kernel_size=2, padding=0, stride=1)),
-            nn.BatchNorm2d(num_features=3), activation,
-            nn.MaxPool2d(kernel_size=2, stride=1),
+            init_(nn.Conv2d(in_channels=input_channels, out_channels=32, kernel_size=8, padding=0, stride=4)),
+            activation,
+            init_(nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, padding=0, stride=2)),
+            activation,
+            init_(nn.Conv2d(in_channels=64, out_channels=32, kernel_size=3, padding=0, stride=1)),
+            activation,
             Flatten(),
-            init_(nn.Linear(3 * h * w, self.cnn_hidden_size)),
+            init_(nn.Linear(32 * h * w, self.cnn_critic_hidden_1_size)),
             activation
         )
 
         init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0))
 
         self.critic = nn.Sequential(
-            init_(nn.Linear(self.cnn_hidden_size, 1))
+            init_(nn.Conv2d(in_channels=input_channels, out_channels=32, kernel_size=8, padding=0, stride=4)),
+            activation,
+            init_(nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, padding=0, stride=2)),
+            activation,
+            init_(nn.Conv2d(in_channels=64, out_channels=32, kernel_size=3, padding=0, stride=1)),
+            activation,
+            Flatten(),
+            init_(nn.Linear(32 * h * w, self.cnn_critic_hidden_1_size)),
+            activation,
+            init_(nn.Linear(self.cnn_critic_hidden_1_size, self.cnn_critic_hidden_2_size)),
+            init_(nn.Linear(self.cnn_critic_hidden_2_size, 1))
         )
 
         self.layers_info = {'actor': self.actor, 'critic': self.critic}
@@ -296,11 +303,11 @@ class CNNBase(nn.Module):
             inputs = inputs.unsqueeze(0)
 
         hidden_actor = self.actor(inputs)
-        hidden_critic = self.critic(hidden_actor)
+        hidden_critic = self.critic(inputs)
 
         return hidden_critic, hidden_actor
 
     @property
     def output_size(self):
-        return self.cnn_hidden_size
+        return self.cnn_critic_hidden_1_size
 
