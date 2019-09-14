@@ -150,7 +150,8 @@ class PPO_v0:
             #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
             actor_loss = - torch.min(surr1, surr2).to(device) \
-                         - PPO_ENTROPY_WEIGHT * dist_entropy
+                         - PPO_ENTROPY_WEIGHT * dist_entropy \
+
             self.optimizer.zero_grad()
             actor_loss.mean().backward()
             self.optimizer.step()
