@@ -6,7 +6,7 @@ class Environment:
         self.state_shape = self.get_state_shape()
         self.action_shape = self.get_action_shape()
 
-        self.action_space = None
+        self.action_space = self.get_action_space()
 
         self.cnn_input_height = None
         self.cnn_input_width = None

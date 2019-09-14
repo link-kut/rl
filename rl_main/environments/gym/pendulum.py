@@ -26,6 +26,9 @@ class Pendulum_v0(Environment):
         action_shape = (1,)
         return action_shape
 
+    def get_action_space(self):
+        return self.env.action_space
+
     @property
     def action_meanings(self):
         action_meanings = ["Joint effort"]

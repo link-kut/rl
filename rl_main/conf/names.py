@@ -12,6 +12,7 @@ class OSName(enum.Enum):
 
 class EnvironmentName(enum.Enum):
     CARTPOLE_V0 = "CartPole-v0"
+    BLACKJACK_V0 = "Blackjack-v0"
     QUANSER_SERVO_2 = "Quanser_Servo_2"
     CHASER_V1_MAC = os.path.join(PROJECT_HOME, "rl_main", "environments", "unity", "unity_envs", "Chaser_v1")
     CHASER_V1_WINDOWS = os.path.join(PROJECT_HOME, "rl_main", "environments", "unity", "unity_envs", "Chaser_v1.exe")
@@ -23,9 +24,11 @@ class EnvironmentName(enum.Enum):
 
 class ModelName(enum.Enum):
     ActorCriticModel = "Actor_Critic_Model"
+    NoModel = "NoModel"
 
 
 class RLAlgorithmName(enum.Enum):
+    MC_Control_V0 = "MN_Control_v0"
     DQN_V0 = "DQN_v0"
     PPO_V0 = "PPO_v0"
 

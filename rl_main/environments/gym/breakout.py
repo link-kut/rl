@@ -75,6 +75,9 @@ class BreakoutDeterministic_v4(Environment):
         action_shape = self.env.action_space.n - 1
         return action_shape,
 
+    def get_action_space(self):
+        return self.env.action_space
+
     def reset(self):
         self.env.reset()
         next_state, reward, done, info = self.env.step(1)
