@@ -102,18 +102,25 @@ class PPO_v0:
                 pass
             # print("WORKER: {0} - PPO_K_EPOCH: {1}/{2} - state_lst: {3}".format(self.worker_id, i+1, PPO_K_EPOCH, state_lst.size()))
 
+
+            state_values = self.model.get_critic_value(state_lst)
+
             # discount_r_lst = []
-            # v_ = self.model.get_critic_value(next_state_lst[-1])
-            # for r in reward_lst.tolist()[::-1]:
-            #     v_ = self.gamma * v_ + r[0]
-            #     discount_r_lst.append([v_])
-            # discount_r_lst.reverse()
+            # discounted_reward = 0
+            # for r in reversed(reward_lst):
+            #     discounted_reward = r + (self.gamma * discounted_reward)
+            #     discount_r_lst.insert(0, discounted_reward)
             # discount_r = torch.tensor(discount_r_lst, dtype=torch.float).to(device)
-            # advantage = discount_r - self.model.get_critic_value(state_lst)
+            #
+            # # Normalizing the rewards:
+            # discount_r = (discount_r - discount_r.mean()) / (discount_r.std() + 1e-5)
+            # discount_r = discount_r.unsqueeze(dim=1)
+            #
+            # advantage = (discount_r - state_values).detach()
 
             v_target = reward_lst + self.gamma * self.model.get_critic_value(next_state_lst) * done_mask_lst
 
-            delta = v_target - self.model.get_critic_value(state_lst)
+            delta = v_target - state_values
             delta = delta.cpu().detach().numpy()
 
             advantage_lst = []
@@ -124,9 +131,11 @@ class PPO_v0:
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, device=device, dtype=torch.float)
             advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, device=device, dtype=torch.float)).to(device)
+            advantage = advantage.detach()
 
-            critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=self.model.get_critic_value(state_lst),
-                                                              target=v_target.detach())
+            critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=state_values, target=v_target.detach())
+            # critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=state_values, target=discount_r.detach())
+
             self.optimizer.zero_grad()
             critic_loss.mean().backward()
             self.optimizer.step()
@@ -245,11 +254,9 @@ class PPO_v0:
                 action, prob = self.model.act(state)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
-                if "skipping" in info.keys():
-                    if info["skipping"]:
-                        pass
-                    else:
-                        self.put_data((state, action, adjusted_reward, next_state, prob, done))
+                if "dead" in info.keys():
+                    if info["dead"]:
+                        self.put_data((state, action, adjusted_reward, next_state, prob, info["dead"]))
                 else:
                     self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
