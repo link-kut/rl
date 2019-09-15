@@ -18,7 +18,8 @@ from rl_main.conf.names import RLAlgorithmName, DeepLearningModelName
 from rl_main.main_constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
     ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM, OPTIMIZER, PPO_K_EPOCH, \
     HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, device, PPO_EPSILON_CLIP, \
-    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, MODEL_SAVE, EMA_WINDOW, SEED, GAMMA
+    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, MODEL_SAVE, EMA_WINDOW, SEED, GAMMA, EPSILON_GREEDY_ACT, EPSILON_DECAY, \
+    EPSILON_START, EPSILON_DECAY_RATE, EPSILON_END, LEARNING_RATE
 
 torch.manual_seed(0) # set random seed
 
@@ -49,7 +50,7 @@ def get_pool2d_size(h, w, kernel_size, stride):
 
 
 def print_configuration(env, rl_model):
-    print("*** GENERAL ***")
+    print("\n*** GENERAL ***")
     print(" MODEL SAVE: {0}".format(MODEL_SAVE))
     print(" PLATFORM: {0}".format(MY_PLATFORM))
     print(" EMA WINDOW: {0}".format(EMA_WINDOW))
@@ -110,35 +111,45 @@ def print_configuration(env, rl_model):
 
     print("\n*** Optimizer ***")
     print(" Optimizer: {0}".format(OPTIMIZER.value))
+    print(" Learning Rate: {0}".format(LEARNING_RATE))
     print(" Gamma (Discount Factor): {0}".format(GAMMA))
+    print(" Epsilon Greedy Action: {0}".format(EPSILON_GREEDY_ACT))
+    if EPSILON_GREEDY_ACT:
+        print(" EPSILON_DECAY: {0}".format(EPSILON_DECAY))
+        if EPSILON_DECAY:
+            print(" EPSILON_START: {0}, EPSILON_END: {1}, EPSILON_DECAY_RATE: {2}".format(EPSILON_START, EPSILON_END, EPSILON_DECAY_RATE))
 
     print()
+    response = input("Are you OK for All environmental variables? [y/n]: ")
+    if not (response == "Y" or response == "y"):
+        sys.exit(-1)
 
 
 def ask_file_removal():
     print("CPU/GPU Devices:{0}".format(device))
     response = input("DELETE All Graphs, Logs, and Model Files? [y/n]: ")
+    if not (response == "Y" or response == "y"):
+        sys.exit(-1)
 
-    if response == "Y" or response == "y":
-        files = glob.glob(os.path.join(PROJECT_HOME, "graphs", "*"))
-        for f in files:
-            os.remove(f)
+    files = glob.glob(os.path.join(PROJECT_HOME, "graphs", "*"))
+    for f in files:
+        os.remove(f)
 
-        files = glob.glob(os.path.join(PROJECT_HOME, "logs", "*"))
-        for f in files:
-            os.remove(f)
+    files = glob.glob(os.path.join(PROJECT_HOME, "logs", "*"))
+    for f in files:
+        os.remove(f)
 
-        files = glob.glob(os.path.join(PROJECT_HOME, "out_err", "*"))
-        for f in files:
-            os.remove(f)
+    files = glob.glob(os.path.join(PROJECT_HOME, "out_err", "*"))
+    for f in files:
+        os.remove(f)
 
-        files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
-        for f in files:
-            os.remove(f)
+    files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
+    for f in files:
+        os.remove(f)
 
-        files = glob.glob(os.path.join(PROJECT_HOME, "save_results", "*"))
-        for f in files:
-            os.remove(f)
+    files = glob.glob(os.path.join(PROJECT_HOME, "save_results", "*"))
+    for f in files:
+        os.remove(f)
 
 
 def make_output_folders():

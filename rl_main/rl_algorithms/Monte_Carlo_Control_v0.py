@@ -25,8 +25,7 @@ class Monte_Carlo_Control_v0:
 
         self.trajectory = []
 
-        # learning rate
-        self.learning_rate = 0.001
+        self.learning_rate = LEARNING_RATE
 
         self.env_render = env_render
         self.logger = logger
@@ -50,6 +49,7 @@ class Monte_Carlo_Control_v0:
 
     def get_epsilon_greedy_action_from_Q(self, state):
         is_state_and_all_actions_in_Q = self.check_if_state_and_all_actions_in_Q(state)
+
         if is_state_and_all_actions_in_Q:
             if random.uniform(0, 1) < self.epsilon:
                 action = np.random.choice(np.arange(self.env.n_actions))
@@ -107,6 +107,8 @@ class Monte_Carlo_Control_v0:
                     print(" action: {0} --> q_value: {1}".format(action, self.Q[state][action]))
 
     def on_episode(self, episode):
+        self.epsilon = EPSILON_END + (EPSILON_START - EPSILON_END) * math.exp(-1. * episode / EPSILON_DECAY_RATE)
+
         episode_trajectory, win = self.get_episode_trajectory()
 
         state_action_visit_table = {}
@@ -123,7 +125,7 @@ class Monte_Carlo_Control_v0:
             if first_visit:
                 if state in self.Q:
                     if action in self.Q[state]:
-                        self.Q[state][action] = self.Q[state][action] + ALPHA * (g - self.Q[state][action])
+                        self.Q[state][action] = self.Q[state][action] + self.learning_rate * (g - self.Q[state][action])
                     else:
                         self.Q[state][action] = ALPHA * g
                 else:

@@ -143,7 +143,7 @@ class Worker:
                 ema_loss = exp_moving_average(self.local_losses, EMA_WINDOW)[-1]
                 ema_score = exp_moving_average(self.local_scores, EMA_WINDOW)[-1]
 
-                log_msg = "Worker {0}-Ep.{1:>2d}: Loss={2:6.4f} (EMA: {3:6.4f}, Mean: {4:6.4f})".format(
+                log_msg = "Worker {0}-Ep.{1:>2d}: Loss={2:6.4f} (EMA: {3:6.2f}, Mean: {4:6.2f})".format(
                     self.worker_id,
                     episode,
                     loss,
@@ -151,11 +151,16 @@ class Worker:
                     mean_loss_over_recent_100_episodes
                 )
 
-                log_msg += " Score={0:5.1f} (EMA: {1:>4.2f}, Mean: {2:>4.2f})".format(
+                log_msg += ", Score={0:5.2f} (EMA: {1:>4.2f}, Mean: {2:>4.2f})".format(
                     score,
                     ema_score,
                     mean_score_over_recent_100_episodes
                 )
+
+                if EPSILON_GREEDY_ACT:
+                    log_msg += ", Epsilon: {0:5.2f}".format(
+                        self.rl_algorithm.epsilon
+                    )
 
                 self.logger.info(log_msg)
                 if VERBOSE: print(log_msg)

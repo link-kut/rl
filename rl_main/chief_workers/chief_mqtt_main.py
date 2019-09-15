@@ -22,8 +22,6 @@ logger = get_logger("chief")
 env = rl_utils.get_environment()
 rl_model = rl_utils.get_rl_model(env)
 
-utils.print_configuration(env, rl_model)
-
 chief = Chief(logger=logger, env=env, rl_model=rl_model)
 
 
