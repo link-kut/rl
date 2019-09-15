@@ -96,7 +96,7 @@ def get_environment(owner="chief"):
 
 
 def get_rl_model(env):
-    if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticModel:
+    if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticMLP or DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
         model = Policy(
             s_size=env.n_states,
             a_size=env.n_actions,
