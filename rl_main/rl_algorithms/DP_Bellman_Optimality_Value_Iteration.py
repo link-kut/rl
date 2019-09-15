@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Value_Iteration:
     def __init__(self, env, gamma):
         self.env = env
@@ -7,81 +8,82 @@ class Value_Iteration:
         # discount rate
         self.gamma = gamma
 
-    def get_state(self, state, action):
+        self.n_states = self.env.get_n_states()
+        self.n_actions = self.env.get_n_actions()
 
-        action_grid = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        self.state_values = np.zeros([self.n_states], dtype=float)
+        self.actions = [act for act in range(self.n_actions)]
 
-        state[0] += action_grid[action][0]
-        state[1] += action_grid[action][1]
+        # policy evaluation
+        self.delta = 0.0
+        # policy evaluation threshold
+        self.theta = 0.001
 
-        if state[0] < 0:
-            state[0] = 0
-        elif state[0] > 3:
-            state[0] = 3
-
-        if state[1] < 0:
-            state[1] = 0
-        elif state[1] > 3:
-            state[1] = 3
-
-        return state[0], state[1]
-
-    def policy_evaluation(self, grid_width, grid_height, action, policy, iter_num, reward=-1, dis=1):
-
+    def policy_evaluation(self, state_values):
         # table initialize
-        post_value_table = np.zeros([grid_height, grid_width], dtype=float)
+        next_state_values = np.zeros([self.n_states], dtype=float)
 
         # iteration
-        if iter_num == 0:
-            print('Iteration: {} \n{}\n'.format(iter_num, post_value_table))
-            return post_value_table
-
-        for iteration in range(iter_num):
-            next_value_table = np.zeros([grid_height, grid_width], dtype=float)
-            for i in range(grid_height):
-                for j in range(grid_width):
-                    if i == j and ((i == 0) or (i == 3)):
-                        value_t = 0
-                    else:
-                        value_t_list = []
-                        for act in action:
-                            i_, j_ = self.get_state([i, j], act)
-                            value = (reward + dis * post_value_table[i_][j_])
-                            value_t_list.append(value)
-                        next_value_table[i][j] = max(value_t_list)
-            iteration += 1
-
-            # print result
-            if (iteration % 10) != iter_num:
-                # print result
-                if iteration > 100:
-                    if (iteration % 20) == 0:
-                        print('Iteration: {} \n{}\n'.format(iteration, next_value_table))
-                else:
-                    if (iteration % 10) == 0:
-                        print('Iteration: {} \n{}\n'.format(iteration, next_value_table))
+        for s in range(self.n_states):
+            if s == 0:
+                value_t = 0.0
+                next_state_values[s] = value_t
             else:
-                print('Iteration: {} \n{}\n'.format(iteration, next_value_table))
+                value_t_list = []
+                for a in range(self.n_actions):
+                    s_ = self.env.get_state(s, a)
+                    value = self.env.get_reward(a, s) + self.gamma * state_values[s_]
+                    value_t_list.append(value)
+                next_state_values[s] = max(value_t_list)
 
-            post_value_table = next_value_table
+        return next_state_values
 
-        return next_value_table
+    def deterministic_policy(self, state_values):
+        deterministic_policy = np.empty([self.n_states, self.n_actions], dtype=float)
+
+        # get Q-func.
+        for s in range(self.n_states):
+            q_func_list = []
+            if s == 0:
+                for a in range(self.n_actions):
+                    deterministic_policy[s][a] = 0.00
+            else:
+                for a in range(self.n_actions):
+                    s_ = self.env.get_state(s, a)
+                    q_func_list.append(state_values[s_])
+                max_actions = [action_v for action_v, x in enumerate(q_func_list) if x == max(q_func_list)]
+
+                # update policy
+                for act in self.actions:
+                    if act in max_actions:
+                        deterministic_policy[s][act] = (1 / len(max_actions))
+                    else:
+                        deterministic_policy[s][act] = 0.00
+
+        return deterministic_policy
 
     def start_iteration(self):
-        grid_width = 4
-        grid_height = grid_width
-        action = [0, 1, 2, 3]  # up, down, left, right
-        policy = np.empty([grid_height, grid_width, len(action)], dtype=float)
-        for i in range(grid_height):
-            for j in range(grid_width):
-                for k in range(len(action)):
-                    if i == j and ((i == 0) or (i == 3)):
-                        policy[i][j] = 0.00
-                    else:
-                        policy[i][j] = 0.25
-        policy[0][0] = [0] * grid_width
-        policy[3][3] = [0] * grid_width
+        # policy_evaluation
+        print("*** Policy Evaluation Started/Restarted ***\n")
+        for i in range(1000000):
+            next_state_values = self.policy_evaluation(self.state_values)
+            self.delta = np.max(np.abs(self.state_values - next_state_values))
+            self.state_values = next_state_values
+            if self.delta < self.theta:
+                print("*** Policy Evaluation Conversed at {0} iterations! ***\n".format(i))
+                break
+        # deterministic_policy generation
+        deterministic_policy = self.deterministic_policy(self.state_values)
+        print("Deterministic Policy Generation Ended!\n\n")
 
-        value = self.policy_evaluation(grid_width, grid_height, action, policy, 100)
+        # view created action_table
+        action_meanings = self.env.action_meanings
+        action_table = []
+        for s in range(self.n_states):
+            if s == 0:
+                action_table.append('T')
+            else:
+                idx = np.argmax(deterministic_policy[s])
+                action_table.append(action_meanings[idx])
 
-        return value
+        return self.state_values, deterministic_policy, action_table

@@ -1,8 +1,23 @@
 import gym
 import gym_gridworlds
+import numpy as np
 from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
+# states
+# 0   1   2   3
+# 4   5   6   7
+# 8   9   10  11
+# 12  13  14  15
+
+# actions
+# 0: up 1: right 2: down 3: left
+
+# rewards
+# 0   -1  -1  -1
+# -1  -1  -1  -1
+# -1  -1  -1  -1
+# -1  -1  -1  0
 
 class GRIDWORLD_v0(Environment):
     def __init__(self):
@@ -26,10 +41,19 @@ class GRIDWORLD_v0(Environment):
         action_shape = self.env.action_space.shape
         return action_shape
 
-    def get_state_transition_probability(self):
-        P = self.env.P
-        return P
+    def get_state(self, post_state, action):
+        next_state = -1.0
+        for i, p in enumerate(self.env.P[action, post_state, :]):
+            if p > 0.0:
+                next_state = i
+        return next_state
 
-    def get_reward(self):
-        R = self.env.R
-        return R
+    def get_reward(self, action, state):
+        reward = self.env.R[action, state]
+        return reward
+
+    @property
+    def action_meanings(self):
+        action_meanings = ["UP", "RIGHT", "DOWN", "LEFT"]
+        return action_meanings
+
