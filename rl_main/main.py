@@ -2,14 +2,12 @@ import sys, os
 import time
 from multiprocessing import Process
 
-from rl_main import rl_utils
-
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
 from rl_main.main_constants import *
-
+from rl_main import rl_utils
 import rl_main.utils as utils
 
 

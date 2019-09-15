@@ -1,14 +1,12 @@
 import sys, os
 from multiprocessing import Process
 
-from rl_main import rl_utils
-
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
 import rl_main.utils as utils
-# from rl_main.chief_workers.chief import env
+from rl_main import rl_utils
 
 
 if __name__ == "__main__":
