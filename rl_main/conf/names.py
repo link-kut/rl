@@ -23,17 +23,18 @@ class EnvironmentName(enum.Enum):
     GRIDWORLD_V0 = 'Gridworld-v0'
 
 
-class ModelName(enum.Enum):
-    ActorCriticModel = "Actor_Critic_Model"
+class DeepLearningModelName(enum.Enum):
+    ActorCriticMLP = "Actor_Critic_MLP"
+    ActorCriticCNN = "Actor_Critic_CNN"
     NoModel = "NoModel"
 
 
 class RLAlgorithmName(enum.Enum):
-    MC_Control_V0 = "MN_Control_v0"
     DQN_V0 = "DQN_v0"
     PPO_V0 = "PPO_v0"
     Policy_Iteration = "DP_Bellman_Expectation_Policy_Iteration"
     Value_Iteration = "DP_Bellman_Optimality_Value_Iteration"
+    Monte_Carlo_Control_V0 = "Monte_Carlo_Control_v0"
 
 
 class OptimizerName(enum.Enum):

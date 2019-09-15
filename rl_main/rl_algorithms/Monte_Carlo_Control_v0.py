@@ -14,7 +14,7 @@ import random
 
 ALPHA = 0.1
 
-class MC_Control_v0:
+class Monte_Carlo_Control_v0:
     def __init__(self, env, worker_id, gamma, env_render, logger, verbose):
         self.env = env
 
