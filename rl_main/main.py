@@ -1,6 +1,7 @@
 import sys, os
 import time
 from multiprocessing import Process
+import subprocess
 
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
@@ -24,9 +25,6 @@ if __name__ == "__main__":
     utils.make_output_folders()
     utils.ask_file_removal()
 
-    stderr = sys.stderr
-    sys.stderr = sys.stdout
-
     try:
         chief = Process(target=utils.run_chief, args=())
         chief.start()
@@ -45,5 +43,3 @@ if __name__ == "__main__":
         chief.join()
     except KeyboardInterrupt as error:
         print("=== {0:>8} is aborted by keyboard interrupt".format('Main'))
-    finally:
-        sys.stderr = stderr

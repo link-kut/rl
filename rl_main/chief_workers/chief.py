@@ -145,7 +145,7 @@ class Chief:
         else:
             pass
 
-    def send_transfer_ack(self, parameters_transferred):
+    def get_transfer_ack_msg(self, parameters_transferred):
         if MODE_PARAMETERS_TRANSFER:
             log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'parameters_length: {2}\n".format(
                 MQTT_TOPIC_TRANSFER_ACK,
@@ -175,7 +175,7 @@ class Chief:
 
         return transfer_msg
 
-    def send_update_ack(self):
+    def get_update_ack_msg(self):
         if MODE_GRADIENTS_UPDATE:
             log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length': {2}\n".format(
                 MQTT_TOPIC_UPDATE_ACK,
@@ -198,11 +198,13 @@ class Chief:
             grad_update_msg = {
                 "episode_chief": self.episode_chief
             }
+
         self.logger.info(log_msg)
 
         grad_update_msg = pickle.dumps(grad_update_msg, protocol=-1)
         grad_update_msg = zlib.compress(grad_update_msg)
 
-        self.model.reset_average_gradients()
+        if MODE_GRADIENTS_UPDATE:
+            self.model.reset_average_gradients()
 
         return grad_update_msg

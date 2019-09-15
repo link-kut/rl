@@ -82,10 +82,10 @@ def on_chief_message(client, userdata, msg):
                         parameters_transferred = msg_payload["parameters"]
                         is_include_topic_success_done = True
             if is_include_topic_success_done:
-                transfer_msg = chief.send_transfer_ack(parameters_transferred)
+                transfer_msg = chief.get_transfer_ack_msg(parameters_transferred)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
             else:
-                grad_update_msg = chief.send_update_ack()
+                grad_update_msg = chief.get_update_ack_msg()
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_UPDATE_ACK, payload=grad_update_msg, qos=0, retain=False)
 
             chief.messages_received_from_workers[chief.episode_chief].clear()
@@ -112,12 +112,10 @@ if __name__ == "__main__":
         chief.on_log = on_chief_log
 
     chief_mqtt_client.connect(MQTT_SERVER, MQTT_PORT, keepalive=3600)
+
     chief_mqtt_client.loop_start()
 
     while True:
-        stderr = sys.stderr
-        sys.stderr = sys.stdout
-
         try:
             time.sleep(1)
             if chief.NUM_DONE_WORKERS == NUM_WORKERS:
@@ -125,5 +123,3 @@ if __name__ == "__main__":
                 break
         except KeyboardInterrupt as error:
             print("=== {0:>8} is aborted by keyboard interrupt".format('Chief'))
-        finally:
-            sys.stderr = stderr

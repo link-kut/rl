@@ -1,6 +1,7 @@
 import glob
 import math
 import os
+import subprocess
 import sys
 import numpy as np
 import torch
@@ -146,6 +147,15 @@ def make_output_folders():
 
 def run_chief():
     try:
+        # with subprocess.Popen([PYTHON_PATH, os.path.join(PROJECT_HOME, "rl_main", "chief_workers", "chief_mqtt_main.py")], shell=False, bufsize=1, stdout=sys.stdout, stderr=sys.stdout) as proc:
+        #     output = ""
+        #     while True:
+        #         # Read line from stdout, break if EOF reached, append line to output
+        #         line = proc.stdout.readline()
+        #         line = line.decode()
+        #         if line == "":
+        #             break
+        #         output += line
         os.system(PYTHON_PATH + " " + os.path.join(PROJECT_HOME, "rl_main", "chief_workers", "chief_mqtt_main.py"))
         sys.stdout = open(os.path.join(PROJECT_HOME, "out_err", "chief_stdout.out"), "wb")
         sys.stderr = open(os.path.join(PROJECT_HOME, "out_err", "chief_stderr.out"), "wb")

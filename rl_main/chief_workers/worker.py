@@ -59,7 +59,7 @@ class Worker:
         elif topic == MQTT_TOPIC_FAIL_DONE:
             pass
         else:
-            log_msg = None
+            pass
 
         self.logger.info(log_msg)
 
@@ -132,7 +132,8 @@ class Worker:
                 self.logger.info(log_msg)
                 print(log_msg)
 
-                episode_msg["avg_gradients"] = avg_gradients
+                if MODE_GRADIENTS_UPDATE:
+                    episode_msg["avg_gradients"] = avg_gradients
 
                 self.send_msg(MQTT_TOPIC_FAIL_DONE, episode_msg)
                 self.is_success_or_fail_done = True
