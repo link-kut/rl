@@ -40,11 +40,17 @@ def on_worker_message(client, userdata, msg):
     msg_payload = pickle.loads(msg_payload)
 
     if msg.topic == MQTT_TOPIC_UPDATE_ACK:
-        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_chief': {1}, avg_grad_length: {2} \n".format(
+        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_chief': {1}".format(
             msg.topic,
-            msg_payload['episode_chief'],
-            len(msg_payload['avg_gradients'])
+            msg_payload['episode_chief']
         )
+
+        if MODE_GRADIENTS_UPDATE:
+            log_msg += ", avg_grad_length: {0} \n".format(
+                len(msg_payload['avg_gradients'])
+            )
+        else:
+            log_msg += "\n"
 
         logger.info(log_msg)
 
@@ -52,14 +58,20 @@ def on_worker_message(client, userdata, msg):
             worker.update_process(msg_payload['avg_gradients'])
 
         worker.episode_chief = msg_payload["episode_chief"]
-        print("Topic_Update: " + worker.episode_chief)
+        print("Update_Ack: " + worker.episode_chief)
         
     elif msg.topic == MQTT_TOPIC_TRANSFER_ACK:
-        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_chief': {1}, parameters_length: {2} \n".format(
+        log_msg = "[RECV] TOPIC: {0}, PAYLOAD: 'episode_chief': {1}".format(
             msg.topic,
-            msg_payload['episode_chief'],
-            len(msg_payload['parameters'])
+            msg_payload['episode_chief']
         )
+
+        if MODE_PARAMETERS_TRANSFER:
+            log_msg += ", parameters_length: {0} \n".format(
+                len(msg_payload['parameters'])
+            )
+        else:
+            log_msg += "\n"
 
         logger.info(log_msg)
 

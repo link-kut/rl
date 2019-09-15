@@ -32,6 +32,9 @@ class CartPole_v0(Environment):
         action_shape = (self.env.action_space.n, )
         return action_shape
 
+    def get_action_space(self):
+        return self.env.action_space
+
     @property
     def action_meanings(self):
         action_meanings = ["LEFT", "RIGHT"]

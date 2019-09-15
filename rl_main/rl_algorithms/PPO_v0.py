@@ -9,7 +9,8 @@ import torch.nn.functional as F
 
 from rl_main import rl_utils
 from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
-    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE
+    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE, \
+    LEARNING_RATE
 
 
 class PPO_v0:
@@ -24,7 +25,7 @@ class PPO_v0:
         self.trajectory = []
 
         # learning rate
-        self.learning_rate = 0.001
+        self.learning_rate = LEARNING_RATE
 
         self.env_render = env_render
         self.logger = logger
@@ -149,8 +150,7 @@ class PPO_v0:
             # loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
             #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
-            actor_loss = - torch.min(surr1, surr2).to(device) \
-                         - PPO_ENTROPY_WEIGHT * dist_entropy \
+            actor_loss = - torch.min(surr1, surr2).to(device) - PPO_ENTROPY_WEIGHT * dist_entropy
 
             self.optimizer.zero_grad()
             actor_loss.mean().backward()

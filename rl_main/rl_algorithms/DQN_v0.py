@@ -12,11 +12,6 @@ from rl_main.utils import print_torch
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'adjusted_reward'))
 
-BATCH_SIZE = 128
-
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 200
 TARGET_UPDATE_PERIOD = 10
 
 
@@ -49,7 +44,7 @@ class DQN_v0:
         self.trajectory = []
 
         # learning rate
-        self.learning_rate = 0.001
+        self.learning_rate = LEARNING_RATE
 
         self.env_render = env_render
         self.logger = logger
@@ -103,7 +98,7 @@ class DQN_v0:
     # epsilon greedy policy
     def select_epsilon_greedy_action(self, state):
         sample = random.random()
-        epsilon_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * self.steps_done / EPS_DECAY)
+        epsilon_threshold = EPSILON_END + (EPSILON_START - EPSILON_END) * math.exp(-1. * self.steps_done / EPSILON_DECAY_RATE)
         self.steps_done += 1
         if sample > epsilon_threshold:
             with torch.no_grad():
@@ -116,10 +111,10 @@ class DQN_v0:
             return torch.tensor([[random.randrange(self.env.n_actions)]], device=device, dtype=torch.long)
 
     def train_net(self):
-        if len(self.memory) < BATCH_SIZE:
+        if len(self.memory) < DQN_BATCH_SIZE:
             return
 
-        transitions = self.memory.sample(BATCH_SIZE)
+        transitions = self.memory.sample(DQN_BATCH_SIZE)
 
         # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for detailed explanation).
         # This converts batch-array of Transitions to Transition of batch-arrays.
@@ -157,7 +152,7 @@ class DQN_v0:
         # This is merged based on the mask, such that we'll have either the expected
         # state value or 0 in case the state was final.
         next_critic_value, next_action_probs = self.target_model.evaluate(non_final_next_state_batch)
-        next_state_values = torch.zeros([BATCH_SIZE, 1], device=device)
+        next_state_values = torch.zeros([DQN_BATCH_SIZE, 1], device=device)
         next_state_values[non_final_mask] = next_action_probs.max(dim=1)[0].unsqueeze(dim=1).detach()
 
         # print_torch("next_state_values", next_state_values)
@@ -168,7 +163,7 @@ class DQN_v0:
         # print_torch("target_q_values", target_q_values)
 
         # Compute the target critic values (advantage)
-        critic_target_values = torch.zeros([BATCH_SIZE, 1], device=device)
+        critic_target_values = torch.zeros([DQN_BATCH_SIZE, 1], device=device)
         critic_target_values[non_final_mask] = next_critic_value.detach()
         target_critic_values = (critic_target_values * self.gamma) + reward_batch
         # print_torch("critic_target_values", critic_target_values)
@@ -177,7 +172,7 @@ class DQN_v0:
         # print_torch("delta", delta)
         # print_torch("delta_0", delta[0])
 
-        advantage_batch = torch.zeros([BATCH_SIZE, 1], device=device)
+        advantage_batch = torch.zeros([DQN_BATCH_SIZE, 1], device=device)
         advantage = 0.0
         reverse_index_list = list(range(delta.size()[0]))[::-1]
         for idx_t in reverse_index_list:
