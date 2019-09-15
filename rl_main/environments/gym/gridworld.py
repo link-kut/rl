@@ -46,7 +46,7 @@ class GRIDWORLD_v0(Environment):
 
     @property
     def action_meanings(self):
-        action_meanings = ["UP", "DOWN", "RIGHT", "LEFT"]
+        action_meanings = ["UP", "RIGHT", "DOWN", "LEFT"]
         return action_meanings
 
     def reset(self):

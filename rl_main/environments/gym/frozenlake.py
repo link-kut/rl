@@ -92,11 +92,15 @@ if __name__ == "__main__":
 
     for i_episode in range(10):
         state = env.reset()
+        env.render()
+        step = 0
         while True:
-            env.render()
+            print("\nstep: {0}".format(step))
             action = env.action_space.sample()
             next_state, reward, adjusted_reward, done, info = env.step(action)
             print(state, action, next_state, reward, adjusted_reward, done)
+            env.render()
+            step += 1
             if done:
                 print('End game! Reward: ', reward)
                 print('You won :)\n') if reward > 0 else print('You lost :(\n')
