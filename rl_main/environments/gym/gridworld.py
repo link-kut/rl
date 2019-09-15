@@ -70,7 +70,7 @@ class GRIDWORLD_v0(Environment):
         self.env.close()
 
     def get_state(self, post_state, action):
-        next_state = -1.0
+        next_state = 0.0
         for i, p in enumerate(self.env.P[action, post_state, :]):
             if p > 0.0:
                 next_state = i

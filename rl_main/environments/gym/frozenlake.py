@@ -86,6 +86,17 @@ class FrozenLake_v0(Environment):
     def close(self):
         self.env.close()
 
+    # def get_state(self, post_state, action):
+    #     next_state = 1.0
+    #     for i, p in enumerate(self.env.P[action, post_state, :]):
+    #         if p > 0.0:
+    #             next_state = i
+    #     return next_state
+    #
+    # def get_reward(self, action, state):
+    #     reward = self.env.R[action, state]
+    #     return reward
+
 
 if __name__ == "__main__":
     env = FrozenLake_v0()
