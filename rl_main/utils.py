@@ -105,7 +105,7 @@ def print_configuration(env, rl_model):
             rl_model.continuous
         ))
     elif DEEP_LEARNING_MODEL == DeepLearningModelName.NoModel:
-        print(" No Deep Learning Model")
+        pass
     else:
         pass
 

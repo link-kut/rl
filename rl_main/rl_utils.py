@@ -3,6 +3,7 @@ import json
 import paho.mqtt.client as mqtt
 from torch import optim
 
+from rl_main.environments.gym.frozenlake import FrozenLake_v0
 from rl_main.main_constants import *
 
 from rl_main.environments.gym.breakout import BreakoutDeterministic_v4
@@ -90,6 +91,8 @@ def get_environment(owner="chief"):
         env = GRIDWORLD_v0()
     elif ENVIRONMENT_ID == EnvironmentName.BLACKJACK_V0:
         env = Blackjack_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.FROZENLAKE_V0:
+        env = FrozenLake_v0()
     else:
         env = None
     return env

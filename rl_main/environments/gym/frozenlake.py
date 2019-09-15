@@ -1,14 +1,47 @@
 import gym
-import gym_gridworlds
+
 from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
+"""
+    FrozenLake-v0 environment
 
-class GRIDWORLD_v0(Environment):
+    The agent controls the movement of a character in a grid world. 
+    
+    Some tiles of the grid are walkable, and others lead to the agent falling into the water. 
+    
+    Additionally, the movement direction of the agent is uncertain and only partially depends on the chosen direction. 
+    
+    The agent is rewarded for finding a walkable path to a goal tile.
+
+    The surface is described using a grid like the following:
+
+    SFFF       (S: starting point, safe)
+    FHFH       (F: frozen surface, safe)
+    FFFH       (H: hole, fall to your doom)
+    HFFG       (G: goal, where the frisbee is located)
+
+
+    The episode ends when you reach the goal or fall in a hole. 
+
+    the ice is slippery, so you won't always move in the direction you intend.
+        
+    You receive a reward of 1 if you reach the goal, and zero otherwise.
+    
+    https://gym.openai.com/envs/FrozenLake-v0/
+"""
+
+
+class FrozenLake_v0(Environment):
     def __init__(self):
-        self.env = gym.make(EnvironmentName.GRIDWORLD_V0.value)
-        super(GRIDWORLD_v0, self).__init__()
+        self.env = gym.make(EnvironmentName.FROZENLAKE_V0.value, is_slippery=False)
+        super(FrozenLake_v0, self).__init__()
+        self.action_shape = self.get_action_shape()
+        self.state_shape = self.get_state_shape()
+
         self.continuous = False
+        self.WIN_AND_LEARN_FINISH_SCORE = 1.0
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 25
 
     def get_n_states(self):
         n_states = self.env.observation_space.n
@@ -19,11 +52,10 @@ class GRIDWORLD_v0(Environment):
         return n_actions
 
     def get_state_shape(self):
-        state_shape = self.env.observation_space.shape
-        return state_shape
+        return 1,
 
     def get_action_shape(self):
-        action_shape = self.env.action_space.shape
+        action_shape = (self.env.action_space.n, )
         return action_shape
 
     def get_action_space(self):
@@ -31,16 +63,8 @@ class GRIDWORLD_v0(Environment):
 
     @property
     def action_meanings(self):
-        action_meanings = ["UP", "DOWN", "RIGHT", "LEFT"]
+        action_meanings = ["LEFT", "DOWN", "RIGHT", "UP"]
         return action_meanings
-
-    def get_state_transition_probability(self):
-        P = self.env.P
-        return P
-
-    def get_reward(self):
-        R = self.env.R
-        return R
 
     def reset(self):
         state = self.env.reset()
@@ -64,12 +88,12 @@ class GRIDWORLD_v0(Environment):
 
 
 if __name__ == "__main__":
-    env = GRIDWORLD_v0()
-    print(env.n_actions)
+    env = FrozenLake_v0()
 
     for i_episode in range(10):
         state = env.reset()
         while True:
+            env.render()
             action = env.action_space.sample()
             next_state, reward, adjusted_reward, done, info = env.step(action)
             print(state, action, next_state, reward, adjusted_reward, done)
@@ -78,3 +102,4 @@ if __name__ == "__main__":
                 print('You won :)\n') if reward > 0 else print('You lost :(\n')
                 break
             state = next_state
+
