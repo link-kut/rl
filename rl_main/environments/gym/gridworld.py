@@ -23,7 +23,7 @@ class GRIDWORLD_v0(Environment):
     def __init__(self):
         self.env = gym.make(EnvironmentName.GRIDWORLD_V0.value)
         super(GRIDWORLD_v0, self).__init__()
-        self.continuous = True
+        self.continuous = False
 
     def get_n_states(self):
         n_states = self.env.observation_space.n
@@ -42,7 +42,32 @@ class GRIDWORLD_v0(Environment):
         return action_shape
 
     def get_action_space(self):
-        return None
+        return self.env.action_space
+
+    @property
+    def action_meanings(self):
+        action_meanings = ["UP", "DOWN", "RIGHT", "LEFT"]
+        return action_meanings
+
+    def reset(self):
+        state = self.env.reset()
+        return state
+
+    def step(self, action):
+        if "torch" in str(type(action)):
+            action = int(action.item())
+
+        next_state, reward, done, info = self.env.step(action)
+
+        adjusted_reward = reward
+
+        return next_state, reward, adjusted_reward, done, info
+
+    def render(self):
+        self.env.render()
+
+    def close(self):
+        self.env.close()
 
     def get_state(self, post_state, action):
         next_state = -1.0
@@ -55,8 +80,19 @@ class GRIDWORLD_v0(Environment):
         reward = self.env.R[action, state]
         return reward
 
-    @property
-    def action_meanings(self):
-        action_meanings = ["UP", "RIGHT", "DOWN", "LEFT"]
-        return action_meanings
 
+# if __name__ == "__main__":
+#     env = GRIDWORLD_v0()
+#     print(env.n_actions)
+#
+#     for i_episode in range(10):
+#         state = env.reset()
+#         while True:
+#             action = env.action_space.sample()
+#             next_state, reward, adjusted_reward, done, info = env.step(action)
+#             print(state, action, next_state, reward, adjusted_reward, done)
+#             if done:
+#                 print('End game! Reward: ', reward)
+#                 print('You won :)\n') if reward > 0 else print('You lost :(\n')
+#                 break
+#             state = next_state
