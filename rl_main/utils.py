@@ -18,7 +18,7 @@ from rl_main.conf.names import RLAlgorithmName, DeepLearningModelName
 from rl_main.main_constants import MODE_SYNCHRONIZATION, MODE_GRADIENTS_UPDATE, MODE_PARAMETERS_TRANSFER, \
     ENVIRONMENT_ID, RL_ALGORITHM, DEEP_LEARNING_MODEL, PROJECT_HOME, PYTHON_PATH, MY_PLATFORM, OPTIMIZER, PPO_K_EPOCH, \
     HIDDEN_1_SIZE, HIDDEN_2_SIZE, HIDDEN_3_SIZE, device, PPO_EPSILON_CLIP, \
-    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT
+    PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, MODEL_SAVE, EMA_WINDOW, SEED, GAMMA
 
 torch.manual_seed(0) # set random seed
 
@@ -49,7 +49,13 @@ def get_pool2d_size(h, w, kernel_size, stride):
 
 
 def print_configuration(env, rl_model):
-    print("*** MODE ***")
+    print("*** GENERAL ***")
+    print(" MODEL SAVE: {0}".format(MODEL_SAVE))
+    print(" PLATFORM: {0}".format(MY_PLATFORM))
+    print(" EMA WINDOW: {0}".format(EMA_WINDOW))
+    print(" SEED: {0}".format(SEED))
+
+    print("\n*** MODE ***")
     if MODE_SYNCHRONIZATION:
         print(" MODE1: [SYNCHRONOUS_COMMUNICATION] vs. ASYNCHRONOUS_COMMUNICATION")
     else:
@@ -103,7 +109,8 @@ def print_configuration(env, rl_model):
         pass
 
     print("\n*** Optimizer ***")
-    print(" Optimizer:" + OPTIMIZER.value)
+    print(" Optimizer: {0}".format(OPTIMIZER.value))
+    print(" Gamma (Discount Factor): {0}".format(GAMMA))
 
     print()
 

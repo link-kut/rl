@@ -129,7 +129,7 @@ class Chief:
         self.save_graph()
 
         if topic == MQTT_TOPIC_EPISODE_DETAIL and MODE_GRADIENTS_UPDATE:
-            self.model.accumulate_gradients(msg_payload['avg_gradients'])
+            self.model.accumulate_gradients(msg_payload['gradients'])
 
         elif topic == MQTT_TOPIC_SUCCESS_DONE:
             self.success_done_episode[msg_payload['worker_id']].append(msg_payload['episode'])

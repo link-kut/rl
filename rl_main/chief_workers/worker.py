@@ -55,7 +55,7 @@ class Worker:
         if MODE_PARAMETERS_TRANSFER and topic == MQTT_TOPIC_SUCCESS_DONE:
             log_msg += "'parameters_length': {0}".format(len(msg['parameters']))
         elif MODE_GRADIENTS_UPDATE and topic == MQTT_TOPIC_EPISODE_DETAIL:
-            log_msg += "'avg_grad_length': {0}".format(len(msg['avg_gradients']))
+            log_msg += "'gradients_length': {0}".format(len(msg['gradients']))
         elif topic == MQTT_TOPIC_FAIL_DONE:
             pass
         else:
@@ -70,7 +70,7 @@ class Worker:
 
     def start_train(self):
         for episode in range(MAX_EPISODES):
-            avg_gradients, loss, score = self.rl_algorithm.on_episode(episode)
+            gradients, loss, score = self.rl_algorithm.on_episode(episode)
             self.local_losses.append(loss)
             self.local_scores.append(score)
 
@@ -106,7 +106,7 @@ class Worker:
                     )
                 )
 
-            if mean_score_over_recent_100_episodes >= env.WIN_AND_LEARN_FINISH_SCORE:
+            if mean_score_over_recent_100_episodes >= env.WIN_AND_LEARN_FINISH_SCORE and episode > env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES:
                 log_msg = "******* Worker {0} - Solved in episode {1}: Mean score = {2}".format(
                     self.worker_id,
                     episode,
@@ -133,7 +133,7 @@ class Worker:
                 print(log_msg)
 
                 if MODE_GRADIENTS_UPDATE:
-                    episode_msg["avg_gradients"] = avg_gradients
+                    episode_msg["gradients"] = gradients
 
                 self.send_msg(MQTT_TOPIC_FAIL_DONE, episode_msg)
                 self.is_success_or_fail_done = True
@@ -161,7 +161,7 @@ class Worker:
                 if VERBOSE: print(log_msg)
 
                 if MODE_GRADIENTS_UPDATE:
-                    episode_msg["avg_gradients"] = avg_gradients
+                    episode_msg["gradients"] = gradients
 
                 self.send_msg(MQTT_TOPIC_EPISODE_DETAIL, episode_msg)
 

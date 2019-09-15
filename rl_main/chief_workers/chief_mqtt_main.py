@@ -66,7 +66,7 @@ def on_chief_message(client, userdata, msg):
                     topic, msg_payload = chief.messages_received_from_workers[chief.episode_chief][worker_id]
                     chief.process_message(topic=topic, msg_payload=msg_payload)
 
-                    worker_score_str += "W{0}[{1:5.1f}/{2:5.1f}] ".format(
+                    worker_score_str += "W{0}[{1:5.2f}/{2:5.2f}] ".format(
                         worker_id,
                         chief.messages_received_from_workers[chief.episode_chief][worker_id][1]['score'],
                         np.mean(chief.score_over_recent_100_episodes[worker_id])

@@ -42,8 +42,8 @@ class Blackjack_v0(Environment):
         self.state_shape = self.get_state_shape()
 
         self.continuous = False
-        self.WIN_AND_LEARN_FINISH_SCORE = 195
-        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 100
+        self.WIN_AND_LEARN_FINISH_SCORE = 1.0
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 25
 
     def get_n_states(self):
         n_states = len(self.env.observation_space)
@@ -77,6 +77,7 @@ class Blackjack_v0(Environment):
     def step(self, action):
         if "torch" in str(type(action)):
             action = int(action.item())
+
         next_state, reward, done, info = self.env.step(action)
 
         adjusted_reward = reward

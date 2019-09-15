@@ -1,7 +1,6 @@
 import sys, os
 import time
 from multiprocessing import Process
-import subprocess
 
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
