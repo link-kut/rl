@@ -52,9 +52,9 @@ class Worker:
             msg['loss'],
             msg['score']
         )
-        if topic == MQTT_TOPIC_SUCCESS_DONE:
+        if MODE_PARAMETERS_TRANSFER and topic == MQTT_TOPIC_SUCCESS_DONE:
             log_msg += "'parameters_length': {0}".format(len(msg['parameters']))
-        elif topic == MQTT_TOPIC_EPISODE_DETAIL:
+        elif MODE_GRADIENTS_UPDATE and topic == MQTT_TOPIC_EPISODE_DETAIL:
             log_msg += "'avg_grad_length': {0}".format(len(msg['avg_gradients']))
         elif topic == MQTT_TOPIC_FAIL_DONE:
             pass
