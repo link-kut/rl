@@ -103,7 +103,7 @@ def get_rl_model(env):
             continuous=env.continuous,
             device=device
         ).to(device)
-    if DEEP_LEARNING_MODEL == DeepLearningModelName.NoModel:
+    elif DEEP_LEARNING_MODEL == DeepLearningModelName.NoModel:
         model = None
     else:
         model = None
