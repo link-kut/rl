@@ -79,10 +79,9 @@ def on_chief_message(client, userdata, msg):
                         np.mean(chief.score_over_recent_100_episodes[worker_id]))
 
                     if topic == MQTT_TOPIC_SUCCESS_DONE:
-                        parameters_transferred = msg_payload["parameters"]
                         is_include_topic_success_done = True
             if is_include_topic_success_done:
-                transfer_msg = chief.get_transfer_ack_msg(parameters_transferred)
+                transfer_msg = chief.get_transfer_ack_msg(msg_payload)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
             else:
                 grad_update_msg = chief.get_update_ack_msg()
