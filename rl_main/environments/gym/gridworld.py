@@ -41,6 +41,9 @@ class GRIDWORLD_v0(Environment):
         action_shape = self.env.action_space.shape
         return action_shape
 
+    def get_action_space(self):
+        return None
+
     def get_state(self, post_state, action):
         next_state = -1.0
         for i, p in enumerate(self.env.P[action, post_state, :]):
