@@ -18,8 +18,8 @@ from rl_main.models.actor_critic_model import Policy
 from rl_main.rl_algorithms.DQN_v0 import DQN_v0
 from rl_main.rl_algorithms.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
 from rl_main.rl_algorithms.PPO_v0 import PPO_v0
-from rl_main.rl_algorithms.DP_Policy_Iteration import Policy_Iteration
-from rl_main.rl_algorithms.DP_Value_Iteration import Value_Iteration
+from rl_main.dp_algorithms.DP_Policy_Iteration import Policy_Iteration
+from rl_main.dp_algorithms.DP_Value_Iteration import Value_Iteration
 
 
 def get_environment(owner="chief"):
