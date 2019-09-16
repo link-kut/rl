@@ -33,8 +33,8 @@ class DeepLearningModelName(enum.Enum):
 class RLAlgorithmName(enum.Enum):
     DQN_V0 = "DQN_v0"
     PPO_V0 = "PPO_v0"
-    Policy_Iteration = "DP_Bellman_Expectation_Policy_Iteration"
-    Value_Iteration = "DP_Bellman_Optimality_Value_Iteration"
+    Policy_Iteration = "DP_Policy_Iteration"
+    Value_Iteration = "DP_Value_Iteration"
     Monte_Carlo_Control_V0 = "Monte_Carlo_Control_v0"
 
 
