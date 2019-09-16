@@ -46,16 +46,8 @@ class GRIDWORLD_v0(Environment):
 
     @property
     def action_meanings(self):
-        action_meanings = ["UP", "DOWN", "RIGHT", "LEFT"]
+        action_meanings = ["UP", "RIGHT", "DOWN", "LEFT"]
         return action_meanings
-
-    def get_state_transition_probability(self):
-        P = self.env.P
-        return P
-
-    def get_reward(self):
-        R = self.env.R
-        return R
 
     def reset(self):
         state = self.env.reset()
@@ -78,7 +70,7 @@ class GRIDWORLD_v0(Environment):
         self.env.close()
 
     def get_state(self, post_state, action):
-        next_state = -1.0
+        next_state = 0.0
         for i, p in enumerate(self.env.P[action, post_state, :]):
             if p > 0.0:
                 next_state = i
@@ -89,18 +81,18 @@ class GRIDWORLD_v0(Environment):
         return reward
 
 
-if __name__ == "__main__":
-    env = GRIDWORLD_v0()
-    print(env.n_actions)
-
-    for i_episode in range(10):
-        state = env.reset()
-        while True:
-            action = env.action_space.sample()
-            next_state, reward, adjusted_reward, done, info = env.step(action)
-            print(state, action, next_state, reward, adjusted_reward, done)
-            if done:
-                print('End game! Reward: ', reward)
-                print('You won :)\n') if reward > 0 else print('You lost :(\n')
-                break
-            state = next_state
+# if __name__ == "__main__":
+#     env = GRIDWORLD_v0()
+#     print(env.n_actions)
+#
+#     for i_episode in range(10):
+#         state = env.reset()
+#         while True:
+#             action = env.action_space.sample()
+#             next_state, reward, adjusted_reward, done, info = env.step(action)
+#             print(state, action, next_state, reward, adjusted_reward, done)
+#             if done:
+#                 print('End game! Reward: ', reward)
+#                 print('You won :)\n') if reward > 0 else print('You lost :(\n')
+#                 break
+#             state = next_state

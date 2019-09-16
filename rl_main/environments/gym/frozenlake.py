@@ -86,17 +86,32 @@ class FrozenLake_v0(Environment):
     def close(self):
         self.env.close()
 
+    # def get_state(self, post_state, action):
+    #     next_state = 1.0
+    #     for i, p in enumerate(self.env.P[action, post_state, :]):
+    #         if p > 0.0:
+    #             next_state = i
+    #     return next_state
+    #
+    # def get_reward(self, action, state):
+    #     reward = self.env.R[action, state]
+    #     return reward
+
 
 if __name__ == "__main__":
     env = FrozenLake_v0()
 
     for i_episode in range(10):
         state = env.reset()
+        env.render()
+        step = 0
         while True:
-            env.render()
+            print("\nstep: {0}".format(step))
             action = env.action_space.sample()
             next_state, reward, adjusted_reward, done, info = env.step(action)
             print(state, action, next_state, reward, adjusted_reward, done)
+            env.render()
+            step += 1
             if done:
                 print('End game! Reward: ', reward)
                 print('You won :)\n') if reward > 0 else print('You lost :(\n')
