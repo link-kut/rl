@@ -2,9 +2,9 @@
 import gym
 import numpy as np
 
-from rl_main.conf.names import EnvironmentName, ModelName
+from rl_main.conf.names import EnvironmentName, DeepLearningModelName
 from rl_main.environments.environment import Environment
-from rl_main.main_constants import DEEP_LEARNING_MODEL, MODE_DEEP_LEARNING_MODEL
+from rl_main.main_constants import DEEP_LEARNING_MODEL
 
 
 class BreakoutDeterministic_v4(Environment):
@@ -41,9 +41,9 @@ class BreakoutDeterministic_v4(Environment):
     def preprocess(self, img):
         gray_frame = self.to_grayscale(self.downsample(img))
 
-        if MODE_DEEP_LEARNING_MODEL == "CNN":
+        if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
             state = np.expand_dims(gray_frame, axis=0)
-        elif MODE_DEEP_LEARNING_MODEL == "MLP":
+        elif DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticMLP:
             state = gray_frame.flatten()
         else:
             state = None
@@ -51,9 +51,9 @@ class BreakoutDeterministic_v4(Environment):
         return state
 
     def get_n_states(self):
-        if MODE_DEEP_LEARNING_MODEL == "CNN":
+        if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
             return 1, 105, 80                   # input_channels, input_height, input_width
-        elif MODE_DEEP_LEARNING_MODEL == "MLP":
+        elif DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticMLP:
             return 8400
         else:
             return None
@@ -75,10 +75,14 @@ class BreakoutDeterministic_v4(Environment):
         action_shape = self.env.action_space.n - 1
         return action_shape,
 
+    def get_action_space(self):
+        return self.env.action_space
+
     def reset(self):
         self.env.reset()
         next_state, reward, done, info = self.env.step(1)
         self.last_ball_lives = info['ale.lives']
+        info["dead"] = False    #if a ball fall down, dead is true
 
         return self.preprocess(next_state)
 
@@ -96,16 +100,17 @@ class BreakoutDeterministic_v4(Environment):
             env_action = 1
             self.last_ball_lives = info['ale.lives']
             next_state, reward, done, info = self.env.step(env_action)
-            reward -= 1.0
+            info["dead"] = True
+            reward = -5.0
 
-        info["skipping"] = True
-        if self.skipping_state_index == self.skipping_state_fq:
-            self.skipping_state_index = 0
-            info["skipping"] = False
+        # info["skipping"] = True
+        # if self.skipping_state_index == self.skipping_state_fq:
+        #     self.skipping_state_index = 0
+        #     info["skipping"] = False
 
         adjusted_reward = self.transform_reward(reward)
 
-        self.skipping_state_index += 1
+        # self.skipping_state_index += 1
 
         return self.preprocess(next_state), reward, adjusted_reward, done, info
 

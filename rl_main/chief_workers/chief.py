@@ -8,6 +8,7 @@ import rl_main.rl_utils as rl_utils
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import csv
 
 from collections import deque
 
@@ -24,6 +25,7 @@ class Chief:
         self.losses = {}
 
         self.score_over_recent_100_episodes = {}
+        self.loss_over_recent_100_episodes = {}
 
         self.success_done_episode = {}
         self.success_done_score = {}
@@ -46,6 +48,7 @@ class Chief:
             self.success_done_score[worker_id] = []
 
             self.score_over_recent_100_episodes[worker_id] = deque(maxlen=self.env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
+            self.loss_over_recent_100_episodes[worker_id] = deque(maxlen=self.env.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES)
 
     def update_loss_score(self, msg_payload):
         worker_id = msg_payload['worker_id']
@@ -53,6 +56,7 @@ class Chief:
         score = msg_payload['score']
         self.losses[worker_id].append(loss)
         self.scores[worker_id].append(score)
+        self.loss_over_recent_100_episodes[worker_id].append(loss)
         self.score_over_recent_100_episodes[worker_id].append(score)
 
     def save_graph(self):
@@ -113,12 +117,19 @@ class Chief:
         plt.savefig(os.path.join(PROJECT_HOME, "graphs", "loss_score.png"))
         plt.close('all')
 
+    def save_results(self, worker_id, loss, ema_loss, score, ema_score):
+        save_dir = PROJECT_HOME + "save_results/outputs.csv"
+        f = open(save_dir, 'a', encoding='utf-8', newline='')
+        wr = csv.writer(f)
+        wr.writerow([self.episode_chief, worker_id, loss, ema_loss, score, ema_score])
+        f.close()
+
     def process_message(self, topic, msg_payload):
         self.update_loss_score(msg_payload)
         self.save_graph()
 
         if topic == MQTT_TOPIC_EPISODE_DETAIL and MODE_GRADIENTS_UPDATE:
-            self.model.accumulate_gradients(msg_payload['avg_gradients'])
+            self.model.accumulate_gradients(msg_payload['gradients'])
 
         elif topic == MQTT_TOPIC_SUCCESS_DONE:
             self.success_done_episode[msg_payload['worker_id']].append(msg_payload['episode'])
@@ -134,11 +145,18 @@ class Chief:
         else:
             pass
 
-    def send_transfer_ack(self, parameters_transferred):
+    def get_transfer_ack_msg(self, parameters_transferred):
+        log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}".format(
+            MQTT_TOPIC_TRANSFER_ACK,
+            self.episode_chief
+        )
+
+        transfer_msg = {
+            "episode_chief": self.episode_chief
+        }
+
         if MODE_PARAMETERS_TRANSFER:
-            log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'parameters_length: {2}\n".format(
-                MQTT_TOPIC_TRANSFER_ACK,
-                self.episode_chief,
+            log_msg += ", 'parameters_length': {0}\n".format(
                 len(parameters_transferred)
             )
 
@@ -147,24 +165,19 @@ class Chief:
                 "parameters": parameters_transferred
             }
         else:
-            log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}\n".format(
-                MQTT_TOPIC_TRANSFER_ACK,
-                self.episode_chief
-            )
+            log_msg += ", No Transfer\n"
 
-            transfer_msg = {
-                "episode_chief": self.episode_chief
-            }
         self.logger.info(log_msg)
 
         transfer_msg = pickle.dumps(transfer_msg, protocol=-1)
         transfer_msg = zlib.compress(transfer_msg)
 
-        self.model.reset_average_gradients()
+        if MODE_GRADIENTS_UPDATE:
+            self.model.reset_average_gradients()
 
         return transfer_msg
 
-    def send_update_ack(self):
+    def get_update_ack_msg(self):
         if MODE_GRADIENTS_UPDATE:
             log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'global_avg_grad_length': {2}\n".format(
                 MQTT_TOPIC_UPDATE_ACK,
@@ -187,11 +200,13 @@ class Chief:
             grad_update_msg = {
                 "episode_chief": self.episode_chief
             }
+
         self.logger.info(log_msg)
 
         grad_update_msg = pickle.dumps(grad_update_msg, protocol=-1)
         grad_update_msg = zlib.compress(grad_update_msg)
 
-        self.model.reset_average_gradients()
+        if MODE_GRADIENTS_UPDATE:
+            self.model.reset_average_gradients()
 
         return grad_update_msg

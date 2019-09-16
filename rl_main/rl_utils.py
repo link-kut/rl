@@ -3,17 +3,23 @@ import json
 import paho.mqtt.client as mqtt
 from torch import optim
 
+from rl_main.environments.gym.frozenlake import FrozenLake_v0
 from rl_main.main_constants import *
 
 from rl_main.environments.gym.breakout import BreakoutDeterministic_v4
 from rl_main.environments.gym.cartpole import CartPole_v0
 from rl_main.environments.gym.pendulum import Pendulum_v0
+from rl_main.environments.gym.gridworld import GRIDWORLD_v0
+from rl_main.environments.gym.blackjack import Blackjack_v0
 from rl_main.environments.real_device.environment_rip import EnvironmentRIP
 from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
 from rl_main.models.actor_critic_model import Policy
 from rl_main.rl_algorithms.DQN_v0 import DQN_v0
+from rl_main.rl_algorithms.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
 from rl_main.rl_algorithms.PPO_v0 import PPO_v0
+from rl_main.rl_algorithms.DP_Bellman_Expectation_Policy_Iteration import Policy_Iteration
+from rl_main.rl_algorithms.DP_Bellman_Optimality_Value_Iteration import Value_Iteration
 
 
 def get_environment(owner="chief"):
@@ -81,25 +87,33 @@ def get_environment(owner="chief"):
         env = Pendulum_v0()
     elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING_MAC or ENVIRONMENT_ID == EnvironmentName.DRONE_RACING_WINDOWS:
         env = Drone_Racing(MY_PLATFORM)
+    elif ENVIRONMENT_ID == EnvironmentName.GRIDWORLD_V0:
+        env = GRIDWORLD_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.BLACKJACK_V0:
+        env = Blackjack_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.FROZENLAKE_V0:
+        env = FrozenLake_v0()
     else:
         env = None
     return env
 
 
 def get_rl_model(env):
-    if DEEP_LEARNING_MODEL == ModelName.ActorCriticModel:
+    if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticMLP or DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
         model = Policy(
             s_size=env.n_states,
             a_size=env.n_actions,
             continuous=env.continuous,
             device=device
         ).to(device)
+    elif DEEP_LEARNING_MODEL == DeepLearningModelName.NoModel:
+        model = None
     else:
         model = None
     return model
 
 
-def get_rl_algorithm(env, worker_id, logger):
+def get_rl_algorithm(env, worker_id=0, logger=False):
     if RL_ALGORITHM == RLAlgorithmName.PPO_V0:
         rl_algorithm = PPO_v0(
             env=env,
@@ -111,6 +125,25 @@ def get_rl_algorithm(env, worker_id, logger):
         )
     elif RL_ALGORITHM == RLAlgorithmName.DQN_V0:
         rl_algorithm = DQN_v0(
+            env=env,
+            worker_id=worker_id,
+            gamma=GAMMA,
+            env_render=ENV_RENDER,
+            logger=logger,
+            verbose=VERBOSE
+        )
+    elif RL_ALGORITHM == RLAlgorithmName.Policy_Iteration:
+        rl_algorithm = Policy_Iteration(
+            env=env,
+            gamma=GAMMA
+        )
+    elif RL_ALGORITHM == RLAlgorithmName.Value_Iteration:
+        rl_algorithm = Value_Iteration(
+            env=env,
+            gamma=GAMMA
+        )
+    elif RL_ALGORITHM == RLAlgorithmName.Monte_Carlo_Control_V0:
+        rl_algorithm = Monte_Carlo_Control_v0(
             env=env,
             worker_id=worker_id,
             gamma=GAMMA,
