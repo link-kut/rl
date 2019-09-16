@@ -52,7 +52,6 @@ class FrozenLake_v0(Environment):
         gridworld[1, 3] = 0
         gridworld[2, 3] = 0
         gridworld[3, 0] = 0
-        gridworld[3, 3] = 0
         # state transition matrix
         self.P = np.zeros((self.action_space.n,
                            self.get_n_states(),
@@ -61,7 +60,7 @@ class FrozenLake_v0(Environment):
         self.P[:, 0, 0] = 1
 
         for s in gridworld.flat:
-            if s != 0:
+            if (s != 0) and (s not in self.get_goal_states()):
                 row, col = np.argwhere(gridworld == s)[0]
                 for a, d in zip(
                         range(self.action_space.n),
@@ -75,9 +74,10 @@ class FrozenLake_v0(Environment):
         # self.R[a, s] = Rewards
         self.R = np.full((self.action_space.n,
                           self.get_n_states()), 0)
-        self.R[:, ]
-        self.R[:, 15] = 1
-        print(self.P[2, 14, 15])
+        for t in self.get_terminal_states():
+            self.R[:, t] = -1
+        for g in self.get_goal_states():
+            self.R[:, g] = 1
 
     def get_n_states(self):
         n_states = self.env.observation_space.n
@@ -134,7 +134,7 @@ class FrozenLake_v0(Environment):
         return reward
 
     def get_terminal_states(self):
-        return [0, 5, 7, 11, 12, 15]
+        return [0, 5, 7, 11, 12]
 
     def get_goal_states(self):
         return [15]

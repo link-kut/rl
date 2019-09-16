@@ -49,8 +49,6 @@ class Policy_Iteration:
                     s_ = int(self.env.get_state(s, a))
                     value = policy[s][a] * (self.env.get_reward(a, s) + self.gamma * state_values[s_])
                     value_t += value
-            if s in self.goal_states:
-                value_t = self.env.get_reward(random.randint(0, self.n_actions-1), s)
             next_state_values[s] = round(value_t, 3)
 
         return next_state_values
@@ -108,6 +106,8 @@ class Policy_Iteration:
         for s in range(self.n_states):
             if s in self.terminal_states:
                 action_table.append('T')
+            elif s in self.goal_states:
+                action_table.append('G')
             else:
                 idx = np.argmax(self.policy[s])
                 action_table.append(action_meanings[idx])

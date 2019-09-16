@@ -8,7 +8,7 @@ from rl_main.environments.environment import Environment
 # 0   1   2   3
 # 4   5   6   7
 # 8   9   10  11
-# 12  13  14  15
+# 12  13  14
 
 # actions
 # 0: up 1: right 2: down 3: left
@@ -80,6 +80,9 @@ class GRIDWORLD_v0(Environment):
 
     def get_terminal_states(self):
         return [0]
+
+    def get_goal_states(self):
+        return []
 
 
 # if __name__ == "__main__":
