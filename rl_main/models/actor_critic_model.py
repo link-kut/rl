@@ -1,4 +1,6 @@
 # https://github.com/ikostrikov/pytorch-a2c-ppo-acktr-gail
+import glob
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,9 +24,11 @@ class Flatten(nn.Module):
         return x.view(x.size(0), -1)
 
 
-class Policy(nn.Module):
-    def __init__(self, s_size, a_size, continuous, device):
-        super(Policy, self).__init__()
+class ActorCriticModel(nn.Module):
+    def __init__(self, s_size, a_size, continuous, worker_id, device):
+        super(ActorCriticModel, self).__init__()
+
+        self.worker_id = worker_id
 
         if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
             self.input_channels = s_size[0]
@@ -65,6 +69,19 @@ class Policy(nn.Module):
         self.reset_average_gradients()
 
         self.steps_done = 0
+
+        files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "{0}_*".format(self.worker_id)))
+
+        if self.worker_id >= 0:
+            if len(files) > 1:
+                print("Worker ID - {0}: Problem occurs since there are two or more save files".format(self.worker_id))
+            elif len(files) == 1:
+                filename = files[0]
+                self.load_state_dict(torch.load(filename))
+                self.eval()
+                print("Worker ID - {0}: Successful Model Load From {1}".format(self.worker_id, filename))
+            else:
+                print("Worker ID - {0}: There is no saved model".format(self.worker_id))
 
     def forward(self, inputs):
         raise NotImplementedError
