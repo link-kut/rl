@@ -26,7 +26,7 @@ class Policy(nn.Module):
     def __init__(self, s_size, a_size, continuous, device):
         super(Policy, self).__init__()
 
-        if MODE_DEEP_LEARNING_MODEL == "CNN":
+        if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
             self.input_channels = s_size[0]
             self.input_height = s_size[1]
             self.input_width = s_size[2]
@@ -37,7 +37,7 @@ class Policy(nn.Module):
                 input_width=self.input_width,
                 continuous=continuous
             )
-        elif MODE_DEEP_LEARNING_MODEL == "MLP":
+        elif DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticMLP:
             self.base = MLPBase(
                 num_inputs=s_size,
                 continuous=continuous

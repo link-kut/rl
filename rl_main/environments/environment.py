@@ -33,11 +33,3 @@ class Environment:
     def action_meaning(self):
         pass
 
-    def reset(self):
-        pass
-
-    def step(self, action):
-        pass
-
-    def close(self):
-        pass

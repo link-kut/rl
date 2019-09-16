@@ -1,14 +1,13 @@
 import sys, os
 import time
 from multiprocessing import Process
-import subprocess
 
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
 sys.path.append(PROJECT_HOME)
 
 from rl_main.main_constants import *
-
+from rl_main import rl_utils
 import rl_main.utils as utils
 
 
@@ -24,6 +23,11 @@ if __name__ == "__main__":
 
     utils.make_output_folders()
     utils.ask_file_removal()
+
+    env = rl_utils.get_environment()
+    rl_model = rl_utils.get_rl_model(env)
+
+    utils.print_configuration(env, rl_model)
 
     try:
         chief = Process(target=utils.run_chief, args=())

@@ -4,40 +4,38 @@ from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 """
-    Simple blackjack environment
+    FrozenLake-v0 environment
 
-    Blackjack is a card game where the goal is to obtain cards that sum to as near as possible to 21 without going over.
-    They're playing against a fixed dealer.
+    The agent controls the movement of a character in a grid world. 
+    
+    Some tiles of the grid are walkable, and others lead to the agent falling into the water. 
+    
+    Additionally, the movement direction of the agent is uncertain and only partially depends on the chosen direction. 
+    
+    The agent is rewarded for finding a walkable path to a goal tile.
 
-    - Face cards (Jack, Queen, King) have point value 10.
-    - Aces can either count as 11 or 1, and it's called 'usable' at 11.
+    The surface is described using a grid like the following:
 
-    This game is placed with an infinite deck (or with replacement).
-    The game starts with each (player and dealer) having one face up and one face down card.
+    SFFF       (S: starting point, safe)
+    FHFH       (F: frozen surface, safe)
+    FFFH       (H: hole, fall to your doom)
+    HFFG       (G: goal, where the frisbee is located)
 
-    The player can request additional cards (hit=1) until they decide to stop (stick=0) or exceed 21 (bust).
 
-    After the player sticks, the dealer reveals their facedown card, and draws until their sum is 17 or greater.  
-    If the dealer goes bust the player wins.
+    The episode ends when you reach the goal or fall in a hole. 
 
-    If neither player nor dealer busts, the outcome (win, lose, draw) is decided by whose sum is closer to 21.  
-    The reward for winning is +1, drawing is 0, and losing is -1.
-
-    The observation of a 3-tuple of: 
-      - the players current sum, 
-      - the dealer's one showing card (1-10 where 1 is ace),
-      - whether or not the player holds a usable ace (False or True).
-
-    This environment corresponds to the version of the blackjack problem described in Example 5.1 
-    in Reinforcement Learning: An Introduction by Sutton and Barto (1998).
-    http://incompleteideas.net/sutton/book/the-book.html
+    the ice is slippery, so you won't always move in the direction you intend.
+        
+    You receive a reward of 1 if you reach the goal, and zero otherwise.
+    
+    https://gym.openai.com/envs/FrozenLake-v0/
 """
 
 
-class Blackjack_v0(Environment):
+class FrozenLake_v0(Environment):
     def __init__(self):
-        self.env = gym.make(EnvironmentName.BLACKJACK_V0.value)
-        super(Blackjack_v0, self).__init__()
+        self.env = gym.make(EnvironmentName.FROZENLAKE_V0.value, is_slippery=False)
+        super(FrozenLake_v0, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
 
@@ -46,7 +44,7 @@ class Blackjack_v0(Environment):
         self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 25
 
     def get_n_states(self):
-        n_states = len(self.env.observation_space)
+        n_states = self.env.observation_space.n
         return n_states
 
     def get_n_actions(self):
@@ -54,9 +52,7 @@ class Blackjack_v0(Environment):
         return n_actions
 
     def get_state_shape(self):
-        state_shape = list(self.env.observation_space)
-        state_shape[0] = state_shape[0]
-        return tuple(state_shape)
+        return 1,
 
     def get_action_shape(self):
         action_shape = (self.env.action_space.n, )
@@ -67,7 +63,7 @@ class Blackjack_v0(Environment):
 
     @property
     def action_meanings(self):
-        action_meanings = ["STICK", "HIT"]
+        action_meanings = ["LEFT", "DOWN", "RIGHT", "UP"]
         return action_meanings
 
     def reset(self):
@@ -90,17 +86,32 @@ class Blackjack_v0(Environment):
     def close(self):
         self.env.close()
 
+    # def get_state(self, post_state, action):
+    #     next_state = 1.0
+    #     for i, p in enumerate(self.env.P[action, post_state, :]):
+    #         if p > 0.0:
+    #             next_state = i
+    #     return next_state
+    #
+    # def get_reward(self, action, state):
+    #     reward = self.env.R[action, state]
+    #     return reward
+
 
 if __name__ == "__main__":
-    env = Blackjack_v0()
-    print(env.n_actions)
+    env = FrozenLake_v0()
 
     for i_episode in range(10):
         state = env.reset()
+        env.render()
+        step = 0
         while True:
+            print("\nstep: {0}".format(step))
             action = env.action_space.sample()
             next_state, reward, adjusted_reward, done, info = env.step(action)
             print(state, action, next_state, reward, adjusted_reward, done)
+            env.render()
+            step += 1
             if done:
                 print('End game! Reward: ', reward)
                 print('You won :)\n') if reward > 0 else print('You lost :(\n')

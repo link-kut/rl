@@ -8,114 +8,97 @@ class Policy_Iteration:
         # discount rate
         self.gamma = gamma
 
-    def get_state(self, state, action):
+        self.n_states = self.env.get_n_states()
+        self.n_actions = self.env.get_n_actions()
 
-        action_grid = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        self.state_values = np.zeros([self.n_states], dtype=float)
+        self.actions = [act for act in range(self.n_actions)]
+        self.policy = np.empty([self.n_states, self.n_actions], dtype=float)
+        for s in range(self.n_states):
+            for a in range(self.n_actions):
+                if s == 0:
+                    self.policy[s][a] = 0.00
+                else:
+                    self.policy[s][a] = 0.25
 
-        state[0] += action_grid[action][0]
-        state[1] += action_grid[action][1]
+        # policy evaluation
+        self.delta = 0.0
+        # policy evaluation threshold
+        self.theta = 0.001
+        # policy stable verification
+        self.is_policy_stable = False
 
-        if state[0] < 0:
-            state[0] = 0
-        elif state[0] > 3:
-            state[0] = 3
-
-        if state[1] < 0:
-            state[1] = 0
-        elif state[1] > 3:
-            state[1] = 3
-
-        return state[0], state[1]
-
-    def policy_evaluation(self, grid_width, grid_height, action, policy, iter_num, reward=-1, dis=1):
+    def policy_evaluation(self, state_values, policy):
         # table initialize
-        post_value_table = np.zeros([grid_height, grid_width], dtype=float)
+        next_state_values = np.zeros([self.n_states], dtype=float)
 
         # iteration
-        if iter_num == 0:
-            print('Iteration: {} \n{}\n'.format(iter_num, post_value_table))
-            return post_value_table
-
-        for iteration in range(iter_num):
-            next_value_table = np.zeros([grid_height, grid_width], dtype=float)
-            for i in range(grid_height):
-                for j in range(grid_width):
-                    if i == j and ((i == 0) or (i == 3)):
-                        value_t = 0
-                    else:
-                        value_t = 0
-                        for act in action:
-                            i_, j_ = self.get_state([i, j], act)
-                            value = policy[i][j][act] * (reward + dis * post_value_table[i_][j_])
-                            value_t += value
-                    next_value_table[i][j] = round(value_t, 3)
-            iteration += 1
-
-            # print result
-            if (iteration % 10) != iter_num:
-                # print result
-                if iteration > 100:
-                    if (iteration % 20) == 0:
-                        print('Iteration: {} \n{}\n'.format(iteration, next_value_table))
-                else:
-                    if (iteration % 10) == 0:
-                        print('Iteration: {} \n{}\n'.format(iteration, next_value_table))
+        for s in range(self.n_states):
+            if s == 0:
+                value_t = 0
             else:
-                print('Iteration: {} \n{}\n'.format(iteration, next_value_table))
+                value_t = 0
+                for a in range(self.n_actions):
+                    s_ = self.env.get_state(s, a)
+                    value = policy[s][a] * (self.env.get_reward(a, s) + self.gamma * state_values[s_])
+                    value_t += value
+            next_state_values[s] = round(value_t, 3)
 
-            post_value_table = next_value_table
+        return next_state_values
 
-        return next_value_table
+    def policy_improvement(self, state_values):
+        new_policy = np.empty([self.n_states, self.n_actions], dtype=float)
 
-    def policy_improvement(self, value, action, policy, reward=-1, grid_width=4):
-        grid_height = grid_width
-
-        action_match = ['Up', 'Down', 'Left', 'Right']
-        action_table = []
+        is_policy_stable = True
 
         # get Q-func.
-        for i in range(grid_height):
-            for j in range(grid_width):
-                q_func_list = []
-                if i == j and ((i == 0) or (i == 3)):
-                    action_table.append('T')
-                else:
-                    for k in range(len(action)):
-                        i_, j_ = self.get_state([i, j], k)
-                        q_func_list.append(value[i_][j_])
-                    max_actions = [action_v for action_v, x in enumerate(q_func_list) if x == max(q_func_list)]
+        for s in range(self.n_states):
+            q_func_list = []
+            if s == 0:
+                for a in range(self.n_actions):
+                    new_policy[s][a] = 0.00
+            else:
+                for a in range(self.n_actions):
+                    s_ = self.env.get_state(s, a)
+                    q_func_list.append(state_values[s_])
+                max_actions = [action_v for action_v, x in enumerate(q_func_list) if x == max(q_func_list)]
 
-                    # update policy
-                    policy[i][j] = [0] * len(action)  # initialize q-func_list
-                    for y in max_actions:
-                        policy[i][j][y] = (1 / len(max_actions))
+                # update policy
+                for act in self.actions:
+                    if act in max_actions:
+                        new_policy[s][act] = (1 / len(max_actions))
+                    else:
+                        new_policy[s][act] = 0.00
 
-                    # get action
-                    idx = np.argmax(policy[i][j])
-                    action_table.append(action_match[idx])
-        action_table = np.asarray(action_table).reshape((grid_height, grid_width))
+        if False in np.equal(self.policy, new_policy):
+            is_policy_stable = False
 
-        print('Updated policy is :\n{}\n'.format(policy))
-        print('at each state, chosen action is :\n{}'.format(action_table))
-
-        return policy
+        return is_policy_stable, new_policy
 
     def start_iteration(self):
-        grid_width = 4
-        grid_height = grid_width
-        action = [0, 1, 2, 3] # up, down, left, right
-        policy = np.empty([grid_height, grid_width, len(action)], dtype=float)
-        for i in range(grid_height):
-            for j in range(grid_width):
-                for k in range(len(action)):
-                    if i==j and ((i==0) or (i==3)):
-                        policy[i][j]=0.00
-                    else :
-                        policy[i][j]=0.25
-        policy[0][0] = [0] * grid_width
-        policy[3][3] = [0] * grid_width
+        while not self.is_policy_stable:
+            # policy_evaluation
+            print("*** Policy Evaluation Started/Restarted ***\n")
+            for i in range(1000000):
+                next_state_values = self.policy_evaluation(self.state_values, self.policy)
+                self.delta = np.max(np.abs(self.state_values - next_state_values))
+                self.state_values = next_state_values
+                if self.delta < self.theta:
+                    print("*** Policy Evaluation Conversed at {0} iterations! ***\n".format(i))
+                    break
+            # policy_improvement
+            self.is_policy_stable, self.policy = self.policy_improvement(self.state_values)
+            print("*** Policy Improvement --> Policy Stable: {0} ***\n".format(self.is_policy_stable))
+        print("Policy Iteration Ended!\n\n")
 
-        value = self.policy_evaluation(grid_width, grid_height, action, policy, 100)
-        updated_policy = self.policy_improvement(value, action, policy)
+        # view created action_table
+        action_meanings = self.env.action_meanings
+        action_table = []
+        for s in range(self.n_states):
+            if s == 0:
+                action_table.append('T')
+            else:
+                idx = np.argmax(self.policy[s])
+                action_table.append(action_meanings[idx])
 
-        return updated_policy
+        return self.state_values, self.policy, action_table

@@ -129,7 +129,7 @@ class Chief:
         self.save_graph()
 
         if topic == MQTT_TOPIC_EPISODE_DETAIL and MODE_GRADIENTS_UPDATE:
-            self.model.accumulate_gradients(msg_payload['avg_gradients'])
+            self.model.accumulate_gradients(msg_payload['gradients'])
 
         elif topic == MQTT_TOPIC_SUCCESS_DONE:
             self.success_done_episode[msg_payload['worker_id']].append(msg_payload['episode'])
@@ -145,12 +145,18 @@ class Chief:
         else:
             pass
 
-    def get_transfer_ack_msg(self, msg_payload):
+    def get_transfer_ack_msg(self, parameters_transferred):
+        log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}".format(
+            MQTT_TOPIC_TRANSFER_ACK,
+            self.episode_chief
+        )
+
+        transfer_msg = {
+            "episode_chief": self.episode_chief
+        }
+
         if MODE_PARAMETERS_TRANSFER:
-            parameters_transferred = msg_payload["parameters"]
-            log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}, 'parameters_length: {2}\n".format(
-                MQTT_TOPIC_TRANSFER_ACK,
-                self.episode_chief,
+            log_msg += ", 'parameters_length': {0}\n".format(
                 len(parameters_transferred)
             )
 
@@ -159,14 +165,8 @@ class Chief:
                 "parameters": parameters_transferred
             }
         else:
-            log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}\n".format(
-                MQTT_TOPIC_TRANSFER_ACK,
-                self.episode_chief
-            )
+            log_msg += ", No Transfer\n"
 
-            transfer_msg = {
-                "episode_chief": self.episode_chief
-            }
         self.logger.info(log_msg)
 
         transfer_msg = pickle.dumps(transfer_msg, protocol=-1)
