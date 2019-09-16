@@ -1,6 +1,9 @@
 import numpy as np
 import random
 
+from rl_main.main_constants import MAX_EPISODES
+
+
 class Policy_Iteration:
     def __init__(self, env, gamma):
         self.env = env
@@ -8,7 +11,7 @@ class Policy_Iteration:
         # discount rate
         self.gamma = gamma
 
-        self.max_iteration = 10
+        self.max_iteration = MAX_EPISODES
 
         self.n_states = self.env.get_n_states()
         self.n_actions = self.env.get_n_actions()
