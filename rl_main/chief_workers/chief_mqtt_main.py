@@ -48,6 +48,16 @@ def on_chief_message(client, userdata, msg):
         msg_payload['loss'],
         msg_payload['score']
     )
+
+    if MODE_PARAMETERS_TRANSFER and msg.topic == MQTT_TOPIC_SUCCESS_DONE:
+        log_msg += ", 'parameters_length': {0}".format(len(msg_payload['parameters']))
+    elif MODE_GRADIENTS_UPDATE and msg.topic == MQTT_TOPIC_EPISODE_DETAIL:
+        log_msg += ", 'gradients_length': {0}".format(len(msg_payload['gradients']))
+    elif msg.topic == MQTT_TOPIC_FAIL_DONE:
+        pass
+    else:
+        pass
+
     logger.info(log_msg)
 
     if MODE_SYNCHRONIZATION:
@@ -55,6 +65,7 @@ def on_chief_message(client, userdata, msg):
             chief.messages_received_from_workers[msg_payload['episode']] = {}
 
         chief.messages_received_from_workers[msg_payload['episode']][msg_payload["worker_id"]] = (msg.topic, msg_payload)
+
         if len(chief.messages_received_from_workers[chief.episode_chief]) == NUM_WORKERS - chief.NUM_DONE_WORKERS:
             is_include_topic_success_done = False
             parameters_transferred = None
@@ -70,16 +81,21 @@ def on_chief_message(client, userdata, msg):
                         np.mean(chief.score_over_recent_100_episodes[worker_id])
                     )
 
-                    chief.save_results(worker_id,
+                    chief.save_results(
+                        worker_id,
                         chief.messages_received_from_workers[chief.episode_chief][worker_id][1]['loss'],
                         np.mean(chief.loss_over_recent_100_episodes[worker_id]),
                         chief.messages_received_from_workers[chief.episode_chief][worker_id][1]['score'],
-                        np.mean(chief.score_over_recent_100_episodes[worker_id]))
+                        np.mean(chief.score_over_recent_100_episodes[worker_id])
+                    )
 
                     if topic == MQTT_TOPIC_SUCCESS_DONE:
                         is_include_topic_success_done = True
+                        if MODE_PARAMETERS_TRANSFER:
+                            parameters_transferred = msg_payload["parameters"]
+
             if is_include_topic_success_done:
-                transfer_msg = chief.get_transfer_ack_msg(msg_payload)
+                transfer_msg = chief.get_transfer_ack_msg(parameters_transferred)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
             else:
                 grad_update_msg = chief.get_update_ack_msg()
