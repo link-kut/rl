@@ -15,11 +15,11 @@ from rl_main.environments.real_device.environment_rip import EnvironmentRIP
 from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
 from rl_main.models.actor_critic_model import Policy
-from rl_main.rl_algorithms.DQN_v0 import DQN_v0
-from rl_main.rl_algorithms.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
-from rl_main.rl_algorithms.PPO_v0 import PPO_v0
-from rl_main.dp_algorithms.DP_Policy_Iteration import Policy_Iteration
-from rl_main.dp_algorithms.DP_Value_Iteration import Value_Iteration
+from rl_main.algorithms_rl.DQN_v0 import DQN_v0
+from rl_main.algorithms_rl.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
+from rl_main.algorithms_rl.PPO_v0 import PPO_v0
+from rl_main.algorithms_dp.DP_Policy_Iteration import Policy_Iteration
+from rl_main.algorithms_dp.DP_Value_Iteration import Value_Iteration
 
 
 def get_environment(owner="chief"):
