@@ -1,5 +1,5 @@
 import numpy as np
-
+import random
 
 class Policy_Iteration:
     def __init__(self, env, gamma):
@@ -8,17 +8,20 @@ class Policy_Iteration:
         # discount rate
         self.gamma = gamma
 
+        self.max_iteration = 10
+
         self.n_states = self.env.get_n_states()
         self.n_actions = self.env.get_n_actions()
 
         self.terminal_states = self.env.get_terminal_states()
+        self.goal_states = self.env.get_goal_states()
 
         self.state_values = np.zeros([self.n_states], dtype=float)
         self.actions = [act for act in range(self.n_actions)]
         self.policy = np.empty([self.n_states, self.n_actions], dtype=float)
         for s in range(self.n_states):
             for a in range(self.n_actions):
-                if s == 0:
+                if s in self.terminal_states:
                     self.policy[s][a] = 0.00
                 else:
                     self.policy[s][a] = 0.25
@@ -33,7 +36,6 @@ class Policy_Iteration:
     def policy_evaluation(self, state_values, policy):
         # table initialize
         next_state_values = np.zeros([self.n_states], dtype=float)
-
         # iteration
         for s in range(self.n_states):
             if s in self.terminal_states:
@@ -44,6 +46,8 @@ class Policy_Iteration:
                     s_ = int(self.env.get_state(s, a))
                     value = policy[s][a] * (self.env.get_reward(a, s) + self.gamma * state_values[s_])
                     value_t += value
+            if s in self.goal_states:
+                value_t = self.env.get_reward(random.randint(0, self.n_actions-1), s)
             next_state_values[s] = round(value_t, 3)
 
         return next_state_values
@@ -78,7 +82,8 @@ class Policy_Iteration:
         return is_policy_stable, new_policy
 
     def start_iteration(self):
-        while not self.is_policy_stable:
+        iter_num = 0
+        while not self.is_policy_stable and iter_num < self.max_iteration:
             # policy_evaluation
             print("*** Policy Evaluation Started/Restarted ***\n")
             for i in range(1000000):
@@ -90,6 +95,7 @@ class Policy_Iteration:
                     break
             # policy_improvement
             self.is_policy_stable, self.policy = self.policy_improvement(self.state_values)
+            iter_num += 1
             print("*** Policy Improvement --> Policy Stable: {0} ***\n".format(self.is_policy_stable))
         print("Policy Iteration Ended!\n\n")
 

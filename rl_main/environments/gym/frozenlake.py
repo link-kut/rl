@@ -74,8 +74,9 @@ class FrozenLake_v0(Environment):
 
         # self.R[a, s] = Rewards
         self.R = np.full((self.action_space.n,
-                          self.get_n_states()), 0)
-        self.R[2, 14] = 1
+                          self.get_n_states()), -1)
+        self.R[:, 15] = 1
+        print(self.P[2, 14, 15])
 
     def get_n_states(self):
         n_states = self.env.observation_space.n
@@ -133,6 +134,9 @@ class FrozenLake_v0(Environment):
 
     def get_terminal_states(self):
         return [0, 5, 7, 11, 12, 15]
+
+    def get_goal_states(self):
+        return [15]
 
 
 if __name__ == "__main__":
