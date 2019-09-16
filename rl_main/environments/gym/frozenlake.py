@@ -1,5 +1,5 @@
 import gym
-
+import numpy as np
 from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
@@ -42,6 +42,40 @@ class FrozenLake_v0(Environment):
         self.continuous = False
         self.WIN_AND_LEARN_FINISH_SCORE = 1.0
         self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 25
+
+        # self.P[a, s, s'] = Transition Probability
+        gridworld = np.arange(
+            self.get_n_states()
+        ).reshape((4, 4))
+        # terminal states
+        gridworld[1, 1] = 0
+        gridworld[1, 3] = 0
+        gridworld[2, 3] = 0
+        gridworld[3, 0] = 0
+        gridworld[3, 3] = 0
+        # state transition matrix
+        self.P = np.zeros((self.action_space.n,
+                           self.get_n_states(),
+                           self.get_n_states()))
+        # any action taken in terminal state has no effect
+        self.P[:, 0, 0] = 1
+
+        for s in gridworld.flat:
+            if s != 0:
+                row, col = np.argwhere(gridworld == s)[0]
+                for a, d in zip(
+                        range(self.action_space.n),
+                        [(0, -1), (1, 0), (0, 1), (-1, 0)]
+                ):
+                    next_row = max(0, min(row + d[0], 3))
+                    next_col = max(0, min(col + d[1], 3))
+                    s_prime = gridworld[next_row, next_col]
+                    self.P[a, s, s_prime] = 1
+
+        # self.R[a, s] = Rewards
+        self.R = np.full((self.action_space.n,
+                          self.get_n_states()), 0)
+        self.R[2, 14] = 1
 
     def get_n_states(self):
         n_states = self.env.observation_space.n
@@ -86,16 +120,19 @@ class FrozenLake_v0(Environment):
     def close(self):
         self.env.close()
 
-    # def get_state(self, post_state, action):
-    #     next_state = 1.0
-    #     for i, p in enumerate(self.env.P[action, post_state, :]):
-    #         if p > 0.0:
-    #             next_state = i
-    #     return next_state
-    #
-    # def get_reward(self, action, state):
-    #     reward = self.env.R[action, state]
-    #     return reward
+    def get_state(self, post_state, action):
+        next_state = 0
+        for i, p in enumerate(self.P[action, post_state, :]):
+            if p > 0.0:
+                next_state = i
+        return next_state
+
+    def get_reward(self, action, state):
+        reward = self.R[action, state]
+        return reward
+
+    def get_terminal_states(self):
+        return [0, 5, 7, 11, 12, 15]
 
 
 if __name__ == "__main__":

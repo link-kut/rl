@@ -11,6 +11,8 @@ class Policy_Iteration:
         self.n_states = self.env.get_n_states()
         self.n_actions = self.env.get_n_actions()
 
+        self.terminal_states = self.env.get_terminal_states()
+
         self.state_values = np.zeros([self.n_states], dtype=float)
         self.actions = [act for act in range(self.n_actions)]
         self.policy = np.empty([self.n_states, self.n_actions], dtype=float)
@@ -34,12 +36,12 @@ class Policy_Iteration:
 
         # iteration
         for s in range(self.n_states):
-            if s == 0:
+            if s in self.terminal_states:
                 value_t = 0
             else:
                 value_t = 0
                 for a in range(self.n_actions):
-                    s_ = self.env.get_state(s, a)
+                    s_ = int(self.env.get_state(s, a))
                     value = policy[s][a] * (self.env.get_reward(a, s) + self.gamma * state_values[s_])
                     value_t += value
             next_state_values[s] = round(value_t, 3)
@@ -54,12 +56,12 @@ class Policy_Iteration:
         # get Q-func.
         for s in range(self.n_states):
             q_func_list = []
-            if s == 0:
+            if s in self.terminal_states:
                 for a in range(self.n_actions):
                     new_policy[s][a] = 0.00
             else:
                 for a in range(self.n_actions):
-                    s_ = self.env.get_state(s, a)
+                    s_ = int(self.env.get_state(s, a))
                     q_func_list.append(state_values[s_])
                 max_actions = [action_v for action_v, x in enumerate(q_func_list) if x == max(q_func_list)]
 
@@ -95,7 +97,7 @@ class Policy_Iteration:
         action_meanings = self.env.action_meanings
         action_table = []
         for s in range(self.n_states):
-            if s == 0:
+            if s in self.terminal_states:
                 action_table.append('T')
             else:
                 idx = np.argmax(self.policy[s])

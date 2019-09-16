@@ -14,10 +14,8 @@ from rl_main.environments.environment import Environment
 # 0: up 1: right 2: down 3: left
 
 # rewards
-# 0   -1  -1  -1
-# -1  -1  -1  -1
-# -1  -1  -1  -1
-# -1  -1  -1  0
+# The reward is -1 for all tranistion until the terminal state is reached.
+
 
 class GRIDWORLD_v0(Environment):
     def __init__(self):
@@ -79,6 +77,9 @@ class GRIDWORLD_v0(Environment):
     def get_reward(self, action, state):
         reward = self.env.R[action, state]
         return reward
+
+    def get_terminal_states(self):
+        return [0]
 
 
 # if __name__ == "__main__":
