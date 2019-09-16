@@ -74,7 +74,8 @@ class FrozenLake_v0(Environment):
 
         # self.R[a, s] = Rewards
         self.R = np.full((self.action_space.n,
-                          self.get_n_states()), -1)
+                          self.get_n_states()), 0)
+        self.R[:, ]
         self.R[:, 15] = 1
         print(self.P[2, 14, 15])
 
