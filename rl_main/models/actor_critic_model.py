@@ -70,7 +70,11 @@ class ActorCriticModel(nn.Module):
 
         self.steps_done = 0
 
-        files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "{0}_*".format(self.worker_id)))
+        files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "{0}_{1}_{2}_*".format(
+            self.worker_id,
+            ENVIRONMENT_ID.name,
+            DEEP_LEARNING_MODEL.value,
+        )))
 
         if self.worker_id >= 0:
             if len(files) > 1:
