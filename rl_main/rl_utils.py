@@ -14,12 +14,12 @@ from rl_main.environments.gym.blackjack import Blackjack_v0
 from rl_main.environments.real_device.environment_rip import EnvironmentRIP
 from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
-from rl_main.models.actor_critic_model import Policy
-from rl_main.rl_algorithms.DQN_v0 import DQN_v0
-from rl_main.rl_algorithms.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
-from rl_main.rl_algorithms.PPO_v0 import PPO_v0
-from rl_main.rl_algorithms.DP_Bellman_Expectation_Policy_Iteration import Policy_Iteration
-from rl_main.rl_algorithms.DP_Bellman_Optimality_Value_Iteration import Value_Iteration
+from rl_main.models.actor_critic_model import ActorCriticModel
+from rl_main.algorithms_rl.DQN_v0 import DQN_v0
+from rl_main.algorithms_rl.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
+from rl_main.algorithms_rl.PPO_v0 import PPO_v0
+from rl_main.algorithms_dp.DP_Policy_Iteration import Policy_Iteration
+from rl_main.algorithms_dp.DP_Value_Iteration import Value_Iteration
 
 
 def get_environment(owner="chief"):
@@ -98,12 +98,13 @@ def get_environment(owner="chief"):
     return env
 
 
-def get_rl_model(env):
+def get_rl_model(env, worker_id):
     if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticMLP or DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
-        model = Policy(
+        model = ActorCriticModel(
             s_size=env.n_states,
             a_size=env.n_actions,
             continuous=env.continuous,
+            worker_id=worker_id,
             device=device
         ).to(device)
     elif DEEP_LEARNING_MODEL == DeepLearningModelName.NoModel:

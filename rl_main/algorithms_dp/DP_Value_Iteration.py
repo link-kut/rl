@@ -11,6 +11,9 @@ class Value_Iteration:
         self.n_states = self.env.get_n_states()
         self.n_actions = self.env.get_n_actions()
 
+        self.terminal_states = self.env.get_terminal_states()
+        self.goal_states = self.env.get_goal_states()
+
         self.state_values = np.zeros([self.n_states], dtype=float)
         self.actions = [act for act in range(self.n_actions)]
 
@@ -25,7 +28,7 @@ class Value_Iteration:
 
         # iteration
         for s in range(self.n_states):
-            if s == 0:
+            if s in self.terminal_states:
                 value_t = 0.0
                 next_state_values[s] = value_t
             else:
@@ -44,7 +47,7 @@ class Value_Iteration:
         # get Q-func.
         for s in range(self.n_states):
             q_func_list = []
-            if s == 0:
+            if s in self.terminal_states:
                 for a in range(self.n_actions):
                     deterministic_policy[s][a] = 0.00
             else:
@@ -80,8 +83,10 @@ class Value_Iteration:
         action_meanings = self.env.action_meanings
         action_table = []
         for s in range(self.n_states):
-            if s == 0:
+            if s in self.terminal_states:
                 action_table.append('T')
+            elif s in self.goal_states:
+                action_table.append('G')
             else:
                 idx = np.argmax(deterministic_policy[s])
                 action_table.append(action_meanings[idx])

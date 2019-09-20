@@ -143,9 +143,9 @@ def ask_file_removal():
     for f in files:
         os.remove(f)
 
-    files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
-    for f in files:
-        os.remove(f)
+    # files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
+    # for f in files:
+    #     os.remove(f)
 
     files = glob.glob(os.path.join(PROJECT_HOME, "save_results", "*"))
     for f in files:

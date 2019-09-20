@@ -17,9 +17,11 @@ FixedCategorical = torch.distributions.Categorical
 
 old_sample = FixedCategorical.sample
 FixedCategorical.sample = lambda self: old_sample(self).unsqueeze(-1)
+FixedCategorical.old_sample = old_sample
 
 log_prob_cat = FixedCategorical.log_prob
 FixedCategorical.log_probs = lambda self, actions: log_prob_cat(self, actions.squeeze(-1)).view(actions.size(0), -1).sum(-1).unsqueeze(-1)
+FixedCategorical.log_prob_cat = log_prob_cat
 
 FixedCategorical.mode = lambda self: self.probs.argmax(dim=-1, keepdim=True)
 
@@ -72,3 +74,31 @@ class DistDiagGaussian(nn.Module):
 
         action_logstd = self.logstd(zeros)
         return FixedNormal(action_mean, action_logstd.exp())
+
+
+if __name__ == "__main__":
+    logits = torch.tensor(data=[0.3, 0.7])
+    fc = FixedCategorical(logits=logits)
+    for i in range(10):
+        sample = fc.sample()
+        log_prob = fc.log_probs(sample)
+        mode = fc.mode()
+        print("sample: {0}, log_prob: {1}, mode: {2}".format(
+            sample,
+            log_prob,
+            mode,
+            end=", "
+        ))
+
+    print()
+
+    for i in range(10):
+        old_sample = fc.old_sample()
+        log_prob_cat = fc.log_prob_cat(old_sample)
+        print("old_sample: {0} (type:{1}), log_prob_cat: {2} (type:{3})".format(
+            old_sample,
+            type(old_sample),
+            log_prob_cat,
+            type(log_prob_cat),
+            end=", "
+        ))

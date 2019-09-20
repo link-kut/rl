@@ -34,7 +34,7 @@ class Monte_Carlo_Control_v0:
         self.gamma = GAMMA
 
         self.Q = {}
-        self.epsilon = 0.2
+        self.epsilon = EPSILON_START
 
     def check_if_state_and_all_actions_in_Q(self, state):
         is_state_and_action_in_Q = True
@@ -107,7 +107,8 @@ class Monte_Carlo_Control_v0:
                     print(" action: {0} --> q_value: {1}".format(action, self.Q[state][action]))
 
     def on_episode(self, episode):
-        self.epsilon = EPSILON_END + (EPSILON_START - EPSILON_END) * math.exp(-1. * episode / EPSILON_DECAY_RATE)
+        if EPSILON_DECAY:
+            self.epsilon = EPSILON_END + (EPSILON_START - EPSILON_END) * math.exp(-1. * episode / EPSILON_DECAY_RATE)
 
         episode_trajectory, win = self.get_episode_trajectory()
 
