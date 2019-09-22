@@ -273,9 +273,15 @@ class CNNBase(nn.Module):
         self.continuous = continuous
 
         from rl_main.utils import get_conv2d_size, get_pool2d_size
-        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=4)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=2)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=0, stride=1)
+        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=3, padding=0, stride=1)
+        print(h, w)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=1, stride=1)
+        print(h, w)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=1, stride=1)
+        print(h, w)
+        # h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=4)
+        # h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=2)
+        # h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=0, stride=1)
 
         if self.continuous:
             init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0),
@@ -332,3 +338,7 @@ class CNNBase(nn.Module):
     def output_size(self):
         return self.cnn_critic_hidden_1_size
 
+
+if __name__ == "__main__":
+    cnnBase = CNNBase(input_channels=2, input_height=5, input_width=5, continuous=False)
+    print(cnnBase)

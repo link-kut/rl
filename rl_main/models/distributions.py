@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -73,21 +75,31 @@ class DistDiagGaussian(nn.Module):
             zeros = zeros.cuda()
 
         action_logstd = self.logstd(zeros)
-        return FixedNormal(action_mean, action_logstd.exp())
+        return FixedNormal(loc=action_mean, scale=action_logstd.exp())
 
 
 if __name__ == "__main__":
     logits = torch.tensor(data=[0.3, 0.7])
-    fc = FixedCategorical(logits=logits)
+
+    softmax = logits.softmax(dim=0)
+    print("############# FixedCategorical #############")
+    print("Softmax: {0} with regard to logits: {1}\n".format(softmax, logits))
+
+    fc = FixedCategorical(logits=logits) # FixedCategorical := torch.distributions.Categorical
+
     for i in range(10):
         sample = fc.sample()
         log_prob = fc.log_probs(sample)
         mode = fc.mode()
-        print("sample: {0}, log_prob: {1}, mode: {2}".format(
+        print("sample: {0} (size: {1}), log_prob: {2} (size: {3}) :: {4:7.4}, {5:7.4}, {6:7.4}, mode: {7}".format(
             sample,
+            sample.size(),
             log_prob,
-            mode,
-            end=", "
+            log_prob.size(),
+            math.log(logits[sample.item()], math.e),
+            math.log(softmax[sample.item()], math.e), #softmax[1] --> 0.5987 --> log_e 0.5987 = -0.5130
+            math.exp(log_prob.item()),
+            mode
         ))
 
     print()
@@ -95,10 +107,26 @@ if __name__ == "__main__":
     for i in range(10):
         old_sample = fc.old_sample()
         log_prob_cat = fc.log_prob_cat(old_sample)
-        print("old_sample: {0} (type:{1}), log_prob_cat: {2} (type:{3})".format(
+        print("old_sample: {0} (size:{1}), log_prob_cat: {2} (size:{3})".format(
             old_sample,
-            type(old_sample),
+            old_sample.size(),
             log_prob_cat,
-            type(log_prob_cat),
+            log_prob_cat.size()
+        ))
+
+    print()
+    print("############# FixedNormal #############")
+
+    fn = FixedNormal(loc=0.0, scale=1.0) # FixedNormal := torch.distributions.Normal (loc --> mean, scale --> std)
+
+    for i in range(10):
+        sample = fn.sample()
+        log_prob = fn.log_probs(sample)
+        mode = fn.mode()
+        print("sample: {0}, log_prob: {1} ({2:7.4}), mode: {3}".format(
+            sample,
+            log_prob,
+            math.exp(log_prob.item()),
+            mode,
             end=", "
         ))
