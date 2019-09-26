@@ -12,8 +12,8 @@ class CartPole_v0(Environment):
         self.state_shape = self.get_state_shape()
 
         self.continuous = False
-        self.WIN_AND_LEARN_FINISH_SCORE = 2500
-        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 10
+        self.WIN_AND_LEARN_FINISH_SCORE = 195
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 100
 
     def get_n_states(self):
         n_states = int(self.env.observation_space.shape[0] / 2)
@@ -64,3 +64,8 @@ class CartPole_v1(CartPole_v0):
     def __init__(self):
         self.env = gym.make(EnvironmentName.CARTPOLE_V1.value)
         super(CartPole_v1, self).__init__()
+        self.env._max_episode_steps = 5000
+        self.WIN_AND_LEARN_FINISH_SCORE = 2500
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 10
+
+
