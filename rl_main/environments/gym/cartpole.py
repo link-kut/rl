@@ -58,3 +58,9 @@ class CartPole_v0(Environment):
 
     def close(self):
         self.env.close()
+
+
+class CartPole_v1(CartPole_v0):
+    def __init__(self):
+        self.env = gym.make(EnvironmentName.CARTPOLE_V1.value)
+        super(CartPole_v1, self).__init__()

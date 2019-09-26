@@ -7,7 +7,7 @@ from rl_main.environments.gym.frozenlake import FrozenLake_v0
 from rl_main.main_constants import *
 
 from rl_main.environments.gym.breakout import BreakoutDeterministic_v4
-from rl_main.environments.gym.cartpole import CartPole_v0
+from rl_main.environments.gym.cartpole import CartPole_v0, CartPole_v1
 from rl_main.environments.gym.pendulum import Pendulum_v0
 from rl_main.environments.gym.gridworld import GRIDWORLD_v0
 from rl_main.environments.gym.blackjack import Blackjack_v0
@@ -79,6 +79,8 @@ def get_environment(owner="chief"):
 
     elif ENVIRONMENT_ID == EnvironmentName.CARTPOLE_V0:
         env = CartPole_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.CARTPOLE_V1:
+        env = CartPole_v1()
     elif ENVIRONMENT_ID == EnvironmentName.CHASER_V1_MAC or ENVIRONMENT_ID == EnvironmentName.CHASER_V1_WINDOWS:
         env = Chaser_v1(MY_PLATFORM)
     elif ENVIRONMENT_ID == EnvironmentName.BREAKOUT_DETERMINISTIC_V4:
