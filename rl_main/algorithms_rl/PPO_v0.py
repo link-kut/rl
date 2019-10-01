@@ -60,7 +60,7 @@ class PPO_v0:
             else:
                 state_lst.append(s.numpy())
 
-            action_lst.append([a])
+            action_lst.append(a)
             reward_lst.append([r])
 
             if type(s) is np.ndarray:
@@ -74,13 +74,12 @@ class PPO_v0:
             done_mask_lst.append([done_mask])
 
         state_lst = torch.tensor(state_lst, dtype=torch.float).to(device)
-        action_lst = torch.tensor(action_lst).to(device)
+        # action_lst = torch.tensor(action_lst).to(device)
+        action_lst = torch.cat(action_lst, 0).to(device)
         reward_lst = torch.tensor(reward_lst).to(device)
         next_state_lst = torch.tensor(next_state_lst, dtype=torch.float).to(device)
         done_mask_lst = torch.tensor(done_mask_lst, dtype=torch.float).to(device)
         prob_action_lst = torch.tensor(prob_action_lst).to(device)
-
-
 
         # print("After - Trajectory Size: {0}".format(len(self.trajectory)))
 

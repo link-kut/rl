@@ -44,7 +44,6 @@ class Ant_v2(Environment):
         return state
 
     def step(self, action):
-        action = int(action.item())
         next_state, reward, done, info = self.env.step(action)
         adjusted_reward = reward / 100
 

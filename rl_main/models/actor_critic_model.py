@@ -92,8 +92,7 @@ class ActorCriticModel(nn.Module):
 
     def act(self, inputs, deterministic=False):
         if not (type(inputs) is torch.Tensor):
-            inputs = torch.tensor(inputs, dtype=torch.float).to(self.device)
-
+            inputs = torch.tensor([inputs], dtype=torch.float).to(self.device)
         _, actor_features = self.base(inputs)
         dist = self.dist(actor_features)
 
@@ -102,10 +101,10 @@ class ActorCriticModel(nn.Module):
         else:
             action = dist.sample()
 
-        if self.continuous:
-            action = torch.tensor([action.item()], device=device, dtype=torch.float)
-        else:
-            action = torch.tensor([action.item()], device=device, dtype=torch.long)
+        # if self.continuous:
+        #     action = torch.tensor([action.item()], device=device, dtype=torch.float)
+        # else:
+        #     action = torch.tensor([action.item()], device=device, dtype=torch.long)
 
         action_log_probs = dist.log_probs(action)
 
