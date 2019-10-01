@@ -85,6 +85,33 @@
 - python -c 'import torch; print(torch.rand(2,3).cuda())'
 - nvidia-smi
 
+### 11. mujoco-py 설치 with mjpro150 or mujoco200 설치
+- 참고
+    - https://www.roboti.us/index.html
+    - 위 사이트에서 mjpro150 혹은 mujoco200을 ~/.mujoco/ 경로에 다운로드받아 압축풀기
+    - ~/.mujoco/ 경로에 mujoco 인증키 mjkey.txt 를 옮겨놓기
+    - 이 후 설치는 아래 사이트 참고
+    - https://github.com/openai/mujoco-py#install-mujoco
+
+### 12. mujoco-worldgen
+설치 11의 mjpro150이 설치 되어있어야함
+- https://github.com/openai/mujoco-worldgen
+    - cd ~/.mujoco
+    - git clone https://github.com/openai/mujoco-worldgen.git
+    - xcode-select --install
+    - open /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
+    - pip install -r mujoco-worldgen/requirements.txt
+
+### 13. multi-agent-emergence-environments
+- 참고
+- https://github.com/openai/multi-agent-emergence-environments
+    - baselines를 아래 사이트 참고하여 설치
+    - https://github.com/openai/baselines
+    - brew install cmake openmpi
+    - cd baselines
+    - pip install -e .
+
+
 ### 참고 문헌
 - https://medium.com/aureliantactics/ppo-hyperparameters-and-ranges-6fc2d29bccbev
 - https://arxiv.org/pdf/1709.06009.pdf
