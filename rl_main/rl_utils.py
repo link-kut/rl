@@ -2,7 +2,6 @@ import json
 
 import paho.mqtt.client as mqtt
 from torch import optim
-
 from rl_main.environments.gym.frozenlake import FrozenLake_v0
 from rl_main.main_constants import *
 
@@ -14,6 +13,7 @@ from rl_main.environments.gym.blackjack import Blackjack_v0
 from rl_main.environments.real_device.environment_rip import EnvironmentRIP
 from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
+from rl_main.environments.mujoco.inverted_double_pendulum import InvertedDoublePendulum_v2
 from rl_main.models.actor_critic_model import ActorCriticModel
 from rl_main.algorithms_rl.DQN_v0 import DQN_v0
 from rl_main.algorithms_rl.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
@@ -95,6 +95,8 @@ def get_environment(owner="chief"):
         env = Blackjack_v0()
     elif ENVIRONMENT_ID == EnvironmentName.FROZENLAKE_V0:
         env = FrozenLake_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.INVERTEDDOUBLEPENDULUM_V2:
+        env = InvertedDoublePendulum_v2()
     else:
         env = None
     return env
