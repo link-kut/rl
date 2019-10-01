@@ -23,7 +23,16 @@ class EnvironmentName(enum.Enum):
     DRONE_RACING_WINDOWS = os.path.join(PROJECT_HOME, "rl_main", "environments", "unity", "unity_envs", "Dron_Racing.exe")
     GRIDWORLD_V0 = 'Gridworld-v0'
     FROZENLAKE_V0 = 'FrozenLake-v0'
-    INVERTEDDOUBLEPENDULUM_V2 = 'InvertedDoublePendulum-v2'
+    INVERTED_DOUBLE_PENDULUM_V2 = 'InvertedDoublePendulum-v2'
+    HOPPER_V2 = 'Hopper-v2'
+    ANT_V2 = 'Ant-v2'
+    HALF_CHEETAH_V2 = 'HalfCheetah-v2'
+    SWIMMER_V2 = 'Swimmer-v2'
+    REACHER_V2 = 'Reacher-v2'
+    HUMANOID_V2 = 'Humanoid-v2'
+    HUMANOID_STAND_UP_V2 = 'HumanoidStandup-v2'
+    INVERTED_PENDULUM_V2 = 'InvertedPendulum-v2'
+    WALKER_2D_V2 = 'Walker2d-v2'
 
 
 class DeepLearningModelName(enum.Enum):

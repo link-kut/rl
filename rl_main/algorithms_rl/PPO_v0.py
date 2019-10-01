@@ -252,7 +252,6 @@ class PPO_v0:
                 #start_time = datetime.datetime.now()
                 if self.env_render:
                     self.env.render()
-
                 action, prob = self.model.act(state)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)

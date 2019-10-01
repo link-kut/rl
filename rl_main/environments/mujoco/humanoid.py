@@ -4,10 +4,10 @@ from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 
-class InvertedDoublePendulum_v2(Environment):
+class Humanoid_v2(Environment):
     def __init__(self):
-        self.env = gym.make(EnvironmentName.INVERTED_DOUBLE_PENDULUM_V2.value)
-        super(InvertedDoublePendulum_v2, self).__init__()
+        self.env = gym.make(EnvironmentName.HUMANOID_V2.value)
+        super(Humanoid_v2, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
 
