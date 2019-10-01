@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+import datetime
 import sys
-
+import time
 
 import numpy as np
 import random
@@ -31,7 +32,7 @@ class PPO_v0:
         self.logger = logger
         self.verbose = verbose
 
-        self.model = rl_utils.get_rl_model(self.env)
+        self.model = rl_utils.get_rl_model(self.env, self.worker_id)
 
         self.optimizer = rl_utils.get_optimizer(
             parameters=self.model.parameters(),
@@ -248,6 +249,7 @@ class PPO_v0:
             state = self.env.reset()
             number_of_reset_call += 1.0
             while not done:
+                #start_time = datetime.datetime.now()
                 if self.env_render:
                     self.env.render()
 
@@ -262,6 +264,9 @@ class PPO_v0:
 
                 state = next_state
                 score += reward
+                #elapsed_time = datetime.datetime.now() - start_time
+
+                #print(elapsed_time, " !!!")
 
         avrg_score = score / number_of_reset_call
         gradients, loss = self.train_net()

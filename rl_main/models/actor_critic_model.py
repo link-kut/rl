@@ -1,4 +1,6 @@
 # https://github.com/ikostrikov/pytorch-a2c-ppo-acktr-gail
+import glob
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,9 +24,11 @@ class Flatten(nn.Module):
         return x.view(x.size(0), -1)
 
 
-class Policy(nn.Module):
-    def __init__(self, s_size, a_size, continuous, device):
-        super(Policy, self).__init__()
+class ActorCriticModel(nn.Module):
+    def __init__(self, s_size, a_size, continuous, worker_id, device):
+        super(ActorCriticModel, self).__init__()
+
+        self.worker_id = worker_id
 
         if DEEP_LEARNING_MODEL == DeepLearningModelName.ActorCriticCNN:
             self.input_channels = s_size[0]
@@ -42,11 +46,11 @@ class Policy(nn.Module):
                 num_inputs=s_size,
                 continuous=continuous
             )
+
             self.s_size = s_size
             self.hidden_1_size = self.base.hidden_1_size
             self.hidden_2_size = self.base.hidden_2_size
             self.hidden_3_size = self.base.hidden_3_size
-
         else:
             raise NotImplementedError
 
@@ -65,6 +69,23 @@ class Policy(nn.Module):
         self.reset_average_gradients()
 
         self.steps_done = 0
+
+        files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "{0}_{1}_{2}_*".format(
+            self.worker_id,
+            ENVIRONMENT_ID.name,
+            DEEP_LEARNING_MODEL.value,
+        )))
+
+        if self.worker_id >= 0:
+            if len(files) > 1:
+                print("Worker ID - {0}: Problem occurs since there are two or more save files".format(self.worker_id))
+            elif len(files) == 1:
+                filename = files[0]
+                self.load_state_dict(torch.load(filename))
+                self.eval()
+                print("Worker ID - {0}: Successful Model Load From {1}".format(self.worker_id, filename))
+            else:
+                print("Worker ID - {0}: There is no saved model".format(self.worker_id))
 
     def forward(self, inputs):
         raise NotImplementedError
@@ -252,9 +273,15 @@ class CNNBase(nn.Module):
         self.continuous = continuous
 
         from rl_main.utils import get_conv2d_size, get_pool2d_size
-        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=4)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=2)
-        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=0, stride=1)
+        h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=3, padding=0, stride=1)
+        print(h, w)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=1, stride=1)
+        print(h, w)
+        h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=1, stride=1)
+        print(h, w)
+        # h, w = get_conv2d_size(h=input_height, w=input_width, kernel_size=8, padding=0, stride=4)
+        # h, w = get_conv2d_size(h=h, w=w, kernel_size=4, padding=0, stride=2)
+        # h, w = get_conv2d_size(h=h, w=w, kernel_size=3, padding=0, stride=1)
 
         if self.continuous:
             init_ = lambda m: util_init(m, nn.init.orthogonal_, lambda x: nn.init.constant_(x, 0),
@@ -311,3 +338,7 @@ class CNNBase(nn.Module):
     def output_size(self):
         return self.cnn_critic_hidden_1_size
 
+
+if __name__ == "__main__":
+    cnnBase = CNNBase(input_channels=2, input_height=5, input_width=5, continuous=False)
+    print(cnnBase)

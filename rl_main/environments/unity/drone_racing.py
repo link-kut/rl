@@ -33,6 +33,8 @@ class Drone_Racing(Environment):
         self.skipping_state_fq = 3
         self.skipping_state_index = 0
 
+        self.WIN_AND_LEARN_FINISH_SCORE = 200
+
     def get_n_states(self):
         return self.env.observation_space.shape[0]
 
@@ -43,6 +45,9 @@ class Drone_Racing(Environment):
         return self.env.observation_space
 
     def get_action_shape(self):
+        return self.env.action_space
+
+    def get_action_space(self):
         return self.env.action_space
 
     @property

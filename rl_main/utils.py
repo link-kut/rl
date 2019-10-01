@@ -73,8 +73,8 @@ def print_configuration(env, rl_model):
         print(" MODE3: PARAMETERS_TRANSFER vs. [NO PARAMETERS_TRANSFER]")
 
     print("\n*** MY_PLATFORM & ENVIRONMENT ***")
-    print(" Platform:" + MY_PLATFORM.value)
-    print(" Environment Name:" + ENVIRONMENT_ID.value)
+    print(" Platform: " + MY_PLATFORM.value)
+    print(" Environment Name: " + ENVIRONMENT_ID.value)
     print(" Action Space: {0} - {1}".format(env.get_n_actions(), env.action_meanings))
 
     print("\n*** RL ALGORITHM ***")
@@ -143,9 +143,9 @@ def ask_file_removal():
     for f in files:
         os.remove(f)
 
-    files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
-    for f in files:
-        os.remove(f)
+    # files = glob.glob(os.path.join(PROJECT_HOME, "model_save_files", "*"))
+    # for f in files:
+    #     os.remove(f)
 
     files = glob.glob(os.path.join(PROJECT_HOME, "save_results", "*"))
     for f in files:

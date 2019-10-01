@@ -58,3 +58,14 @@ class CartPole_v0(Environment):
 
     def close(self):
         self.env.close()
+
+
+class CartPole_v1(CartPole_v0):
+    def __init__(self):
+        self.env = gym.make(EnvironmentName.CARTPOLE_V1.value)
+        super(CartPole_v1, self).__init__()
+        self.env._max_episode_steps = 5000
+        self.WIN_AND_LEARN_FINISH_SCORE = 2500
+        self.WIN_AND_LEARN_FINISH_CONTINUOUS_EPISODES = 10
+
+
