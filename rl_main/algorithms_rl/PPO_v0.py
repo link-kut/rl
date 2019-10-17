@@ -47,8 +47,8 @@ class PPO_v0:
 
         state_lst, action_lst, reward_lst, next_state_lst, prob_action_lst, done_mask_lst = [], [], [], [], [], []
         if sampling:
-            sampling_index = random.randrange(0, len(self.trajectory)-TRAJECTORY_BATCH_SIZE+1)
-            trajectory = self.trajectory[sampling_index:sampling_index+TRAJECTORY_BATCH_SIZE]
+            sampling_index = random.randrange(0, len(self.trajectory) - TRAJECTORY_BATCH_SIZE + 1)
+            trajectory = self.trajectory[sampling_index : sampling_index + TRAJECTORY_BATCH_SIZE]
         else:
             trajectory = self.trajectory
 
@@ -122,7 +122,7 @@ class PPO_v0:
             v_target = reward_lst + self.gamma * self.model.get_critic_value(next_state_lst) * done_mask_lst
 
             delta = v_target - state_values
-            delta = delta.cpu().detach().numpy()
+            delta = delta.detach().numpy()
 
             advantage_lst = []
             advantage = 0.0
@@ -130,9 +130,11 @@ class PPO_v0:
                 advantage = self.gamma * GAE_LAMBDA * done_mask_lst[i] * advantage + delta_t[0]
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
-            advantage = torch.tensor(advantage_lst, device=device, dtype=torch.float)
-            advantage = (advantage - advantage.mean()) / torch.max(advantage.std(), torch.tensor(1e-6, device=device, dtype=torch.float)).to(device)
-            advantage = advantage.detach()
+            advantage_lst = torch.tensor(advantage_lst, device=device, dtype=torch.float)
+            advantage_lst = (advantage_lst - advantage.mean() + torch.tensor(1e-6, dtype=torch.float)) / torch.max(
+                advantage_lst.std(),
+                torch.tensor(1e-6, dtype=torch.float)
+            )
 
             critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=state_values, target=v_target.detach())
             # critic_loss = PPO_VALUE_LOSS_WEIGHT * F.smooth_l1_loss(input=state_values, target=discount_r.detach())
@@ -144,11 +146,11 @@ class PPO_v0:
             _, new_prob_action_lst, dist_entropy = self.model.evaluate_for_other_actions(state_lst, action_lst)
 
             ratio = torch.exp(new_prob_action_lst - prob_action_lst)  # a/b == exp(log(a)-log(b))
-            surr1 = ratio * advantage
-            surr2 = torch.clamp(ratio, 1 - PPO_EPSILON_CLIP, 1 + PPO_EPSILON_CLIP) * advantage
+            surr1 = ratio * advantage_lst
+            surr2 = torch.clamp(ratio, 1 - PPO_EPSILON_CLIP, 1 + PPO_EPSILON_CLIP) * advantage_lst
 
             # loss = -torch.mean(torch.min(surr1, surr2)) + PPO_VALUE_LOSS_WEIGHT * torch.mean(
-            #     torch.mul(advantage, advantage)) - PPO_ENTROPY_WEIGHT * dist_entropy
+            #     torch.mul(advantage_lst, advantage_lst)) - PPO_ENTROPY_WEIGHT * dist_entropy
 
             actor_loss = - torch.min(surr1, surr2).to(device) - PPO_ENTROPY_WEIGHT * dist_entropy
 
@@ -160,7 +162,7 @@ class PPO_v0:
 
             # print("state_lst_mean: {0}".format(state_lst.mean()))
             # print("next_state_lst_mean: {0}".format(next_state_lst.mean()))
-            # print("advantage: {0}".format(advantage[:3]))
+            # print("advantage_lst: {0}".format(advantage_lst[:3]))
             # print("pi: {0}".format(pi[:3]))
             # print("prob: {0}".format(new_prob_action_lst[:3]))
             # print("prob_action_lst: {0}".format(prob_action_lst[:3]))
