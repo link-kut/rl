@@ -1,13 +1,13 @@
 import gym
-import torch
+
 from rl_main.conf.names import EnvironmentName
 from rl_main.environments.environment import Environment
 
 
-class Pendulum_v0(Environment):
+class HumanoidStandUp_v2(Environment):
     def __init__(self):
-        self.env = gym.make(EnvironmentName.PENDULUM_V0.value)
-        super(Pendulum_v0, self).__init__()
+        self.env = gym.make(EnvironmentName.HUMANOID_STAND_UP_V2.value)
+        super(HumanoidStandUp_v2, self).__init__()
         self.action_shape = self.get_action_shape()
         self.state_shape = self.get_state_shape()
 
@@ -28,7 +28,7 @@ class Pendulum_v0(Environment):
         return state_shape
 
     def get_action_shape(self):
-        action_shape = (self.env.action_space.shape[0],)
+        action_shape = (self.env.action_space.shape[0], )
         return action_shape
 
     def get_action_space(self):
@@ -36,7 +36,7 @@ class Pendulum_v0(Environment):
 
     @property
     def action_meanings(self):
-        action_meanings = ["Joint effort",]
+        action_meanings = ["-1. ~ 1.", ]
         return action_meanings
 
     def reset(self):
@@ -45,9 +45,7 @@ class Pendulum_v0(Environment):
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
-        if type(reward) == torch.Tensor:
-            reward = reward.item()
-        adjusted_reward = reward
+        adjusted_reward = reward / 100
 
         return next_state, reward, adjusted_reward, done, info
 

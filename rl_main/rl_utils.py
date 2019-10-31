@@ -2,7 +2,6 @@ import json
 
 import paho.mqtt.client as mqtt
 from torch import optim
-
 from rl_main.environments.gym.frozenlake import FrozenLake_v0
 from rl_main.main_constants import *
 
@@ -14,6 +13,16 @@ from rl_main.environments.gym.blackjack import Blackjack_v0
 from rl_main.environments.real_device.environment_rip import EnvironmentRIP
 from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
+from rl_main.environments.mujoco.inverted_double_pendulum import InvertedDoublePendulum_v2
+from rl_main.environments.mujoco.hopper import Hopper_v2
+from rl_main.environments.mujoco.ant import Ant_v2
+from rl_main.environments.mujoco.half_cheetah import HalfCheetah_v2
+from rl_main.environments.mujoco.swimmer import Swimmer_v2
+from rl_main.environments.mujoco.reacher import Reacher_v2
+from rl_main.environments.mujoco.humanoid import Humanoid_v2
+from rl_main.environments.mujoco.humanoid_stand_up import HumanoidStandUp_v2
+from rl_main.environments.mujoco.inverted_pendulum import InvertedPendulum_v2
+from rl_main.environments.mujoco.walker_2d import Walker2D_v2
 from rl_main.models.actor_critic_model import ActorCriticModel
 from rl_main.algorithms_rl.DQN_v0 import DQN_v0
 from rl_main.algorithms_rl.Monte_Carlo_Control_v0 import Monte_Carlo_Control_v0
@@ -95,6 +104,26 @@ def get_environment(owner="chief"):
         env = Blackjack_v0()
     elif ENVIRONMENT_ID == EnvironmentName.FROZENLAKE_V0:
         env = FrozenLake_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.INVERTED_DOUBLE_PENDULUM_V2:
+        env = InvertedDoublePendulum_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.HOPPER_V2:
+        env = Hopper_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.ANT_V2:
+        env = Ant_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.HALF_CHEETAH_V2:
+        env = HalfCheetah_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.SWIMMER_V2:
+        env = Swimmer_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.REACHER_V2:
+        env = Reacher_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.HUMANOID_V2:
+        env = Humanoid_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.HUMANOID_STAND_UP_V2:
+        env = HumanoidStandUp_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.INVERTED_PENDULUM_V2:
+        env = InvertedPendulum_v2()
+    elif ENVIRONMENT_ID == EnvironmentName.WALKER_2D_V2:
+        env = Walker2D_v2()
     else:
         env = None
     return env
