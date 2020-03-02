@@ -20,6 +20,9 @@ class PPO_v0:
 
         self.worker_id = worker_id
 
+        # random noise
+        self.noise = 0.05 * np.random.randn(2)
+
         # discount rate
         self.gamma = gamma
 
@@ -247,7 +250,7 @@ class PPO_v0:
 
         while not len(self.trajectory) >= max_trajectory_len:
             done = False
-            state = self.env.reset()
+            state = self.env.reset() + self.noise
             number_of_reset_call += 1.0
             while not done:
                 #start_time = datetime.datetime.now()
@@ -262,7 +265,7 @@ class PPO_v0:
                 else:
                     self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
-                state = next_state
+                state = next_state + self.noise
                 score += reward
                 #elapsed_time = datetime.datetime.now() - start_time
 
