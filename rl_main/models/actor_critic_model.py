@@ -257,7 +257,7 @@ class ActorCriticModel(nn.Module):
             for name, param in named_parameters:
                 if soft_transfer:
                     # param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
-                    score_weighted_tau[self.worker_id] = scores[self.worker_id] / -500
+                    score_weighted_tau[self.worker_id] = scores[self.worker_id] / -4000
                     print(score_weighted_tau)
                     param.data = param.data * score_weighted_tau[self.worker_id] + parameters[layer_name][name] * (1-score_weighted_tau[self.worker_id])
 
