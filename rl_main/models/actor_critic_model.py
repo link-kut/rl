@@ -201,12 +201,30 @@ class ActorCriticModel(nn.Module):
 
         return parameters
 
-    def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
+    def transfer_process(self, parameters, soft_transfer, soft_transfer_tau, scores):
+        c = 0
+        score_weighted_tau = {}
         for layer_name, layer in self.base.layers_info.items():
             named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 if soft_transfer:
-                    param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
+                    # if layer_name == 'actor':
+                    #     if c < 6:
+                    #         param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
+                    #         c += 1
+                    # else:
+                    #     param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
+
+                    score_weighted_tau[self.worker_id] = scores[self.worker_id] / 195
+                    # s = sum(score_weighted_tau)
+                    # score_weighted_tau[self.worker_id] = score_weighted_tau[self.worker_id] / s
+                    if layer_name == 'actor':
+                        if c < 6:
+                            param.data = param.data * (1 - score_weighted_tau[self.worker_id]) + parameters[layer_name][name] * score_weighted_tau[self.worker_id]
+                            c += 1
+                    else:
+                        param.data = param.data * score_weighted_tau[self.worker_id] + parameters[layer_name][name] * (1 - score_weighted_tau[self.worker_id])
+
                 else:
                     param.data = parameters[layer_name][name]
 
@@ -216,7 +234,6 @@ class ActorCriticModel(nn.Module):
                 param.data = param.data * soft_transfer_tau + parameters["actor_linear"][name] * (1 - soft_transfer_tau)
             else:
                 param.data = parameters["actor_linear"][name]
-
 
 class MLPBase(nn.Module):
     def __init__(self, num_inputs, continuous):
