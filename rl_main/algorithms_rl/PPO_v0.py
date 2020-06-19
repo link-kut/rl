@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from rl_main import rl_utils
 from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
     PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE, \
-    LEARNING_RATE
+    LEARNING_RATE, ENVIRONMENT_ID
 
 
 class PPO_v0:
@@ -19,7 +19,7 @@ class PPO_v0:
         self.env = env
 
         self.worker_id = worker_id
-        self.avg_list = [0.002, 0.001, -0.002, -0.001]
+        self.avg_list = [0.001, 0.002, -0.001, -0.002]
         self.scores = {}
 
         # discount rate
@@ -262,8 +262,7 @@ class PPO_v0:
                 # action = np.clip(action, -2.0000, 2.0000)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
-                # print("action: ", action)
-                # print("state: ", next_state)
+
                 if "dead" in info.keys():
                     if info["dead"]:
                         self.put_data((state, action, adjusted_reward, next_state, prob, info["dead"]))
@@ -280,7 +279,7 @@ class PPO_v0:
         avrg_score = score / number_of_reset_call
         self.scores[self.worker_id] = avrg_score
         gradients, loss = self.train_net()
-        #print("episode", episode, action)
+
         return gradients, loss, avrg_score
 
     def get_parameters(self):

@@ -47,7 +47,7 @@ class Pendulum_v0(Environment):
         next_state, reward, done, info = self.env.step(action)
         if type(reward) == torch.Tensor:
             reward = reward.item()
-        adjusted_reward = reward
+        adjusted_reward = (reward + 8) / 8
 
         return next_state, reward, adjusted_reward, done, info
 
