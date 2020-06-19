@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from rl_main import rl_utils
 from rl_main.main_constants import device, PPO_K_EPOCH, GAE_LAMBDA, PPO_EPSILON_CLIP, \
     PPO_VALUE_LOSS_WEIGHT, PPO_ENTROPY_WEIGHT, TRAJECTORY_SAMPLING, TRAJECTORY_LIMIT_SIZE, TRAJECTORY_BATCH_SIZE, \
-    LEARNING_RATE
+    LEARNING_RATE, ENVIRONMENT_ID
 
 
 class PPO_v0:
@@ -19,9 +19,8 @@ class PPO_v0:
         self.env = env
 
         self.worker_id = worker_id
-
-        # random noise
-        self.noise = 0.05 * np.random.randn(2)
+        self.avg_list = [0.001, 0.002, -0.001, -0.002]
+        self.scores = {}
 
         # discount rate
         self.gamma = gamma
@@ -250,7 +249,8 @@ class PPO_v0:
 
         while not len(self.trajectory) >= max_trajectory_len:
             done = False
-            state = self.env.reset() + self.noise
+            # state = self.env.reset() + (0.001 * np.random.randn(2) + self.avg_list[self.worker_id])
+            state = self.env.reset()
             number_of_reset_call += 1.0
             while not done:
                 #start_time = datetime.datetime.now()
@@ -258,26 +258,32 @@ class PPO_v0:
                     self.env.render()
                 action, prob = self.model.act(state)
 
+                # For Pendulum
+                # action = np.clip(action, -2.0000, 2.0000)
+
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
+
                 if "dead" in info.keys():
                     if info["dead"]:
                         self.put_data((state, action, adjusted_reward, next_state, prob, info["dead"]))
                 else:
                     self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
-                state = next_state + self.noise
+                # state = next_state + (0.001 * np.random.randn(2) + self.avg_list[self.worker_id])
+                state = next_state
                 score += reward
                 #elapsed_time = datetime.datetime.now() - start_time
 
                 #print(elapsed_time, " !!!")
 
         avrg_score = score / number_of_reset_call
+        self.scores[self.worker_id] = avrg_score
         gradients, loss = self.train_net()
-        #print("episode", episode, action)
+
         return gradients, loss, avrg_score
 
     def get_parameters(self):
         return self.model.get_parameters()
 
     def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
-        self.model.transfer_process(parameters, soft_transfer, soft_transfer_tau)
+        self.model.transfer_process(parameters, soft_transfer, soft_transfer_tau, self.scores)

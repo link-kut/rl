@@ -10,7 +10,7 @@ MY_PLATFORM = None
 PYTHON_PATH = None
 EMA_WINDOW = 10
 VERBOSE = True
-MODEL_SAVE = True
+MODEL_SAVE = False
 
 # [MQTT]
 MQTT_SERVER = None
@@ -66,7 +66,7 @@ EPSILON_GREEDY_ACT = False
 EPSILON_DECAY = True
 EPSILON_START = 0.9
 EPSILON_END = 0.05
-EPSILON_DECAY_RATE = 200 #Large value means low decaying
+EPSILON_DECAY_RATE = 1000 #Large value means low decaying
 OPTIMIZER = OptimizerName.ADAM
 GAE_LAMBDA = 0.95
 LEARNING_RATE = 0.001
