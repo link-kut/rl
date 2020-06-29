@@ -19,7 +19,7 @@ class PPO_v0:
         self.env = env
 
         self.worker_id = worker_id
-        self.avg_list = [0.001, 0.002, -0.001, -0.002]
+        self.avg_list = [0.002, 0.003, -0.002, -0.003]
         self.scores = {}
 
         # discount rate
@@ -260,6 +260,9 @@ class PPO_v0:
 
                 # For Pendulum
                 # action = np.clip(action, -2.0000, 2.0000)
+
+                # For continuous Env noise
+                action = action + np.random.normal(self.avg_list[self.worker_id], 0.005, 1)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
