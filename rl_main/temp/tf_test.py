@@ -11,6 +11,8 @@ from collections import deque
 from skimage.transform import resize
 from skimage.color import rgb2gray
 
+print(tf.__version__)
+
 plt.ion()
 # DQN paper setting(frameskip = 4, repeat_action_probability = 0)
 # {}Deterministic : frameskip = 4
