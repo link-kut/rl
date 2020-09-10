@@ -10,6 +10,8 @@ from rl_main.environments.gym.cartpole import CartPole_v0, CartPole_v1
 from rl_main.environments.gym.pendulum import Pendulum_v0
 from rl_main.environments.gym.gridworld import GRIDWORLD_v0
 from rl_main.environments.gym.blackjack import Blackjack_v0
+from rl_main.environments.gym.mountaincar import MountainCarContinuous_v0
+from rl_main.environments.gym.acrobot import Acrobot_v1
 from rl_main.environments.real_device.environment_rip import EnvironmentRIP
 from rl_main.environments.unity.chaser_unity import Chaser_v1
 from rl_main.environments.unity.drone_racing import Drone_Racing
@@ -96,6 +98,8 @@ def get_environment(owner="chief"):
         env = BreakoutDeterministic_v4()
     elif ENVIRONMENT_ID == EnvironmentName.PENDULUM_V0:
         env = Pendulum_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.ACROBOT_V1:
+        env = Acrobot_v1()
     elif ENVIRONMENT_ID == EnvironmentName.DRONE_RACING_MAC or ENVIRONMENT_ID == EnvironmentName.DRONE_RACING_WINDOWS:
         env = Drone_Racing(MY_PLATFORM)
     elif ENVIRONMENT_ID == EnvironmentName.GRIDWORLD_V0:
@@ -104,6 +108,8 @@ def get_environment(owner="chief"):
         env = Blackjack_v0()
     elif ENVIRONMENT_ID == EnvironmentName.FROZENLAKE_V0:
         env = FrozenLake_v0()
+    elif ENVIRONMENT_ID == EnvironmentName.MOUNTAINCARCONTINUOUS_V0:
+        env = MountainCarContinuous_v0()
     elif ENVIRONMENT_ID == EnvironmentName.INVERTED_DOUBLE_PENDULUM_V2:
         env = InvertedDoublePendulum_v2()
     elif ENVIRONMENT_ID == EnvironmentName.HOPPER_V2:

@@ -98,7 +98,7 @@ def on_chief_message(client, userdata, msg):
                 transfer_msg = chief.get_transfer_ack_msg(parameters_transferred)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_TRANSFER_ACK, payload=transfer_msg, qos=0, retain=False)
             else:
-                grad_update_msg = chief.get_update_ack_msg()
+                grad_update_msg = chief.get_update_ack_msg(msg_payload=msg_payload)
                 chief_mqtt_client.publish(topic=MQTT_TOPIC_UPDATE_ACK, payload=grad_update_msg, qos=0, retain=False)
 
             chief.messages_received_from_workers[chief.episode_chief].clear()

@@ -64,6 +64,12 @@ class ActorCriticModel(nn.Module):
             self.dist = DistCategorical(self.base.output_size, self.a_size)
 
         self.avg_gradients = {}
+        self.weighted_scores = [0, 0, 0, 0]
+        self.ema_scores = [0, 0, 0, 0]
+        self.id_list = []
+        self.weighted_gradients = {}
+        self.count = 0
+        self.sum = 0
         self.device = device
 
         self.reset_average_gradients()
@@ -140,6 +146,18 @@ class ActorCriticModel(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["actor_linear"][name] = torch.zeros(size=param.size()).to(self.device)
 
+    def reset_weighted_gradients(self):
+        for layer_name, layer in self.base.layers_info.items():
+            named_parameters = layer.to(self.device).named_parameters()
+            self.weighted_gradients[layer_name] = {}
+            for name, param in named_parameters:
+                self.weighted_gradients[layer_name][name] = torch.zeros(size=param.size()).to(self.device)
+
+        named_parameters = self.dist.named_parameters()
+        self.weighted_gradients["actor_linear"] = {}
+        for name, param in named_parameters:
+            self.weighted_gradients["actor_linear"][name] = torch.zeros(size=param.size()).to(self.device)
+
     def get_gradients_for_current_parameters(self):
         gradients = {}
 
@@ -185,6 +203,37 @@ class ActorCriticModel(nn.Module):
         for name, param in named_parameters:
             self.avg_gradients["actor_linear"][name] /= num_workers
 
+    def get_score_weighted_gradients(self, num_workers, scores, gradients, worker_id, episode):
+        self.ema_scores[worker_id] = scores[worker_id][-1]
+        self.sum += scores[worker_id][-1]
+        self.id_list.append(worker_id)
+
+        if episode == 0:
+            for layer_name, layer in self.base.layers_info.items():
+                named_parameters = layer.to(self.device).named_parameters()
+                for name, param in named_parameters:
+                    self.avg_gradients[layer_name][name] += gradients[layer_name][name]
+
+            named_parameters = self.dist.named_parameters()
+            for name, param in named_parameters:
+                self.avg_gradients["actor_linear"][name] += gradients["actor_linear"][name]
+
+        else:
+            for layer_name, layer in self.base.layers_info.items():
+                named_parameters = layer.to(self.device).named_parameters()
+                for name, param in named_parameters:
+                    self.weighted_gradients[layer_name][name] += self.weighted_scores[self.id_list[self.count]] * gradients[layer_name][name]
+            named_parameters = self.dist.named_parameters()
+            for name, param in named_parameters:
+                self.weighted_gradients["actor_linear"][name] += self.weighted_scores[self.id_list[self.count]] * gradients["actor_linear"][name]
+
+        self.count += 1
+        if self.count == num_workers:
+            self.weighted_scores = [score / self.sum for score in self.ema_scores]
+            self.count = 0
+            self.sum = 0
+            self.id_list = []
+
     def get_parameters(self):
         parameters = {}
 
@@ -201,12 +250,17 @@ class ActorCriticModel(nn.Module):
 
         return parameters
 
-    def transfer_process(self, parameters, soft_transfer, soft_transfer_tau):
+    def transfer_process(self, parameters, soft_transfer, soft_transfer_tau, scores):
+        score_weighted_tau = {}
         for layer_name, layer in self.base.layers_info.items():
             named_parameters = layer.to(self.device).named_parameters()
             for name, param in named_parameters:
                 if soft_transfer:
-                    param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
+                    # param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
+                    score_weighted_tau[self.worker_id] = scores[self.worker_id] / -4000
+                    print(score_weighted_tau)
+                    param.data = param.data * score_weighted_tau[self.worker_id] + parameters[layer_name][name] * (1-score_weighted_tau[self.worker_id])
+
                 else:
                     param.data = parameters[layer_name][name]
 
