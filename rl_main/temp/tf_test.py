@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-# 김성훈님 ( https://github.com/hunkim/ReinforcementZeroToAll/blob/master/07_3_dqn_2015_cartpole.py )
-# 김태훈님 ( https://github.com/devsisters/DQN-tensorflow )
-# 코드를 참조했습니다. 감사합니다!
-#
 import tensorflow as tf
 import gym
 
@@ -31,7 +27,7 @@ MEMORY_SIZE = 400000
 EXPLORATION = 1000000
 START_EXPLORATION = 1.
 INPUT = env.observation_space.shape
-OUTPUT = env.observation_space.n
+OUTPUT = env.action_space.n
 HEIGHT = 84
 WIDTH = 84
 LEARNING_RATE = 0.00025
