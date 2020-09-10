@@ -1,6 +1,7 @@
 import sys, os
 import time
 from multiprocessing import Process
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 idx = os.getcwd().index("{0}rl".format(os.sep))
 PROJECT_HOME = os.getcwd()[:idx+1] + "rl{0}".format(os.sep)
