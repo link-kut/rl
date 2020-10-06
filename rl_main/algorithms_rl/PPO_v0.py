@@ -19,7 +19,7 @@ class PPO_v0:
         self.env = env
 
         self.worker_id = worker_id
-        self.avg_list = [0.002, 0.003, -0.002, -0.003]
+        self.avg_list = [0.0002, 0.0003, -0.0002, -0.0003]
         self.scores = {}
 
         # discount rate
@@ -262,7 +262,7 @@ class PPO_v0:
                 # action = np.clip(action, -2.0000, 2.0000)
 
                 # For continuous Env noise
-                action = action + np.random.normal(self.avg_list[self.worker_id], 0.005, 1)
+                # action = action + np.random.normal(self.avg_list[self.worker_id], 0.005, 1)
 
                 next_state, reward, adjusted_reward, done, info = self.env.step(action)
 
@@ -272,7 +272,7 @@ class PPO_v0:
                 else:
                     self.put_data((state, action, adjusted_reward, next_state, prob, done))
 
-                # state = next_state + (0.001 * np.random.randn(2) + self.avg_list[self.worker_id])
+                # state = next_state + (np.random.normal(self.avg_list[self.worker_id], 0.0005, 2))
                 state = next_state
                 score += reward
                 #elapsed_time = datetime.datetime.now() - start_time

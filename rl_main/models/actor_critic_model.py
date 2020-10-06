@@ -7,6 +7,7 @@ import torch.nn as nn
 
 from rl_main.main_constants import *
 from rl_main.models.distributions import DistCategorical, DistDiagGaussian
+from torchsummary import summary
 
 import torch.nn.functional as F
 # from torch.distributions import Categorical
@@ -100,6 +101,7 @@ class ActorCriticModel(nn.Module):
         if not (type(inputs) is torch.Tensor):
             inputs = torch.tensor([inputs], dtype=torch.float).to(self.device)
         _, actor_features = self.base(inputs)
+
         dist = self.dist(actor_features)
 
         if deterministic:
@@ -257,10 +259,8 @@ class ActorCriticModel(nn.Module):
             for name, param in named_parameters:
                 if soft_transfer:
                     # param.data = param.data * soft_transfer_tau + parameters[layer_name][name] * (1 - soft_transfer_tau)
-                    score_weighted_tau[self.worker_id] = scores[self.worker_id] / -4000
-                    print(score_weighted_tau)
+                    score_weighted_tau[self.worker_id] = (1300 - scores[self.worker_id]) / 400
                     param.data = param.data * score_weighted_tau[self.worker_id] + parameters[layer_name][name] * (1-score_weighted_tau[self.worker_id])
-
                 else:
                     param.data = parameters[layer_name][name]
 

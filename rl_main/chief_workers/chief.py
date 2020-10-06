@@ -129,13 +129,13 @@ class Chief:
         self.save_graph()
 
         if topic == MQTT_TOPIC_EPISODE_DETAIL and MODE_GRADIENTS_UPDATE:
-            # self.model.accumulate_gradients(msg_payload['gradients'])
-            if msg_payload['episode'] == 0:
-                self.model.accumulate_gradients(msg_payload['gradients'])
-            else:
-                self.model.get_score_weighted_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS,
-                                                    self.score_over_recent_100_episodes, msg_payload['gradients'],
-                                                    msg_payload['worker_id'], msg_payload['episode'])
+            self.model.accumulate_gradients(msg_payload['gradients'])
+            # if msg_payload['episode'] == 0:
+            #     self.model.accumulate_gradients(msg_payload['gradients'])
+            # else:
+            #     self.model.get_score_weighted_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS,
+            #                                         self.score_over_recent_100_episodes, msg_payload['gradients'],
+            #                                         msg_payload['worker_id'], msg_payload['episode'])
 
         elif topic == MQTT_TOPIC_SUCCESS_DONE:
             self.success_done_episode[msg_payload['worker_id']].append(msg_payload['episode'])
@@ -192,28 +192,28 @@ class Chief:
                 len(self.model.avg_gradients)
             )
 
-            # self.model.get_average_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS)
-            #
-            # grad_update_msg = {
-            #     "episode_chief": self.episode_chief,
-            #     "avg_gradients": self.model.avg_gradients
-            # }
+            self.model.get_average_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS)
+
+            grad_update_msg = {
+                "episode_chief": self.episode_chief,
+                "avg_gradients": self.model.avg_gradients
+            }
             ## weighted_gradients sharing
             # self.model.get_score_weighted_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS, self.score_over_recent_100_episodes, msg_payload['gradients'], msg_payload['worker_id'])
             #
-            if msg_payload['episode'] == 0:
-                self.model.get_average_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS)
-
-                grad_update_msg = {
-                    "episode_chief": self.episode_chief,
-                    "avg_gradients": self.model.avg_gradients
-                }
-
-            else:
-                grad_update_msg = {
-                    "episode_chief": self.episode_chief,
-                    "avg_gradients": self.model.weighted_gradients
-                }
+            # if msg_payload['episode'] == 0:
+            #     self.model.get_average_gradients(NUM_WORKERS - self.NUM_DONE_WORKERS)
+            #
+            #     grad_update_msg = {
+            #         "episode_chief": self.episode_chief,
+            #         "avg_gradients": self.model.avg_gradients
+            #     }
+            #
+            # else:
+            #     grad_update_msg = {
+            #         "episode_chief": self.episode_chief,
+            #         "avg_gradients": self.model.weighted_gradients
+            #     }
         else:
             log_msg = "[SEND] TOPIC: {0}, PAYLOAD: 'episode': {1}\n".format(
                 MQTT_TOPIC_UPDATE_ACK,
